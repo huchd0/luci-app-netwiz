@@ -16,7 +16,7 @@ jobs:
         uses: sbwml/openwrt-gh-action-sdk@main   
         env:
           ARCH: x86_64-23.05.5
-          FEEDNAME: custom  
+          # 🚨 删除了 FEEDNAME 变量，直接进行核心直编 🚨
           PACKAGES: luci-app-netwiz
           NO_REFRESH_CHECK: true
 
@@ -24,5 +24,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-netwiz
-          path: bin/packages/*/custom/luci-app-netwiz*.ipk  # 👈 注意：这里的路径也要把 packages 改成 custom
+          # 🎯 采用双星号终极通配符，不管包掉落到哪个子目录都能精准抓取！
+          path: bin/packages/*/*/luci-app-netwiz*.ipk
           compression-level: 0
