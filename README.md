@@ -80,6 +80,7 @@ rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* && /etc/init.d/rpcd restart
 ## 💡 常见问题 (FAQ)
 
 Q: 安装后点击菜单提示 HTTP 404 或 Object not found？
+
 A: 这是 OpenWrt 系统的前端缓存机制所致。请在 SSH 中执行彻底清理命令：
 ```bash
 rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* && /etc/init.d/rpcd restart
@@ -87,6 +88,7 @@ rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* && /etc/init.d/rpcd restart
 并在浏览器中使用无痕模式重新登录路由器即可。
 
 Q: 在旁路由模式切换 IP 后为什么打不开网页了？
+
 A: 如果您在“旁路由模式”中修改了本机的静态 IP，点击保存后路由器会自动应用新 IP。此时原有的网页地址已经失效，请在浏览器地址栏手动输入您新设置的 IP 地址进行访问。
 
 ---
