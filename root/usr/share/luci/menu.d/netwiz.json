@@ -1,0 +1,13 @@
+{
+    "admin/system/netwiz": {
+        "title": "网络向导",
+        "action": {
+            "type": "view",
+            "path": "netwiz"
+        },
+        "depends": {
+            "acl": [ "netwiz" ]
+        },
+        "order": 1
+    }
+}
