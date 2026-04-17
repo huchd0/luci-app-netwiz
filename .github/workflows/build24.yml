@@ -1,0 +1,28 @@
+name: Build IPK
+
+on:
+  push:
+    branches: [ "master", "main" ]
+    tags: [ "v*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build LuCI ipk
+        uses: sbwml/openwrt-gh-action-sdk@main   
+        env:
+          ARCH: x86_64-23.05.5
+          FEEDNAME: custom
+          PACKAGES: luci-app-netwiz
+          NO_REFRESH_CHECK: true
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: luci-app-netwiz
+          path: bin/packages/*/*/luci-app-netwiz*.ipk
+          compression-level: 0
