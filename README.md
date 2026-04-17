@@ -17,7 +17,11 @@
 ---
 
 ## 📸 界面预览
-
+<img width="1163" height="654" alt="Image" src="https://github.com/user-attachments/assets/7eb4150a-5dfb-48f4-8edf-5efe4121445d" />
+<img width="1155" height="650" alt="Image" src="https://github.com/user-attachments/assets/965c533e-d0ea-4133-899f-f5ad4aacb279" />
+<img width="1220" height="686" alt="Image" src="https://github.com/user-attachments/assets/84047484-7a63-4f6d-b38e-ed2c10008fa3" />
+<img width="1111" height="624" alt="Image" src="https://github.com/user-attachments/assets/5ea50518-1f03-4047-b318-a6ef9955590c" />
+<img width="1218" height="685" alt="Image" src="https://github.com/user-attachments/assets/9beebc90-1a4a-479c-a304-ec1a0801132d" />
 
 ---
 
