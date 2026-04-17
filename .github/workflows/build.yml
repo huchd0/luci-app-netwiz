@@ -15,7 +15,7 @@ jobs:
       - name: Build LuCI ipk
         uses: sbwml/openwrt-gh-action-sdk@main   
         env:
-          ARCH: x86_64-23.05
+          ARCH: x86_64-openwrt-23.05  
           FEEDNAME: packages
           PACKAGES: luci-app-netwiz
           NO_REFRESH_CHECK: true
