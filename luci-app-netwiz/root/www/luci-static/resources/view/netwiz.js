@@ -76,7 +76,7 @@ return view.extend({
             '<div class="nw-wrapper">',
             '  <div class="nw-header">',
             '    <div class="nw-main-title">网 络 设 置 向 导 <span style="font-size:14px; background:#10b981; padding:4px 10px; border-radius:6px; vertical-align:middle;">V1.01 正式版</span></div>',
-            '    <p>「 简单 · 安全 · 高效 」的极简网络配置</p>',
+            '    <p>「 纯净 · 简单 · 零破坏 」的极简网络配置</p>',
             '  </div>',
             
             '  <div id="nw-global-modal" style="display:none;">',
