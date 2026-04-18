@@ -1,10 +1,7 @@
 #!/bin/sh
-# NetWiz RPC 后端接口
-
 case "$1" in
     list)
-        # 告诉 rpcd 我们只收三个参数
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string" } }'
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string" } }'
         exit 0
         ;;
     call)
@@ -14,61 +11,48 @@ case "$1" in
                 mode=$(echo "$input" | jsonfilter -e '@.mode')
                 arg1=$(echo "$input" | jsonfilter -e '@.arg1')
                 arg2=$(echo "$input" | jsonfilter -e '@.arg2')
+                arg3=$(echo "$input" | jsonfilter -e '@.arg3')
+                arg4=$(echo "$input" | jsonfilter -e '@.arg4')
 
-                # ============ 动态 IP 模式 ============
-                if [ "$mode" = "dhcp" ]; then
+                if [ "$mode" = "wan_dhcp" ]; then
                     uci set network.wan.proto='dhcp'
+                    uci delete network.wan.ipaddr 2>/dev/null
+                    uci delete network.wan.gateway 2>/dev/null
+                    uci delete network.wan.netmask 2>/dev/null
                     uci commit network
-                    # 后台静默重启网络，不阻塞前端
-                    /etc/init.d/network restart >/dev/null 2>&1 &
-
-                # ============ 宽带拨号模式 ============
+                elif [ "$mode" = "wan_static" ]; then
+                    uci set network.wan.proto='static'
+                    uci set network.wan.ipaddr="$arg1"
+                    uci set network.wan.gateway="$arg2"
+                    uci set network.wan.netmask="$arg3"
+                    uci commit network
                 elif [ "$mode" = "pppoe" ]; then
                     uci set network.wan.proto='pppoe'
                     uci set network.wan.username="$arg1"
                     uci set network.wan.password="$arg2"
+                    uci delete network.wan.ipaddr 2>/dev/null
+                    uci delete network.wan.gateway 2>/dev/null
+                    uci delete network.wan.netmask 2>/dev/null
                     uci commit network
-                    /etc/init.d/network restart >/dev/null 2>&1 &
-
-                # ============ 旁路由模式 ============
-                elif [ "$mode" = "bypass" ]; then
-                    ipaddr="$arg1"
-                    gateway="$arg2"
-                    
-                    # 💡 核心大脑：根据 IP 自动计算子网掩码
-                    # 获取 IP 的第一段数字 (如 192.168.1.2 拿到 192)
-                    first_octet=$(echo "$ipaddr" | cut -d. -f1)
-                    
-                    if [ "$first_octet" -le 126 ]; then
-                        netmask="255.0.0.0"          # A类地址 (如 10.x.x.x)
-                    elif [ "$first_octet" -le 191 ]; then
-                        netmask="255.255.0.0"        # B类地址 (如 172.x.x.x)
-                    else
-                        netmask="255.255.255.0"      # C类地址 (如 192.x.x.x，最常见的家用网段)
-                    fi
-                    
-                    # (如果你想强制所有家宽全部默认 255.255.255.0，可以直接把上面的 if 删除，写死 netmask="255.255.255.0")
-
+                elif [ "$mode" = "lan" ]; then
                     uci set network.lan.proto='static'
-                    uci set network.lan.ipaddr="$ipaddr"
-                    uci set network.lan.netmask="$netmask"
-                    uci set network.lan.gateway="$gateway"
-                    
-                    # 作为旁路由，通常 DNS 也要指向主路由
-                    uci set network.lan.dns="$gateway"
-                    
-                    # ⚠️ 安全措施：旁路由必须关闭自身的 DHCP，防止冲突
-                    uci set dhcp.lan.ignore='1'
-                    
+                    uci set network.lan.ipaddr="$arg1"
+                    uci set network.lan.netmask="$arg3"
+                    [ -n "$arg2" ] && uci set network.lan.gateway="$arg2" || uci delete network.lan.gateway 2>/dev/null
+                    if [ "$arg4" = "1" ]; then
+                        uci set dhcp.lan.ignore='1'
+                        [ -n "$arg2" ] && uci set network.lan.dns="$arg2"
+                    else
+                        uci set dhcp.lan.ignore='0'
+                        uci delete network.lan.dns 2>/dev/null
+                    fi
                     uci commit network
                     uci commit dhcp
-                    
-                    # 重启网络和 DHCP 服务使其生效
-                    /etc/init.d/network restart >/dev/null 2>&1 &
-                    /etc/init.d/dnsmasq restart >/dev/null 2>&1 &
                 fi
-
-                echo '{ "result": 0 }'
+                
+                echo '{"result":0}'
+                # 倒数 3 秒后平滑重启，让前端有绝对充足的时间处理跳转
+                ( sleep 3; /etc/init.d/network restart; /etc/init.d/dnsmasq restart ) >/dev/null 2>&1 &
                 exit 0
                 ;;
         esac
