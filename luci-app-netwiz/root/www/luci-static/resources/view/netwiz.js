@@ -134,7 +134,7 @@ return view.extend({
             '           <label class="nw-switch"><input type="checkbox" id="lan-bypass-toggle"><span class="nw-slider"></span></label>',
             '        </div>',
             '        <div id="lan-bypass-warning" style="display:none; background: #fef2f2; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 16px; margin-bottom: 15px; border: 1px solid #fecaca; line-height: 1.7; letter-spacing: 1px;">',
-            '           <b>旁路由模式开启：</b><br>1、DHCP 将会关闭，设备无法从本机获取 IP！设备需上级路由获取或手动设置静态 IP。<br>2、本机 IP 如有变更，请确保访问设备与修改后ip同一网段，否则将 <b style="color: rgb(5,150,105);">无法访问本路由器</b>！<br>3、使用静态 IP 时，网关必须填写上级主路由 IP。',
+            '           <b>旁路由模式开启：</b><br>1、DHCP 将会关闭，设备无法从本机获取 IP！设备需上级路由获取或手动设置静态 IP。<br>2、本机 IP 如有变更，请确保访问设备与修改后ip同一网段，否则将 <b style="color: rgb(5,150,105);">无法访问本路由器</b>！<br>3、局域网网关必须填写上级主路由 IP。',
             '        </div>',
             '        <div id="lan-main-warning" style="background: #f0fdf4; color: #059669; padding: 12px; border-radius: 8px; font-size: 16px; margin-bottom: 15px; border: 1px solid #bbf7d0; line-height: 1.7; letter-spacing: 1px;">',
             '           <b>主路由模式开启：</b><br>1、DHCP 将会开启，本机负责分配 IP！<br>2、正常情况网关无需填写。<br>3、本机 IP 如有变更，请确保访问设备与修改后ip同一网段，否则将 <b style="color: #dc2626;">无法访问本路由器</b>！',
