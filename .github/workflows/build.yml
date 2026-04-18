@@ -73,6 +73,5 @@ jobs:
             ```bash
             wget -qO- [https://raw.githubusercontent.com/$](https://raw.githubusercontent.com/$){{ github.repository }}/master/install.sh | sh
             ```
-          # 💡 直接上传文件夹里所有的包
           files: final_release/*
           generate_release_notes: false
