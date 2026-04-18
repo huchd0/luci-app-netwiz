@@ -1,15 +1,20 @@
 {
-	"luci-app-netwiz": {
-		"description": "Grant access to Network Wizard RPC",
-		"read": {
-			"ubus": {
-				"netwiz": [ "set_network" ]
-			}
-		},
-		"write": {
-			"ubus": {
-				"netwiz": [ "set_network" ]
-			}
-		}
-	}
+    "luci-app-netwiz": {
+        "description": "Grant access",
+        "read": {
+            "ubus": {
+                "netwiz": [
+                    "list",
+                    "get_ip_info"
+                ]
+            }
+        },
+        "write": {
+            "ubus": {
+                "netwiz": [
+                    "set_network"
+                ]
+            }
+        }
+    }
 }
