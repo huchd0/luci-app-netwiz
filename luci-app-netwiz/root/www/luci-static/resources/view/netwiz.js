@@ -75,8 +75,7 @@ return view.extend({
 
             '<div class="nw-wrapper">',
             '  <div class="nw-header">',
-
-            '    <div class="nw-main-title">网 络 设 置 向 导 <span style="font-size:14px; background:#10b981; padding:4px 10px; border-radius:6px; vertical-align:middle;">v1.03</span></div>',
+            '    <div class="nw-main-title">网 络 设 置 向 导 <span style="font-size:14px; background:#10b981; padding:4px 10px; border-radius:6px; vertical-align:middle;">V1.01 正式版</span></div>',
             '    <p>「 简单 · 安全 · 高效 」的极简网络配置</p>',
             '  </div>',
             
@@ -102,8 +101,9 @@ return view.extend({
             '        <div class="nw-card-title">局域网设置</div><span>修改设备内网 IP，或切换旁路由模式。</span></div>',
             '    </div>',
             
-            '    <div id="current-mode-display" style="margin-top: 45px; background: #5E72E4; padding: 20px 35px; border-radius: 12px; display: inline-block; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; min-width: 320px;">',
-            '       <div id="current-mode-text" style="color: #fff;"><div class="nw-spinner" style="width:30px; height:30px; border-width:3px; margin: 0 auto;"></div><div style="margin-top:10px; font-size:14px; color:#fff;">读取底层配置中...</div></div>',
+            // 💡 更新：这里更换了背景色 #5e72e4，加了阴影，并且读取中状态的颜色也改为了白色
+            '    <div id="current-mode-display" style="margin-top: 45px; background: #5e72e4; padding: 20px 35px; border-radius: 12px; display: inline-block; box-shadow: 0 8px 20px rgba(94, 114, 228, 0.3); text-align: center; min-width: 320px;">',
+            '       <div id="current-mode-text" style="color: #fff;"><div class="nw-spinner" style="width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;"></div><div style="margin-top:10px; font-size:15px; font-weight:bold; color:#fff;">读取底层配置中...</div></div>',
             '    </div>',
             '  </div>',
 
@@ -211,16 +211,15 @@ return view.extend({
             }
 
             if (modeTextEl) {
+                // 💡 更新：这里将子标题的字体改为 15px, 粗体，且颜色提亮为 #ffffff
                 modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:10px; color:#ffffff;'>" + sTitle + "</div>" +
-                                       "<div style='font-size:14px; font-family:monospace; letter-spacing:0.5px; color:#fff; font-weight: bold;'>" + sDetails + "</div>";
+                                       "<div style='font-size:15px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px;'>" + sDetails + "</div>";
             }
         }).catch(function() {
             if (modeTextEl) modeTextEl.innerHTML = "<div style='color:#ef4444; font-weight:bold;'>无法读取系统底层配置</div>";
         });
 
-        function calculateNetmask(ip) {
-            return '255.255.255.0'; 
-        }
+        function calculateNetmask(ip) { return '255.255.255.0'; }
 
         function isSameSubnet(ip1, ip2) {
             if (!ip1 || !ip2) return false;
@@ -254,9 +253,7 @@ return view.extend({
                     if (options.onOk) options.onOk();
                     else m.style.display = 'none';
                 }; 
-            } else { 
-                btnOk.style.display = 'none'; 
-            }
+            } else { btnOk.style.display = 'none'; }
             
             if (options.cancelText) { 
                 btnCancel.style.display = 'block'; 
@@ -265,9 +262,7 @@ return view.extend({
                     if (options.onCancel) options.onCancel();
                     else m.style.display = 'none';
                 }; 
-            } else { 
-                btnCancel.style.display = 'none'; 
-            }
+            } else { btnCancel.style.display = 'none'; }
             
             m.style.display = 'flex';
         }
@@ -491,9 +486,11 @@ return view.extend({
                 arg2 = container.querySelector('#pppoe-pass').value;
             }
 
-            openModal({title:'正在应用配置', msg:'请稍候，底层网络正在重置...', spin:true});
+            openModal({title:'正在下发指令', msg:'正在请求路由器写入底层配置...', spin:true});
             
+            var startTime = Date.now();
             var rpcDone = false;
+            
             var handleSuccess = function() {
                 if (selectedMode === 'lan' && arg1) {
                     openModal({
@@ -501,30 +498,26 @@ return view.extend({
                         msg: '正在为您跳转至新管理地址：<br><b>' + arg1 + '</b>', 
                         spin: true
                     });
-                    setTimeout(function() { window.location.href = 'http://' + arg1; }, 4000);
+                    setTimeout(function() { window.location.href = 'http://' + arg1; }, 5000);
                 } else {
                     openModal({title: '配置已生效', msg: '网络设置已成功更新。', okText: '完成', onOk: function(){ location.reload(); }});
                 }
             };
             
-            // 判断是断网还是权限报错
-            var startTime = Date.now();
-            
             callNetSetup(actualMode, arg1, arg2, arg3, arg4).then(function() {
                 rpcDone = true;
                 handleSuccess();
-            }).catch(function(e) {
+            }).catch(function(e){
                 var timePassed = Date.now() - startTime;
                 if (timePassed < 1500) {
-                    // 如果在 1.5 秒内瞬间报错，说明根本没走到断网那一步，是 ACL 权限或 RPC 崩溃了！
                     rpcDone = true;
                     openModal({
-                        title: '❌ 写入失败 (权限/底层拦截)', 
-                        msg: '底层调用被拒绝！请检查插件的 ACL 权限配置是否生效。<br><br><span style="font-size:12px; color:#888;">错误信息: ' + (e.message || 'Permission Denied') + '</span>', 
-                        okText: '关闭'
+                        title: '❌ 写入失败', 
+                        msg: '底层调用被拒绝！可能是系统插件权限 (ACL) 配置有误，请重新安装该插件或重新登录后台。<br><br><span style="font-size:12px; color:#888;">系统错误码: ' + (e.message || 'Permission Denied') + '</span>', 
+                        okText: '关闭',
+                        isDanger: true
                     });
                 } else {
-                    // 如果过了好几秒才报错，说明是网络正常重启导致的失联，判定为成功！
                     rpcDone = true;
                     handleSuccess();
                 }
@@ -534,7 +527,7 @@ return view.extend({
                 if (!rpcDone) {
                     handleSuccess();
                 }
-            }, 4000); // 增加到 4 秒，给底层重启留出更充裕的时间
+            }, 4000);
         });
     }
 });
