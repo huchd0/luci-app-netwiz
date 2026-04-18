@@ -17,12 +17,14 @@
 ---
 
 ## 📸 界面预览
-<img width="1163" height="654" alt="Image" src="https://github.com/user-attachments/assets/7eb4150a-5dfb-48f4-8edf-5efe4121445d" />
+<img width="1212" height="682" alt="Image" src="https://github.com/user-attachments/assets/1b58d43e-861b-4d21-84c7-21b01f0e066f" />
 <img width="1155" height="650" alt="Image" src="https://github.com/user-attachments/assets/965c533e-d0ea-4133-899f-f5ad4aacb279" />
 <img width="1220" height="686" alt="Image" src="https://github.com/user-attachments/assets/84047484-7a63-4f6d-b38e-ed2c10008fa3" />
-<img width="1111" height="624" alt="Image" src="https://github.com/user-attachments/assets/5ea50518-1f03-4047-b318-a6ef9955590c" />
 <img width="1218" height="685" alt="Image" src="https://github.com/user-attachments/assets/9beebc90-1a4a-479c-a304-ec1a0801132d" />
-
+<img width="1212" height="682" alt="Image" src="https://github.com/user-attachments/assets/d7bdcc3f-3771-4c4d-88da-05ce49af98c2" />
+<img width="1212" height="682" alt="Image" src="https://github.com/user-attachments/assets/31c47e9e-3f45-41ef-b3a2-10515b3d631b" />
+<img width="1212" height="682" alt="Image" src="https://github.com/user-attachments/assets/4a7213c9-76ad-4cf0-8b34-6755d87c2e20" />
+<img width="1111" height="624" alt="Image" src="https://github.com/user-attachments/assets/5ea50518-1f03-4047-b318-a6ef9955590c" />
 ---
 
 ## 🚀 极速安装 (推荐)
