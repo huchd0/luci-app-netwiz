@@ -71,7 +71,7 @@ jobs:
             它会自动识别您的系统版本，并自动下载对应格式的安装包完成部署：
             
             ```bash
-            wget -qO- [https://raw.githubusercontent.com/$](https://raw.githubusercontent.com/$){{ github.repository }}/master/install.sh | sh
+            wget -qO- https://raw.githubusercontent.com/${{ github.repository }}/master/install.sh | sh
             ```
           files: final_release/*
           generate_release_notes: false
