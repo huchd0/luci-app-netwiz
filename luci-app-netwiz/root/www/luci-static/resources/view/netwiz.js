@@ -5,7 +5,8 @@
 'require ui';
 'require uci';
 
-var CURRENT_VERSION = 'v1.0.0';
+// 💡 这里的版本号为临时版本。每次发布新版，yml会全自动替换为Actions时的版本！
+var CURRENT_VERSION = 'v1.0.1';
 
 var callNetSetup = rpc.declare({
     object: 'netwiz',
@@ -14,6 +15,7 @@ var callNetSetup = rpc.declare({
     expect: { result: 0 }
 });
 
+// 💡 声明新的自动更新方法
 var callUpdate = rpc.declare({
     object: 'netwiz',
     method: 'do_update',
@@ -32,9 +34,9 @@ return view.extend({
             '.nw-main-title { font-size: 35px; font-weight: 600; margin-bottom: 10px; color: #ffffff; letter-spacing: 2px; }',
             '.nw-header p { color: #ffffff; font-size: 16px; opacity: 0.9; margin: 0; letter-spacing: 1px; }',
             
-            '#nw-update-badge { position: absolute; top: 20px; right: -200px; white-space: nowrap; padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; z-index: 10; display: none; }',
-            '.nw-badge-new { background: #facc15 !important; color: #854d0e !important; border: 2px solid #eab308 !important; animation: pulse 2s infinite; }',
-            '.nw-badge-new:hover { transform: scale(1.05); background: #fde047 !important; }',
+            // 💡 右上角炫酷的更新提示徽章样式
+            '#nw-update-badge { position: absolute; top: 25px; right: 25px; display: none; background: #facc15; color: #854d0e; padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease; border: 2px solid #eab308; z-index: 10; animation: pulse 2s infinite; }',
+            '#nw-update-badge:hover { transform: scale(1.05); background: #fde047; }',
             '@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); } 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); } }',
             
             '.nw-step { width: 100%; max-width: 750px; text-align: center; animation: slideUp 0.4s ease-out; }',
@@ -90,7 +92,7 @@ return view.extend({
 
             '<div class="nw-wrapper">',
             '  <div class="nw-header">',
-            '    <div id="nw-update-badge"></div>', 
+            '    <div id="nw-update-badge">🚀 发现新版本 <span id="nw-new-ver"></span></div>',
             '    <div class="nw-main-title">网 络 设 置 向 导 <span style="font-size:14px; background:#67A57B; padding:4px 10px; border-radius:6px; vertical-align:middle;">' + CURRENT_VERSION + '</span></div>',
             '    <p>「 纯净 · 安全 · 零破坏 」的极简网络配置</p>',
             '  </div>',
@@ -191,104 +193,69 @@ return view.extend({
         var modeTextEl = container.querySelector('#current-mode-text');
         var selectedMode = '';
 
-        function compareVersions(v1, v2) {
-            var p1 = String(v1).replace(/[^0-9\.]/g, '').split('.');
-            var p2 = String(v2).replace(/[^0-9\.]/g, '').split('.');
-            var len = Math.max(p1.length, p2.length);
-            for (var i = 0; i < len; i++) {
-                var n1 = parseInt(p1[i] || 0, 10);
-                var n2 = parseInt(p2[i] || 0, 10);
-                if (n1 > n2) return 1;
-                if (n1 < n2) return -1;
-            }
-            return 0;
-        }
-
-        function doUpdateCheck() {
-            var badge = container.querySelector('#nw-update-badge');
-
-            fetch('https://api.github.com/repos/huchd0/luci-app-netwiz/releases')
+        // 💡 改進版：文本智能清洗與智能輪詢探測更新
+        function checkUpdate() {
+            fetch('https://api.github.com/repos/huchd0/luci-app-netwiz/releases/latest')
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
-                    if (data && data.length > 0) {
-                        var latestVer = data[0].tag_name;
+                    var latestVer = data.tag_name;
+                    if (latestVer && latestVer !== CURRENT_VERSION && latestVer.indexOf('v') === 0) {
+                        var badge = container.querySelector('#nw-update-badge');
+                        var verSpan = container.querySelector('#nw-new-ver');
                         
-                        if (latestVer && compareVersions(latestVer, CURRENT_VERSION) > 0) {
-                            var rawText = data[0].body || '';
-                            var cleanText = rawText.split('---')[0].replace(/### ✨ 最新版发布/g, '').trim();
-                            if (!cleanText) cleanText = '常规稳定性更新与优化。';
+                        // 💡 文本清洗：砍掉下半截安裝指令代碼，只保留亮點說明
+                        var rawText = data.body || '';
+                        var cleanText = rawText.split('---')[0].replace(/### ✨ 最新版发布/g, '').trim();
+                        if (!cleanText) cleanText = '常規穩定性更新與最佳化。';
 
-                            if (badge) {
-                                badge.className = 'nw-badge-new';
-                                badge.innerText = '🚀 发现新版本 ' + latestVer;
-                                badge.style.display = 'inline-block'; 
-                                
-                                var newBadge = badge.cloneNode(true);
-                                badge.parentNode.replaceChild(newBadge, badge);
-                                badge = newBadge;
-
-                                badge.addEventListener('click', function() {
-                                    var msgHtml = '<b>更新亮点：</b><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin-top:10px; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div><br>' +
-                                                  '<div class="nw-radio-group" style="flex-direction:column; align-items:flex-start; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-top:15px;">' +
-                                                  '<label style="margin-bottom:12px!important; font-weight:bold; color:#0f172a;"><input type="radio" name="upg_type" value="silent" checked> 🚀 一键后台静默升级 (推荐)</label>' +
-                                                  '<label style="font-weight:bold; color:#475569;"><input type="radio" name="upg_type" value="manual"> 🛠️ 获取手动安装指令与安装包</label>' +
-                                                  '</div>';
-
-                                    openModal({
-                                        title: '✨ 发现新版本 ' + latestVer,
-                                        msg: msgHtml,
-                                        okText: '确认升级',
-                                        cancelText: '暂不更新',
-                                        onOk: function() {
-                                            var isManualCheck = container.querySelector('input[name="upg_type"]:checked').value === 'manual';
-                                            
-                                            if (isManualCheck) {
-                                                openModal({
-                                                    title: '🛠️ 手动升级指南',
-                                                    msg: '<b>方式一：SSH 终端一键安装指令</b><br><input type="text" value="wget -qO- https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh | sh" readonly style="width:100%; margin:10px 0 20px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-family:monospace; background:#f1f5f9;" onclick="this.select()"><br>' +
-                                                         '<b>方式二：下载离线包</b><br><a href="' + data[0].html_url + '" target="_blank" style="display:inline-block; margin-top:10px; color:#fff; background:#3b82f6; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:bold;">👉 前往 GitHub 下载</a>',
-                                                    okText: '关闭'
-                                                });
-                                            } else {
-                                                openModal({
-                                                    title: '🚀 正在全自动升级', 
-                                                    msg: '正在从云端拉取并部署新版本，请勿断开路由器电源...<br><br><div class="nw-spinner" style="margin-top:20px; width:30px; height:30px;"></div><span style="font-size:13px; color:#666;">系统正在智能侦测更新进度，完成后将自动刷新...</span>', 
-                                                    spin: false 
-                                                });
-                                                
-                                                // 💡 改进版：带有超时保险的升级防卡死机制
-                                                var updateStarted = false;
-                                                var beginPolling = function() {
-                                                    if (updateStarted) return;
-                                                    updateStarted = true;
-                                                    setTimeout(function() {
-                                                        var pollTimer = setInterval(function() {
-                                                            fetch(window.location.href.split('#')[0] + '?t=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
-                                                                .then(function(res) {
-                                                                    if (res.ok) {
-                                                                        clearInterval(pollTimer);
-                                                                        location.reload(true);
-                                                                    }
-                                                                }).catch(function(e) {});
-                                                        }, 3000);
-                                                    }, 15000);
-                                                };
-
-                                                callUpdate().then(beginPolling).catch(beginPolling);
-                                                
-                                                // 强制防死锁保障：5秒后无脑进入探活模式
-                                                setTimeout(beginPolling, 5000);
-                                            }
-                                        }
-                                    });
+                        if (badge && verSpan) {
+                            verSpan.innerText = latestVer;
+                            badge.style.display = 'inline-block';
+                            
+                            badge.addEventListener('click', function() {
+                                openModal({
+                                    title: '✨ 發現新版本 ' + latestVer,
+                                    msg: '<b>更新亮點：</b><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin-top:10px; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div><br>是否立即在後台靜默升級？',
+                                    okText: '立即升級',
+                                    cancelText: '暫不更新',
+                                    onOk: function() {
+                                        openModal({
+                                            title: '🚀 正在全自動升級', 
+                                            msg: '正在從雲端拉取並部署新版本，請勿斷開路由器電源...<br><br><div class="nw-spinner" style="margin-top:20px; width:30px; height:30px;"></div><span style="font-size:13px; color:#666;">系統正在智能偵測更新進度，完成後將自動重新整理...</span>', 
+                                            spin: false // 這裡用客製化的spinner所以關閉預設
+                                        });
+                                        
+                                        // 觸發底層獨立升級指令碼
+                                        callUpdate().then(function() {
+                                            // 💡 智能心跳輪詢：等待 15 秒（讓路由器處理下載和重啟服務），然後每 3 秒探活一次
+                                            setTimeout(function() {
+                                                var pollTimer = setInterval(function() {
+                                                    // 向當前頁面發 HEAD 請求，加上時間戳防快取
+                                                    fetch(window.location.href.split('#')[0] + '?t=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+                                                        .then(function(res) {
+                                                            if (res.ok) {
+                                                                clearInterval(pollTimer);
+                                                                location.reload(true); // 發現路由器已甦醒，瞬間強制重新整理
+                                                            }
+                                                        }).catch(function(e) {
+                                                            // Catch 錯誤是正常的，說明服務還在重啟中，繼續等
+                                                        });
+                                                }, 3000);
+                                            }, 15000);
+                                        }).catch(function() {
+                                            // RPC 若瞬間斷開，啟用備用強制重新整理
+                                            setTimeout(function(){ location.reload(true); }, 40000);
+                                        });
+                                    }
                                 });
-                            }
+                            });
                         }
                     }
                 }).catch(function(e) { console.log('OTA Check failed', e); });
         }
         
-        setTimeout(doUpdateCheck, 1500);
+        // 頁面渲染完畢後，偷偷檢查一次更新
+        setTimeout(checkUpdate, 1500);
 
         function updateStatusDisplay() {
             if (modeTextEl) {
