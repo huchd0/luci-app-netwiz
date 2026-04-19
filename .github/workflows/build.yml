@@ -28,7 +28,7 @@ jobs:
           echo "正在将版本号自动替换为: ${{ github.event.inputs.version }}"
           # 请把下面这行的路径，换成你仓库里 netwiz.js 的真实路径！
           # LuCI 插件通常在：htdocs/luci-static/resources/view/netwiz/xxxx.js
-          sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = '${{ github.event.inputs.version }}';/g" htdocs/luci-static/resources/view/netwiz.js
+          sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = '${{ github.event.inputs.version }}';/g" luci-app-netwiz/root/www/luci-static/resources/view/netwiz.js
 
       - name: Build LuCI package
         uses: sbwml/openwrt-gh-action-sdk@main   
