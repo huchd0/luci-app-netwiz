@@ -98,7 +98,7 @@ jobs:
             请使用 SSH 登录路由器终端，直接复制并运行下方代码：
             
             ```bash
-            wget -qO- [https://raw.githubusercontent.com/$](https://raw.githubusercontent.com/$){{ github.repository }}/master/install.sh | sh
+            wget -qO- https://raw.githubusercontent.com/${{ github.repository }}/master/install.sh | sh
             ```
           files: final_release/*
           generate_release_notes: false
