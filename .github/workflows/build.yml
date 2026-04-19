@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '🔖 本次发布的版本号 (必须以v开头，例如 v1.0.0)'
+        description: '🔖 版本号 (保持 Auto 将自动读取上一版并 +0.0.1，也可手动指定如 v1.1.0)'
         required: true
-        default: 'v1.0.0'
+        default: 'Auto'
       highlights:
         description: '✨ 更新说明 (支持 Markdown)'
         required: false
@@ -15,6 +15,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 将计算出来的版本号暴露给 release 任务使用
+    outputs:
+      final_version: ${{ steps.calc_version.outputs.FINAL_VERSION }}
     strategy:
       matrix:
         sdk_version: [ "x86_64-23.05.5", "x86_64-snapshot" ]
@@ -23,10 +26,43 @@ jobs:
       - name: 检出代码 (Checkout)
         uses: actions/checkout@v4
 
-      - name: 自动注入版本号到 JS 前端
+      - name: 🤖 智能计算下一个版本号 (Auto-increment)
+        id: calc_version
         run: |
-          echo "正在将版本号自动替换为: ${{ github.event.inputs.version }}"
-          sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = '${{ github.event.inputs.version }}';/g" luci-app-netwiz/root/www/luci-static/resources/view/netwiz.js
+          INPUT_VER="${{ github.event.inputs.version }}"
+          if [ "$INPUT_VER" = "Auto" ]; then
+            # 静默通过 GitHub API 获取最新的 Release 标签
+            LATEST_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+            
+            if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
+              NEW_VER="v1.0.0"
+              echo "未找到历史版本，初始化为 $NEW_VER"
+            else
+              echo "检测到当前线上最新版本为: $LATEST_TAG"
+              # 拆分版本号 (例如 v1.0.9 拆分为 1, 0, 9)
+              MAJOR=$(echo $LATEST_TAG | cut -d. -f1 | tr -d 'v')
+              MINOR=$(echo $LATEST_TAG | cut -d. -f2)
+              PATCH=$(echo $LATEST_TAG | cut -d. -f3)
+              
+              # 如果没有补丁号则默认为 0
+              if [ -z "$PATCH" ]; then PATCH=0; fi
+              
+              # 补丁号 +1 (9 变成 10)
+              PATCH=$((PATCH + 1))
+              NEW_VER="v${MAJOR}.${MINOR}.${PATCH}"
+              echo "自动递增后的新版本号为: $NEW_VER"
+            fi
+          else
+            NEW_VER="$INPUT_VER"
+            echo "使用用户手动指定的版本号: $NEW_VER"
+          fi
+          # 保存最终结果供后续步骤使用
+          echo "FINAL_VERSION=$NEW_VER" >> $GITHUB_OUTPUT
+
+      - name: 自动注入最新版本号到 JS 前端
+        run: |
+          echo "正在将前端版本号自动替换为: ${{ steps.calc_version.outputs.FINAL_VERSION }}"
+          sed -i "s/var CURRENT_VERSION = '.*';/var CURRENT_VERSION = '${{ steps.calc_version.outputs.FINAL_VERSION }}';/g" luci-app-netwiz/root/www/luci-static/resources/view/netwiz.js
 
       - name: 编译 LuCI 插件
         uses: sbwml/openwrt-gh-action-sdk@main   
@@ -41,7 +77,7 @@ jobs:
           find bin/ -name "luci-app-netwiz*.ipk" -exec cp {} release_pkgs/luci-app-netwiz.ipk \;
           find bin/ -name "luci-app-netwiz*.apk" -exec cp {} release_pkgs/luci-app-netwiz.apk \;
 
-      - name: 上传编译产物到云端
+      - name: 上传编译产物到云端缓存
         uses: actions/upload-artifact@v4
         with:
           name: packages-${{ matrix.sdk_version }}
@@ -64,8 +100,9 @@ jobs:
       - name: 自动创建 GitHub Release 发布页
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          name: NetWiz ${{ github.event.inputs.version }} 极速安装版
+          # 使用上面智能计算出来的版本号！
+          tag_name: ${{ needs.build.outputs.final_version }}
+          name: NetWiz ${{ needs.build.outputs.final_version }} 极速安装版
           body: |
             ### ✨ 最新版发布
             ${{ github.event.inputs.highlights }}
@@ -76,7 +113,7 @@ jobs:
             无论你的路由器是 OpenWrt/ImmortalWrt 23.05 还是 25.x，请使用 SSH 登录路由器终端，直接复制并运行下方代码：
             
             ```bash
-            wget -qO- [https://raw.githubusercontent.com/$](https://raw.githubusercontent.com/$){{ github.repository }}/master/install.sh | sh
+            wget -qO- https://raw.githubusercontent.com/${{ github.repository }}/master/install.sh | sh
             ```
           files: final_release/*
           generate_release_notes: false
