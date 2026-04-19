@@ -2,8 +2,7 @@
 
 case "$1" in
     list)
-        # 💡 声明三个全新的无缝更新接口
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string" }, "prepare_update": {}, "check_update_status": {}, "do_install": {} }'
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string" }, "do_update": {} }'
         exit 0
         ;;
     call)
@@ -16,6 +15,51 @@ case "$1" in
                 arg3=$(echo "$input" | jsonfilter -e '@.arg3')
                 arg4=$(echo "$input" | jsonfilter -e '@.arg4')
 
+                # 💡 如果发现 mode 是更新指令，直接拦截执行热更新！
+                if [ "$mode" = "prepare_update" ]; then
+                    echo '{"result":0}'
+                    rm -f /tmp/netwiz_update.ready
+                    cat << 'EOF' > /tmp/nw_dl.sh
+#!/bin/sh
+if command -v apk >/dev/null 2>&1; then PKG="apk"; else PKG="ipk"; fi
+URL="https://github.com/huchd0/luci-app-netwiz/releases/latest/download/luci-app-netwiz.${PKG}"
+wget -qO "/tmp/netwiz_update.${PKG}" --no-check-certificate -T 20 "$URL"
+if [ "$?" -eq 0 ] && [ -s "/tmp/netwiz_update.${PKG}" ]; then
+    touch /tmp/netwiz_update.ready
+fi
+rm -f /tmp/nw_dl.sh
+EOF
+                    chmod +x /tmp/nw_dl.sh
+                    /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
+                    exit 0
+                    
+                elif [ "$mode" = "check_update" ]; then
+                    if [ -f /tmp/netwiz_update.ready ]; then
+                        echo '{"result":1}'
+                    else
+                        echo '{"result":0}'
+                    fi
+                    exit 0
+                    
+                elif [ "$mode" = "do_install" ]; then
+                    echo '{"result":0}'
+                    cat << 'EOF' > /tmp/nw_install.sh
+#!/bin/sh
+sleep 2
+if command -v apk >/dev/null 2>&1; then
+    apk add --allow-untrusted --force-overwrite /tmp/netwiz_update.apk
+else
+    opkg install /tmp/netwiz_update.ipk --force-reinstall --force-overwrite
+fi
+rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* /tmp/luci-app-netwiz.*
+rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.* /tmp/nw_install.sh
+EOF
+                    chmod +x /tmp/nw_install.sh
+                    /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
+                    exit 0
+                fi
+
+                # 以下是正常的网络设置逻辑
                 cleanup_lan_for_wan_modes() {
                     uci delete network.lan.gateway 2>/dev/null
                     uci delete network.lan.dns 2>/dev/null
@@ -68,52 +112,9 @@ case "$1" in
                 exit 0
                 ;;
             
-            prepare_update)
-                # 💡 1. 后台静默下载：不阻断前端，下载成功后写一个 ready 标记文件
+            do_update)
+                # 保留空壳，防止有遗留的旧代码调用报错
                 echo '{"result":0}'
-                rm -f /tmp/netwiz_update.ready
-                cat << 'EOF' > /tmp/nw_dl.sh
-#!/bin/sh
-if command -v apk >/dev/null 2>&1; then PKG="apk"; else PKG="ipk"; fi
-URL="https://ghproxy.net/https://github.com/huchd0/luci-app-netwiz/releases/latest/download/luci-app-netwiz.${PKG}"
-wget -qO "/tmp/netwiz_update.${PKG}" --no-check-certificate -T 30 "$URL"
-if [ "$?" -eq 0 ] && [ -s "/tmp/netwiz_update.${PKG}" ]; then
-    touch /tmp/netwiz_update.ready
-fi
-rm -f /tmp/nw_dl.sh
-EOF
-                chmod +x /tmp/nw_dl.sh
-                /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
-                exit 0
-                ;;
-
-            check_update_status)
-                # 💡 2. 状态查询：如果发现 ready 标记，告诉前端下载完了
-                if [ -f /tmp/netwiz_update.ready ]; then
-                    echo '{"ready": 1}'
-                else
-                    echo '{"ready": 0}'
-                fi
-                exit 0
-                ;;
-
-            do_install)
-                # 💡 3. 秒级本地安装：不再有网络请求，瞬间完成
-                echo '{"result":0}'
-                cat << 'EOF' > /tmp/nw_install.sh
-#!/bin/sh
-sleep 2
-if command -v apk >/dev/null 2>&1; then
-    apk add --allow-untrusted --force-overwrite /tmp/netwiz_update.apk
-else
-    opkg install /tmp/netwiz_update.ipk --force-reinstall --force-overwrite
-fi
-rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* /tmp/luci-app-netwiz.*
-rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.*
-rm -f /tmp/nw_install.sh
-EOF
-                chmod +x /tmp/nw_install.sh
-                /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
                 exit 0
                 ;;
         esac
