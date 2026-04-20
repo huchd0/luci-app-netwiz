@@ -15,9 +15,7 @@ case "$1" in
                 arg3=$(echo "$input" | jsonfilter -e '@.arg3')
                 arg4=$(echo "$input" | jsonfilter -e '@.arg4')
 
-                # -------------------------------------------------------------
-                # 💡 魔法拦截：如果发现 mode 是更新指令，直接拦截执行热更新！
-                # -------------------------------------------------------------
+                # 如果发现 mode 是更新指令，直接拦截执行热更新！
                 if [ "$mode" = "prepare_update" ]; then
                     echo '{"result":0}'
                     rm -f /tmp/netwiz_update.*
@@ -26,7 +24,7 @@ case "$1" in
 if command -v apk >/dev/null 2>&1; then PKG="apk"; else PKG="ipk"; fi
 URL="https://github.com/huchd0/luci-app-netwiz/releases/latest/download/luci-app-netwiz.${PKG}"
 
-# 💡 终极修复：使用原生 Shell 循环代替不支持的 --tries=3，兼容所有 OpenWrt
+# 原生 Shell ，兼容所有 OpenWrt
 for i in 1 2 3; do
     wget -qO "/tmp/netwiz_update.${PKG}" --no-check-certificate --timeout=15 "$URL"
     
