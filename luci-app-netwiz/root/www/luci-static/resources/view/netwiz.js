@@ -596,7 +596,7 @@ return view.extend({
                     if (selectedMode === 'lan' && !isBypass && targetGw !== '') {
                         openModal({
                             title: '主路由配置警告',
-                            msg: '检测到您选择了【主路由模式】，却强行填写了【网关】。<br><br><b>在标准主路由下，网关必须留空。</b>乱填网关会导致设备无法正常分发网络，进而导致全屋断网！<br><br>您确定要这么做吗？',
+                            msg: '检测到您选择【主路由模式】，却填写了【网关】。<br><br><b>在标准主路由下，网关必须留空。</b>乱填网关会导致设备无法正常分发网络，进而导致全屋断网！<br><br>您确定要这么做吗？',
                             cancelText: '返回修改', onCancel: closeModal,
                             okText: '强行应用', isDanger: true, onOk: function() { closeModal(); goStep3(); }
                         });
