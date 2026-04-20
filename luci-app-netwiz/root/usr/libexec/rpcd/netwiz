@@ -18,25 +18,32 @@ case "$1" in
                 # 如果发现 mode 是更新指令，直接拦截执行热更新！
                 if [ "$mode" = "prepare_update" ]; then
                     echo '{"result":0}'
-                    rm -f /tmp/netwiz_update.*
                     cat << 'EOF' > /tmp/nw_dl.sh
 #!/bin/sh
+# 开启监控探头，记录日志
+echo "--- 启动后台下载任务 ---" > /tmp/nw_debug.log
+
 if command -v apk >/dev/null 2>&1; then PKG="apk"; else PKG="ipk"; fi
 URL="https://github.com/huchd0/luci-app-netwiz/releases/latest/download/luci-app-netwiz.${PKG}"
+echo "目标地址: $URL" >> /tmp/nw_debug.log
 
-# 💡 依靠 wget 的自带机制：断线重试 3 次，15 秒超时。这足够防范 99% 的残缺下载。
-wget -qO "/tmp/netwiz_update.${PKG}" --no-check-certificate --timeout=15 --tries=3 "$URL"
+# 去掉 -q (静默模式)，强制把 wget 的报错过程全部记录下来
+wget -O "/tmp/netwiz_update.${PKG}" --no-check-certificate --timeout=15 --tries=3 "$URL" >> /tmp/nw_debug.log 2>&1
+WGET_STATUS=$?
 
-# 💡 判定逻辑极简回归：只要 wget 报告下载成功，且文件确实存在（不为空），就立刻放行！
-if [ "$?" -eq 0 ] && [ -s "/tmp/netwiz_update.${PKG}" ]; then
+echo "Wget 退出状态码: $WGET_STATUS" >> /tmp/nw_debug.log
+ls -lh /tmp/netwiz_update.* >> /tmp/nw_debug.log 2>&1
+
+if [ "$WGET_STATUS" -eq 0 ] && [ -s "/tmp/netwiz_update.${PKG}" ]; then
+    echo "✅ 判定成功，生成 ready 标记" >> /tmp/nw_debug.log
     touch /tmp/netwiz_update.ready
 else
-    rm -f "/tmp/netwiz_update.${PKG}"
+    echo "❌ 判定失败，保留错误现场不删除文件" >> /tmp/nw_debug.log
 fi
-rm -f /tmp/nw_dl.sh
 EOF
                     chmod +x /tmp/nw_dl.sh
-                    /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
+                    # 让脚本在后台跑
+                    /tmp/nw_dl.sh &
                     exit 0
                     
                 elif [ "$mode" = "check_update" ]; then
