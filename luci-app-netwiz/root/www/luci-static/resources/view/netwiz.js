@@ -627,13 +627,25 @@ return view.extend({
             
             var handleSuccess = function() {
                 var currentHost = window.location.hostname;
+                var cleanUrl = window.location.href.split('?')[0];
+                var ts = new Date().getTime();
                 
                 if (selectedMode === 'lan' && arg1 && arg1 !== currentHost) {
-                    openModal({ title: '配置已生效', msg: '检测到本机 IP 已变更。<br>即将为您跳转至新管理地址：<br><b>' + arg1 + '</b>', spin: true });
-                    setTimeout(function() { window.location.href = 'http://' + arg1; }, 15000);
+                    // 改了 IP，要去新地址登录
+                    openModal({ 
+                        title: '配置已生效', 
+                        msg: '由于 IP 已变更为 <b style="color:#3b82f6;">' + arg1 + '</b>，<br>系统将在 15 秒后尝试跳转到新地址。<br><br><small>注：跳转后需重新登录。</small>', 
+                        spin: true 
+                    });
+                    setTimeout(function() { window.location.href = 'http://' + arg1 + '?v=' + ts; }, 15000);
                 } else {
-                    openModal({ title: '正在应用配置', msg: '底层网络正在重置，请稍候...<br><br><span style="font-size: 14px; color: #555;">(系统将在 15 秒后自动刷新并展示最新状态)</span>', spin: true });
-                    setTimeout(function() { location.reload(); }, 15000); 
+                    // 没改 IP，只是重启网络
+                    openModal({ 
+                        title: '正在应用配置', 
+                        msg: '底层网络正在重置，请稍候...<br><br><span style="font-size: 14px; color: #555;">(若 15 秒后未自动返回，请手动刷新页面)</span>', 
+                        spin: true 
+                    });
+                    setTimeout(function() { window.location.href = cleanUrl + '?v=' + ts; }, 15000); 
                 }
             };
             
