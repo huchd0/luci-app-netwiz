@@ -26,12 +26,12 @@ return view.extend({
             '.nw-header { text-align: center; margin-bottom: 40px; background-color: #5e72e4; padding: 25px; margin-top: -100px; border-radius: 0 0 15px 15px; position: relative; }',
             '.nw-main-title { font-size: 35px; font-weight: 600; margin-bottom: 10px; color: #ffffff; letter-spacing: 2px; }',
             '.nw-header p { color: #ffffff; font-size: 16px; opacity: 0.9; margin: 0; letter-spacing: 1px; }',
-            
+
             '#nw-update-badge { position: absolute; top: 20px; right: -200px; white-space: nowrap; padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; z-index: 10; display: none; }',
             '.nw-badge-new { background: #facc15 !important; color: #854d0e !important; border: 2px solid #eab308 !important; animation: pulse 2s infinite; }',
             '.nw-badge-new:hover { transform: scale(1.05); background: #fde047 !important; }',
             '@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); } 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); } }',
-            
+
             '.nw-step { width: 100%; max-width: 750px; text-align: center; animation: slideUp 0.4s ease-out; }',
             '@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }',
             '.nw-card-group { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }',
@@ -85,7 +85,7 @@ return view.extend({
 
             '<div class="nw-wrapper">',
             '  <div class="nw-header">',
-            '    <div id="nw-update-badge"></div>', 
+            '    <div id="nw-update-badge"></div>',
             '    <div class="nw-main-title">网 络 设 置 向 导 <span style="font-size:14px; background:#67A57B; padding:4px 10px; border-radius:6px; vertical-align:middle;">' + CURRENT_VERSION + '</span></div>',
             '    <p>「 纯净 · 安全 · 零破坏 」的极简网络配置</p>',
             '  </div>',
@@ -203,14 +203,14 @@ return view.extend({
             var badge = container.querySelector('#nw-update-badge');
 
             fetch('https://api.github.com/repos/huchd0/luci-app-netwiz/releases?t=' + Date.now(), { cache: 'no-store' })
-                .then(function(res) { 
+                .then(function(res) {
                     if (!res.ok) throw new Error('API Failed: ' + res.status);
-                    return res.json(); 
+                    return res.json();
                 })
                 .then(function(data) {
                     if (data && data.length > 0) {
                         var latestVer = data[0].tag_name;
-                        
+
                         if (latestVer && compareVersions(latestVer, CURRENT_VERSION) > 0) {
                             var rawText = data[0].body || '';
                             var cleanText = rawText.split('---')[0].replace(/### ✨ 最新版发布/g, '').trim();
@@ -220,7 +220,7 @@ return view.extend({
                                 badge.className = 'nw-badge-new';
                                 badge.innerText = '发现新版本 ' + latestVer;
                                 badge.style.display = 'inline-block';
-                                
+
                                 var newBadge = badge.cloneNode(true);
                                 badge.parentNode.replaceChild(newBadge, badge);
                                 badge = newBadge;
@@ -240,12 +240,17 @@ return view.extend({
                                                 msg: '正在部署本地更新包，请稍候...<br><br><span style="font-size:13px; color:#666;">安装非常快，系统即将自动刷新...</span>', 
                                                 spin: true // 直接在此开启转圈，不传 okText 则会自动隐藏按钮
                                             });
-                                            
+
+                                            var forceReload = function() {
+                                                var currentUrl = window.location.href.split('?')[0];
+                                                window.location.href = currentUrl + '?t=' + new Date().getTime();
+                                            };
+
                                             // 执行安装指令do_install
                                             callNetSetup('do_install').then(function() {
-                                                setTimeout(function() { location.reload(true); }, 12000); 
+                                                setTimeout(forceReload, 12000);
                                             }).catch(function() {
-                                                setTimeout(function() { location.reload(true); }, 12000); 
+                                                setTimeout(forceReload, 12000);
                                             });
                                         }
                                     });
@@ -255,11 +260,10 @@ return view.extend({
                             // check_update
                             callNetSetup('check_update').then(function(res) {
                                 if (res === 1) {
-                                    showReadyBadge(); 
+                                    showReadyBadge();
                                 } else {
-                                    // 触发后台预下载
-                                    callNetSetup('prepare_update'); 
-                                    var pollCount = 0; // 新增：轮询计数器
+                                    callNetSetup('prepare_update');
+                                    var pollCount = 0;
                                     var pollStatus = setInterval(function() {
                                         pollCount++;
                                         // 若 60 秒 (15次*4s) 还没下载完，自动停止轮询
@@ -280,7 +284,7 @@ return view.extend({
                     }
                 }).catch(function(e) { console.error('OTA Check failed:', e); });
         }
-        
+
         setTimeout(doUpdateCheck, 1500);
 
         function updateStatusDisplay() {
@@ -289,7 +293,7 @@ return view.extend({
             }
             uci.unload('network');
             uci.unload('dhcp');
-            
+
             Promise.all([
                 uci.load('network'),
                 uci.load('dhcp').catch(function(){})
@@ -369,12 +373,12 @@ return view.extend({
             var btnOk = container.querySelector('#nw-global-btn-ok');
             var btnCancel = container.querySelector('#nw-global-btn-cancel');
             var btnWrap = container.querySelector('#nw-global-btn-wrap');
-            
+
             title.innerHTML = options.title || '';
             msg.innerHTML = options.msg || '';
             spinner.style.display = options.spin ? 'block' : 'none';
             btnWrap.style.display = (options.okText || options.cancelText) ? 'flex' : 'none';
-            
+
             if (options.okText) { 
                 btnOk.style.display = 'block'; 
                 btnOk.innerText = options.okText;
@@ -384,7 +388,7 @@ return view.extend({
                     else m.style.display = 'none';
                 }; 
             } else { btnOk.style.display = 'none'; }
-            
+
             if (options.cancelText) { 
                 btnCancel.style.display = 'block'; 
                 btnCancel.innerText = options.cancelText; 
@@ -393,7 +397,7 @@ return view.extend({
                     else m.style.display = 'none';
                 }; 
             } else { btnCancel.style.display = 'none'; }
-            
+
             m.style.display = 'flex';
         }
 
@@ -401,7 +405,7 @@ return view.extend({
             var m = container.querySelector('#nw-global-modal');
             if (m) m.style.display = 'none';
         }
-        
+
         function returnToStep1() {
             closeModal();
             step3.style.display = 'none';
@@ -447,10 +451,10 @@ return view.extend({
                     targetIp = container.querySelector('#lan-ip').value.trim();
                     targetGw = container.querySelector('#lan-gw').value.trim();
                     isBypass = bypassToggle.checked;
-                    
+
                     if (!targetIp) { openModal({title:'信息不完整', msg:'本机 IP 不能为空。', okText:'返回修改'}); return; }
                     if (!isValidIP(targetIp)) { openModal({title:'IP 格式错误', msg:'您填写的本机 IP 不合法，请检查！', okText:'返回修改'}); return; }
-                    
+
                     if (isBypass) {
                         if (!targetGw) { openModal({title:'逻辑错误', msg:'开启旁路由模式必须填写上级网关 IP。', okText:'返回修改'}); return; }
                         if (!isValidIP(targetGw)) { openModal({title:'网关格式错误', msg:'您填写的网关 IP 不合法，请检查！', okText:'返回修改'}); return; }
@@ -460,7 +464,7 @@ return view.extend({
                 } else if (selectedMode === 'router' && rType === 'static') {
                     targetIp = container.querySelector('#router-ip').value.trim();
                     targetGw = container.querySelector('#router-gw').value.trim();
-                    
+
                     if (!targetIp || !targetGw) { openModal({title:'信息不完整', msg:'静态 IP 和网关均不能为空。', okText:'返回修改'}); return; }
                     if (!isValidIP(targetIp)) { openModal({title:'IP 格式错误', msg:'WAN 口 IP 不合法，请检查！', okText:'返回修改'}); return; }
                     if (!isValidIP(targetGw)) { openModal({title:'网关格式错误', msg:'上级网关 IP 不合法，请检查！', okText:'返回修改'}); return; }
@@ -549,7 +553,7 @@ return view.extend({
                             ]);
                         }
                         confirmText.innerHTML = modeText;
-                        step2.style.display = 'none'; 
+                        step2.style.display = 'none';
                         step3.style.display = 'block';
                     };
 
