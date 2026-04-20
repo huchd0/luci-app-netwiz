@@ -8,6 +8,7 @@
 'require rpc';
 'require ui';
 'require uci';
+'require poll';
 
 var CURRENT_VERSION = 'v1.0.0';
 
@@ -248,11 +249,20 @@ return view.extend({
                         okText: '立即更新',
                         cancelText: '暂不更新',
                         onOk: function() {
-                            openModal({
-                                title: '⚙️ 正在极速安装',
-                                msg: '正在部署本地更新包，请稍候...<br><br><span style="font-size:13px; color:#666;">安装非常快，系统即将自动刷新...</span>', 
-                                spin: true 
-                            });
+                                            try { poll.stop(); } catch(e) {}
+                                            openModal({
+                                                title: '⚙️ 正在极速安装',
+                                                msg: '正在部署本地更新包，请稍候...<br><br><span style="font-size:13px; color:#666;">网页即将自动刷新。<br>若长时间无响应，请按 <b>Ctrl + F5</b> 手动强制刷新。</span>', 
+                                                spin: true 
+                                            });
+
+                                            // 执行安装指令
+                                            callNetSetup('do_install').then(function() {
+                                                setTimeout(function() { location.reload(true); }, 12000);
+                                            }).catch(function() {
+                                                setTimeout(function() { location.reload(true); }, 12000);
+                                            });
+                                        }
 
                             var forceReload = function() {
                                 var currentUrl = window.location.href.split('?')[0];
