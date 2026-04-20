@@ -10,7 +10,7 @@
 'require uci';
 'require poll';
 
-var CURRENT_VERSION = 'v1.0.0';
+var CURRENT_VERSION = 'v1.0.15';
 
 var callNetSetup = rpc.declare({
     object: 'netwiz',
@@ -22,7 +22,7 @@ var callNetSetup = rpc.declare({
 var getWanStatus = rpc.declare({
     object: 'network.interface',
     method: 'dump',
-    expect: { '': {} } 
+    expect: { '': {} }
 });
 
 return view.extend({
@@ -56,9 +56,9 @@ return view.extend({
             '.nw-badge-bypass { background: #d1fae5; color: #059669; }',
             '.nw-card-title { font-size: 20px; margin: 0 0 10px 0; color: #ffffff; font-weight: 600; }',
             '.nw-card span { font-size: 15px; color: #ffffff; line-height: 1.5; opacity: 0.9; }',
-            
+
             '.nw-form-area, .nw-confirm-board { position: relative; max-width: 460px; margin: 0 auto; text-align: left; padding: 40px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.88); box-shadow: 0 10px 30px rgba(0,0,0,0.06); }',
-            
+
             '.nw-top-back { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10; }',
             '.nw-top-back:hover { background: #e2e8f0; color: #0f172a; transform: translateX(-3px); box-shadow: 2px 2px 8px rgba(0,0,0,0.05); }',
             '.nw-top-back svg { width: 20px; height: 20px; }',
@@ -231,8 +231,8 @@ return view.extend({
 
             var cached = JSON.parse(localStorage.getItem(cacheKey) || '{}');
 
-            var showReadyBadge = function(latestVer, rawText) {
-                var cleanText = rawText.split('---')[0].replace(/### 最新版发布/g, '').trim();
+            var showReadyBadge = function (latestVer, rawText) {
+                var cleanText = rawText.split('---')[0].replace(/### ✨ 最新版发布/g, '').trim();
                 if (!cleanText) cleanText = '常规稳定性更新与优化。';
 
                 badge.className = 'nw-badge-new';
@@ -243,31 +243,31 @@ return view.extend({
                 badge.parentNode.replaceChild(newBadge, badge);
                 badge = newBadge;
 
-                badge.addEventListener('click', function() {
-                    var msgHtml = '<b>发现新版本！更新后底层权限将重置，需重新登录。</b><br><br><b>更新亮点：</b><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin-top:10px; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>';
+                badge.addEventListener('click', function () {
+                    var msgHtml = '<b>✨ 发现新版本！更新后底层权限将重置，需重新登录。</b><br><br><b>更新亮点：</b><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin-top:10px; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>';
 
                     openModal({
                         title: '升级准备就绪 (' + latestVer + ')',
                         msg: msgHtml,
                         okText: '立即更新',
                         cancelText: '暂不更新',
-                        onOk: function() {
-                            try { poll.stop(); } catch(e) {}
-                            
+                        onOk: function () {
+                            try { poll.stop(); } catch (e) { }
+
                             openModal({
                                 title: '⚙️ 正在极速安装',
-                                msg: '新版本部署中，底层权限系统正在重置...<br><br><span style="font-size:13px; color:#10b981; font-weight:bold;">安装完成后，为确保安全，系统将要求您重新登录。</span><br><br><span style="font-size:12px; color:#666;">(网页将在 12 秒后自动跳转，若卡住请按 Ctrl+F5)</span>', 
-                                spin: true 
+                                msg: '新版本部署中，底层权限系统正在重置...<br><br><span style="font-size:13px; color:#10b981; font-weight:bold;">安装完成后，为确保安全，系统将要求您重新登录。</span><br><br><span style="font-size:12px; color:#666;">(网页将在 12 秒后自动跳转，若卡住请按 Ctrl+F5)</span>',
+                                spin: true
                             });
 
-                            var forceReload = function() {
+                            var forceReload = function () {
                                 var currentUrl = window.location.href.split('?')[0];
                                 window.location.href = currentUrl + '?t=' + new Date().getTime();
                             };
 
-                            callNetSetup('do_install').then(function() {
+                            callNetSetup('do_install').then(function () {
                                 setTimeout(forceReload, 12000);
-                            }).catch(function() {
+                            }).catch(function () {
                                 setTimeout(forceReload, 12000);
                             });
                         }
@@ -275,64 +275,64 @@ return view.extend({
                 });
             };
 
-            var triggerDownload = function(latestVer, rawText) {
+            var triggerDownload = function (latestVer, rawText) {
                 if (latestVer && compareVersions(latestVer, CURRENT_VERSION) > 0) {
-                    callNetSetup('check_update', latestVer).then(function(res) {
+                    callNetSetup('check_update', latestVer).then(function (res) {
                         if (res === 1) {
                             showReadyBadge(latestVer, rawText);
                         } else {
                             callNetSetup('prepare_update', latestVer);
                             var pollCount = 0;
-                            var pollStatus = setInterval(function() {
+                            var pollStatus = setInterval(function () {
                                 pollCount++;
                                 if (pollCount > 15) { clearInterval(pollStatus); return; }
-                                callNetSetup('check_update', latestVer).then(function(r) {
+                                callNetSetup('check_update', latestVer).then(function (r) {
                                     if (r === 1) { clearInterval(pollStatus); showReadyBadge(latestVer, rawText); }
-                                }).catch(function(){});
+                                }).catch(function () { });
                             }, 4000);
                         }
-                    }).catch(function(e) {});
+                    }).catch(function (e) { });
                 }
             };
 
             if (cached.time && (now - cached.time < cacheExpiry) && cached.version) {
                 triggerDownload(cached.version, cached.body || '');
-                return; 
+                return;
             }
 
             fetch('https://api.github.com/repos/huchd0/luci-app-netwiz/releases?t=' + now, { cache: 'no-store' })
-                .then(function(res) {
+                .then(function (res) {
                     if (!res.ok) throw new Error('API Failed: ' + res.status);
                     return res.json();
                 })
-                .then(function(data) {
+                .then(function (data) {
                     if (data && data.length > 0) {
                         var latestVer = data[0].tag_name;
                         var rawText = data[0].body || '';
                         localStorage.setItem(cacheKey, JSON.stringify({ time: now, version: latestVer, body: rawText }));
                         triggerDownload(latestVer, rawText);
                     }
-                }).catch(function(e) {});
+                }).catch(function (e) { });
         }
 
         setTimeout(doUpdateCheck, 1500);
 
         function safePromise(promise, fallback, timeoutMs) {
-            return new Promise(function(resolve) {
-                var timer = setTimeout(function() {
+            return new Promise(function (resolve) {
+                var timer = setTimeout(function () {
                     console.warn("NETWIZ: 底层读取超时");
                     resolve(fallback);
                 }, timeoutMs || 3000);
-                
+
                 if (!promise || !promise.then) {
                     clearTimeout(timer);
                     return resolve(fallback);
                 }
 
-                promise.then(function(res) {
+                promise.then(function (res) {
                     clearTimeout(timer);
                     resolve(res);
-                }).catch(function(err) {
+                }).catch(function (err) {
                     clearTimeout(timer);
                     resolve(fallback);
                 });
@@ -344,36 +344,40 @@ return view.extend({
                 var val = uci.get(conf, sec, opt);
                 if (val === null || val === undefined) return def;
                 return String(val).trim();
-            } catch(e) {
+            } catch (e) {
                 return def;
             }
         }
 
-        function updateStatusDisplay() {
+        //  参数控制是否展示转圈圈动画
+        function updateStatusDisplay(isSilent) {
             try {
+                if (modeTextEl && !isSilent) {
+                    modeTextEl.innerHTML = "<div class='nw-spinner' style='width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;'></div><div style='margin-top:10px; font-size:15px; font-weight:bold; color:#fff;'>读取配置与实时状态中...</div>";
+                }
+
+                try { uci.unload('network'); uci.unload('dhcp'); } catch (e) { }
+
                 Promise.all([
                     safePromise(uci.load('network'), null, 3000),
                     safePromise(uci.load('dhcp'), null, 3000),
                     safePromise(getWanStatus(), {}, 3000)
-                ]).then(function(results) {
+                ]).then(function (results) {
                     var rawIfaces = results[2] || {};
                     var ifaces = rawIfaces.interface || rawIfaces || [];
                     if (!Array.isArray(ifaces)) ifaces = [];
 
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
-                    
-                    var activeWan = ifaces.find(function(i) { 
-                        return i && (i.interface === 'wan' || i.proto === wProto || i.device === 'eth0' || i.device === 'wan'); 
+
+                    var activeWan = ifaces.find(function (i) {
+                        return i && (i.interface === 'wan' || i.proto === wProto || i.device === 'eth0' || i.device === 'wan');
                     }) || {};
 
                     var isWanUp = activeWan.up === true;
-
                     var liveWanIp = ((activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) ? activeWan['ipv4-address'][0].address : '').split('/')[0];
                     var liveGw = activeWan.nexthop || (activeWan['ipv4-address'] && activeWan['ipv4-address'][0] ? activeWan['ipv4-address'][0].ptpaddress : '') || '获取中...';
-
-
                     var wIp = safeUciGet('network', 'wan', 'ipaddr', '未获取').split('/')[0];
-                    var wGw = safeUciGet('network', 'wan', 'gateway', '未设置'); 
+                    var wGw = safeUciGet('network', 'wan', 'gateway', '未设置');
                     var lIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0];
                     var lGw = safeUciGet('network', 'lan', 'gateway', '未设置');
                     var lIgnore = safeUciGet('dhcp', 'lan', 'ignore', '');
@@ -385,7 +389,7 @@ return view.extend({
                     if (container.querySelector('#router-gw')) container.querySelector('#router-gw').value = (wGw !== '未设置') ? wGw : '';
                     if (container.querySelector('#lan-ip')) container.querySelector('#lan-ip').value = lIp;
                     if (container.querySelector('#lan-gw')) container.querySelector('#lan-gw').value = (lGw !== '未设置') ? lGw : '';
-                    
+
                     var bypassToggle = container.querySelector('#lan-bypass-toggle');
                     if (bypassToggle) {
                         bypassToggle.checked = isBypass;
@@ -429,20 +433,42 @@ return view.extend({
 
                     if (modeTextEl) {
                         modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:10px; color:#ffffff; font-family: monospace; display: flex; align-items: center; justify-content: center;'>" + sTitle + statusBadge + "</div>" +
-                                               "<div style='font-size:15px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px;'>" + sDetails + "</div>";
+                            "<div style='font-size:15px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px;'>" + sDetails + "</div>";
                     }
-                }).catch(function(err) {
+                }).catch(function (err) {
                     if (modeTextEl) modeTextEl.innerHTML = "<div style='color:#ef4444; font-weight:bold;'>系统读取异常，防卡死已触发</div>";
                 });
-            } catch(fatalError) {
+            } catch (fatalError) {
                 console.error("NETWIZ 发生致命错误:", fatalError);
                 if (modeTextEl) modeTextEl.innerHTML = "<div style='color:#ef4444; font-weight:bold;'>底层崩溃被拦截，请强制刷新</div>";
             }
         }
 
-        updateStatusDisplay();
+        // 第一次打开网页，正常加载带转圈动画
+        updateStatusDisplay(false);
 
-        function calculateNetmask(ip) { return '255.255.255.0'; }
+        // 后台静默轮询！每隔 5 秒偷偷问一次路由器“拨上号没？”
+        setInterval(function () {
+            // 只有当用户停留在首页 (step 1 显示) 时才刷新，防止打断用户在第二步输入密码
+            if (step1.style.display !== 'none' && container.querySelector('#nw-global-modal').style.display === 'none') {
+                updateStatusDisplay(true); // 传入 true 代表“静默执行”，不显示加载动画
+            }
+        }, 5000);
+
+        function calculateNetmask(ip) {
+            if (!ip) return '255.255.255.0';
+            var firstByte = parseInt(ip.split('.')[0], 10);
+
+            if (firstByte >= 1 && firstByte <= 126) {
+                return '255.0.0.0';       // Class A (例如：10.0.0.1)
+            } else if (firstByte >= 128 && firstByte <= 191) {
+                return '255.255.0.0';     // Class B (例如：172.16.0.1)
+            } else if (firstByte >= 192 && firstByte <= 223) {
+                return '255.255.255.0';   // Class C (例如：192.168.1.1)
+            } else {
+                return '255.255.255.0';
+            }
+        }
 
         function isValidIP(ip) {
             if (!ip) return false;
@@ -482,23 +508,23 @@ return view.extend({
             spinner.style.display = options.spin ? 'block' : 'none';
             btnWrap.style.display = (options.okText || options.cancelText) ? 'flex' : 'none';
 
-            if (options.okText) { 
-                btnOk.style.display = 'block'; 
+            if (options.okText) {
+                btnOk.style.display = 'block';
                 btnOk.innerText = options.okText;
                 btnOk.className = options.isDanger ? 'nw-modal-btn-danger' : 'nw-modal-btn-ok';
-                btnOk.onclick = function() {
+                btnOk.onclick = function () {
                     if (options.onOk) options.onOk();
                     else m.style.display = 'none';
-                }; 
+                };
             } else { btnOk.style.display = 'none'; }
 
-            if (options.cancelText) { 
-                btnCancel.style.display = 'block'; 
-                btnCancel.innerText = options.cancelText; 
-                btnCancel.onclick = function() {
+            if (options.cancelText) {
+                btnCancel.style.display = 'block';
+                btnCancel.innerText = options.cancelText;
+                btnCancel.onclick = function () {
                     if (options.onCancel) options.onCancel();
                     else m.style.display = 'none';
-                }; 
+                };
             } else { btnCancel.style.display = 'none'; }
 
             m.style.display = 'flex';
@@ -517,14 +543,14 @@ return view.extend({
         }
 
         var rRadios = container.querySelectorAll('input[name="router_type"]');
-        rRadios.forEach(function(r) {
-            r.addEventListener('change', function() {
+        rRadios.forEach(function (r) {
+            r.addEventListener('change', function () {
                 container.querySelector('#router-static-fields').style.display = (this.value === 'static') ? 'block' : 'none';
             });
         });
 
         var bypassToggle = container.querySelector('#lan-bypass-toggle');
-        bypassToggle.addEventListener('change', function() {
+        bypassToggle.addEventListener('change', function () {
             var isOn = this.checked;
             container.querySelector('#lan-bypass-warning').style.display = isOn ? 'block' : 'none';
             container.querySelector('#lan-main-warning').style.display = isOn ? 'none' : 'block';
@@ -558,39 +584,39 @@ return view.extend({
                     targetGw = container.querySelector('#lan-gw').value.trim();
                     isBypass = bypassToggle.checked;
 
-                    if (!targetIp) { openModal({title:'信息不完整', msg:'本机 IP 不能为空。', okText:'返回修改'}); return; }
-                    if (!isValidIP(targetIp)) { openModal({title:'IP 格式错误', msg:'您填写的本机 IP 不合法，请检查！', okText:'返回修改'}); return; }
+                    if (!targetIp) { openModal({ title: '信息不完整', msg: '本机 IP 不能为空。', okText: '返回修改' }); return; }
+                    if (!isValidIP(targetIp)) { openModal({ title: 'IP 格式错误', msg: '您填写的本机 IP 不合法，请检查！', okText: '返回修改' }); return; }
 
                     if (isBypass) {
-                        if (!targetGw) { openModal({title:'逻辑错误', msg:'开启旁路由模式必须填写上级网关 IP。', okText:'返回修改'}); return; }
-                        if (!isValidIP(targetGw)) { openModal({title:'网关格式错误', msg:'您填写的网关 IP 不合法，请检查！', okText:'返回修改'}); return; }
+                        if (!targetGw) { openModal({ title: '逻辑错误', msg: '开启旁路由模式必须填写上级网关 IP。', okText: '返回修改' }); return; }
+                        if (!isValidIP(targetGw)) { openModal({ title: '网关格式错误', msg: '您填写的网关 IP 不合法，请检查！', okText: '返回修改' }); return; }
                     } else {
-                        if (targetGw && !isValidIP(targetGw)) { openModal({title:'网关格式错误', msg:'您填写的网关 IP 不合法，请检查！', okText:'返回修改'}); return; }
+                        if (targetGw && !isValidIP(targetGw)) { openModal({ title: '网关格式错误', msg: '您填写的网关 IP 不合法，请检查！', okText: '返回修改' }); return; }
                     }
                 } else if (selectedMode === 'router' && rType === 'static') {
                     targetIp = container.querySelector('#router-ip').value.trim();
                     targetGw = container.querySelector('#router-gw').value.trim();
 
-                    if (!targetIp || !targetGw) { openModal({title:'信息不完整', msg:'静态 IP 和网关均不能为空。', okText:'返回修改'}); return; }
-                    if (!isValidIP(targetIp)) { openModal({title:'IP 格式错误', msg:'WAN 口 IP 不合法，请检查！', okText:'返回修改'}); return; }
-                    if (!isValidIP(targetGw)) { openModal({title:'网关格式错误', msg:'上级网关 IP 不合法，请检查！', okText:'返回修改'}); return; }
+                    if (!targetIp || !targetGw) { openModal({ title: '信息不完整', msg: '静态 IP 和网关均不能为空。', okText: '返回修改' }); return; }
+                    if (!isValidIP(targetIp)) { openModal({ title: 'IP 格式错误', msg: 'WAN 口 IP 不合法，请检查！', okText: '返回修改' }); return; }
+                    if (!isValidIP(targetGw)) { openModal({ title: '网关格式错误', msg: '上级网关 IP 不合法，请检查！', okText: '返回修改' }); return; }
                 } else if (selectedMode === 'pppoe') {
-                    if (!(container.querySelector('#pppoe-user').value || '').trim() || !(container.querySelector('#pppoe-pass').value || '').trim()) { 
-                        openModal({title: '信息不完整', msg: '宽带账号和密码均不能为空。', okText: '返回修改'}); return; 
+                    if (!(container.querySelector('#pppoe-user').value || '').trim() || !(container.querySelector('#pppoe-pass').value || '').trim()) {
+                        openModal({ title: '信息不完整', msg: '宽带账号和密码均不能为空。', okText: '返回修改' }); return;
                     }
                 }
 
-                uci.load('network').then(function() {
+                uci.load('network').then(function () {
                     var currentLanIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0].replace(/[^0-9\.]/g, '');
                     var currentLanGw = safeUciGet('network', 'lan', 'gateway', '').replace(/[^0-9\.]/g, '');
-                    
+
                     var currentWanProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
                     var currentWanIp = '';
                     if (currentWanProto === 'static') {
                         currentWanIp = safeUciGet('network', 'wan', 'ipaddr', '').split('/')[0].replace(/[^0-9\.]/g, '');
                     }
                     var currentWanGw = safeUciGet('network', 'wan', 'gateway', '').replace(/[^0-9\.]/g, '');
-                    
+
                     var lDhcp = safeUciGet('dhcp', 'lan', 'ignore', '');
                     var currentBypass = (lDhcp === '1' || lDhcp === 'true' || lDhcp === 'on' || lDhcp === 'yes') ? '1' : '0';
                     var newBypass = bypassToggle.checked ? '1' : '0';
@@ -598,43 +624,43 @@ return view.extend({
                     if ((selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass) ||
                         (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) ||
                         (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp')) {
-                         openModal({title:'无需修改', msg:'您的设置与当前路由器底层配置完全一致。', okText:'退出首页', onOk: returnToStep1 });
-                         return;
+                        openModal({ title: '无需修改', msg: '您的设置与当前路由器底层配置完全一致。', okText: '退出首页', onOk: returnToStep1 });
+                        return;
                     }
 
                     if (selectedMode === 'router' && rType === 'static') {
-                        if (targetIp === currentLanIp) { openModal({title:'IP 冲突拦截', msg:'您填写的 WAN 口 IP 不能与本机现有的局域网 IP ('+currentLanIp+') 相同！', okText:'返回修改'}); return; }
-                        if (isSameSubnet(targetIp, currentLanIp)) { openModal({title:'网段冲突拦截', msg:'您填写的 WAN 口不能与局域网 ('+currentLanIp+') 处于同一网段！<br>这会导致路由器死循环，请更换网段。', okText:'返回修改'}); return; }
-                        if (targetIp === targetGw) { openModal({title:'逻辑错误', msg:'WAN 口静态 IP 绝不能与网关相同！', okText:'返回修改'}); return; }
-                        if (!isSameSubnet(targetIp, targetGw)) { 
+                        if (targetIp === currentLanIp) { openModal({ title: 'IP 冲突拦截', msg: '您填写的 WAN 口 IP 不能与本机现有的局域网 IP (' + currentLanIp + ') 相同！', okText: '返回修改' }); return; }
+                        if (isSameSubnet(targetIp, currentLanIp)) { openModal({ title: '网段冲突拦截', msg: '您填写的 WAN 口不能与局域网 (' + currentLanIp + ') 处于同一网段！<br>这会导致路由器死循环，请更换网段。', okText: '返回修改' }); return; }
+                        if (targetIp === targetGw) { openModal({ title: '逻辑错误', msg: 'WAN 口静态 IP 绝不能与网关相同！', okText: '返回修改' }); return; }
+                        if (!isSameSubnet(targetIp, targetGw)) {
                             var gwPrefix = targetGw.substring(0, targetGw.lastIndexOf('.'));
-                            openModal({title:'网段错误', msg:'WAN 口的【静态 IP】必须与上级【网关】处于同一网段！<br>例如：网关是 ' + targetGw + '，那 IP 必须是 ' + gwPrefix + '.x。', okText:'返回修改'}); 
-                            return; 
+                            openModal({ title: '网段错误', msg: 'WAN 口的【静态 IP】必须与上级【网关】处于同一网段！<br>例如：网关是 ' + targetGw + '，那 IP 必须是 ' + gwPrefix + '.x。', okText: '返回修改' });
+                            return;
                         }
                     }
 
                     if (selectedMode === 'lan') {
                         if (isBypass) {
-                            if (targetIp === targetGw) { openModal({title:'致命错误', msg:'旁路由的【本机 IP】绝不能与【网关】相同！', okText:'返回修改'}); return; }
-                            if (!isSameSubnet(targetIp, targetGw)) { openModal({title:'网段错误', msg:'旁路由的【本机 IP】必须与【网关】处于同一网段！', okText:'返回修改'}); return; }
+                            if (targetIp === targetGw) { openModal({ title: '致命错误', msg: '旁路由的【本机 IP】绝不能与【网关】相同！', okText: '返回修改' }); return; }
+                            if (!isSameSubnet(targetIp, targetGw)) { openModal({ title: '网段错误', msg: '旁路由的【本机 IP】必须与【网关】处于同一网段！', okText: '返回修改' }); return; }
                         }
-                        if (currentWanIp && targetIp === currentWanIp) { openModal({title:'IP 冲突拦截', msg:'局域网 IP 不能与现有的 WAN 口 IP ('+currentWanIp+') 相同！', okText:'返回修改'}); return; }
-                        if (currentWanIp && isSameSubnet(targetIp, currentWanIp)) { openModal({title:'网段冲突拦截', msg:'局域网不能与 WAN 口 ('+currentWanIp+') 处于同一网段！请更换网段。', okText:'返回修改'}); return; }
+                        if (currentWanIp && targetIp === currentWanIp) { openModal({ title: 'IP 冲突拦截', msg: '局域网 IP 不能与现有的 WAN 口 IP (' + currentWanIp + ') 相同！', okText: '返回修改' }); return; }
+                        if (currentWanIp && isSameSubnet(targetIp, currentWanIp)) { openModal({ title: '网段冲突拦截', msg: '局域网不能与 WAN 口 (' + currentWanIp + ') 处于同一网段！请更换网段。', okText: '返回修改' }); return; }
                     }
 
-                    var buildDetailHtml = function(title, pairs) {
+                    var buildDetailHtml = function (title, pairs) {
                         var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + title + "</div>";
                         h += "<div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>";
-                        for (var i=0; i < pairs.length; i++) {
-                            h += "<div style='display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);'>" + 
-                                 "<span style='opacity:0.8;'>" + pairs[i][0] + "</span>" + 
-                                 "<span style='font-family:monospace;'>" + pairs[i][1] + "</span></div>";
+                        for (var i = 0; i < pairs.length; i++) {
+                            h += "<div style='display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);'>" +
+                                "<span style='opacity:0.8;'>" + pairs[i][0] + "</span>" +
+                                "<span style='font-family:monospace;'>" + pairs[i][1] + "</span></div>";
                         }
                         h += "</div>";
                         return h;
                     };
 
-                    var goStep3 = function() {
+                    var goStep3 = function () {
                         var modeText = "";
                         if (selectedMode === 'lan') {
                             modeText = buildDetailHtml(isBypass ? "局域网 - 旁路由模式" : "局域网 - 主路由模式", [
@@ -667,20 +693,20 @@ return view.extend({
                             title: '主路由配置警告',
                             msg: '检测到您选择了【主路由模式】，却强行填写了【网关】。<br><br><b>在标准主路由下，网关必须留空。</b>乱填网关会导致设备无法正常分发网络，进而导致全屋断网！<br><br>您确定要这么做吗？',
                             cancelText: '返回修改', onCancel: closeModal,
-                            okText: '强行应用', isDanger: true, onOk: function() { closeModal(); goStep3(); }
+                            okText: '强行应用', isDanger: true, onOk: function () { closeModal(); goStep3(); }
                         });
                         return;
                     }
 
                     goStep3();
 
-                }).catch(function(e) {
-                    openModal({title:'系统异常', msg:'无法读取底层配置进行校验，请刷新网页重试。', okText:'关闭'});
+                }).catch(function (e) {
+                    openModal({ title: '系统异常', msg: '无法读取底层配置进行校验，请刷新网页重试。', okText: '关闭' });
                 });
 
             } catch (err) {
                 console.error("NetWiz Logic Error: ", err);
-                openModal({title:'代码运行错误', msg:'抱歉，发生了意外的逻辑错误。请强制刷新页面 (Ctrl+F5) 后重试。', okText:'关闭'});
+                openModal({ title: '代码运行错误', msg: '抱歉，发生了意外的逻辑错误。请强制刷新页面 (Ctrl+F5) 后重试。', okText: '关闭' });
             }
         });
 
@@ -688,7 +714,7 @@ return view.extend({
             var actualMode = selectedMode, arg1 = '', arg2 = '', arg3 = '', arg4 = '';
             var rTypeEl = container.querySelector('input[name="router_type"]:checked');
             var rType = rTypeEl ? rTypeEl.value : 'dhcp';
-            
+
             if (selectedMode === 'lan') {
                 arg1 = container.querySelector('#lan-ip').value.trim();
                 arg2 = container.querySelector('#lan-gw').value.trim();
@@ -696,7 +722,7 @@ return view.extend({
                 arg4 = bypassToggle.checked ? '1' : '0';
             } else if (selectedMode === 'router') {
                 actualMode = (rType === 'dhcp') ? 'wan_dhcp' : 'wan_static';
-                if(rType === 'static') {
+                if (rType === 'static') {
                     arg1 = container.querySelector('#router-ip').value.trim();
                     arg2 = container.querySelector('#router-gw').value.trim();
                     arg3 = calculateNetmask(arg1);
@@ -706,43 +732,45 @@ return view.extend({
                 arg2 = container.querySelector('#pppoe-pass').value;
             }
 
-            openModal({title:'正在下发配置', msg:'请求写入中，请稍候...', spin:true});
-            
+            openModal({ title: '正在下发配置', msg: '请求写入中，请稍候...', spin: true });
+
             var startTime = Date.now();
             var rpcDone = false;
-            
-            var handleSuccess = function() {
+
+            var handleSuccess = function () {
                 var currentHost = window.location.hostname;
                 var cleanUrl = window.location.href.split('?')[0];
                 var ts = new Date().getTime();
-                
+
                 if (selectedMode === 'lan' && arg1 && arg1 !== currentHost) {
-                    openModal({ 
-                        title: '配置已生效', 
-                        msg: '由于 IP 已变更为 <b style="color:#3b82f6;">' + arg1 + '</b>，<br>系统将在 15 秒后尝试跳转到新地址。<br><br><small>注：跳转后需重新登录。</small>', 
-                        spin: true 
+                    // 改了 IP，要去新地址登录
+                    openModal({
+                        title: '配置已生效',
+                        msg: '由于 IP 已变更为 <b style="color:#3b82f6;">' + arg1 + '</b>，<br>系统将在 15 秒后尝试跳转到新地址。<br><br><small>注：跳转后需重新登录。</small>',
+                        spin: true
                     });
-                    setTimeout(function() { window.location.href = 'http://' + arg1 + '?v=' + ts; }, 15000);
+                    setTimeout(function () { window.location.href = 'http://' + arg1 + '?v=' + ts; }, 15000);
                 } else {
-                    openModal({ 
-                        title: '正在应用配置', 
-                        msg: '底层网络正在重置，请稍候...<br><br><span style="font-size: 14px; color: #555;">(若 15 秒后未自动返回，请手动刷新页面)</span>', 
-                        spin: true 
+                    // 没改 IP，只是重启网络
+                    openModal({
+                        title: '正在应用配置',
+                        msg: '底层网络正在重置，请稍候...<br><br><span style="font-size: 14px; color: #555;">(若 15 秒后未自动返回，请手动刷新页面)</span>',
+                        spin: true
                     });
-                    setTimeout(function() { window.location.href = cleanUrl + '?v=' + ts; }, 15000); 
+                    setTimeout(function () { window.location.href = cleanUrl + '?v=' + ts; }, 15000);
                 }
             };
-            
-            callNetSetup(actualMode, arg1, arg2, arg3, arg4).then(function() {
+
+            callNetSetup(actualMode, arg1, arg2, arg3, arg4).then(function () {
                 rpcDone = true;
                 handleSuccess();
-            }).catch(function(e){
+            }).catch(function (e) {
                 var timePassed = Date.now() - startTime;
                 if (timePassed < 1500) {
                     rpcDone = true;
                     openModal({
-                        title: '❌ 写入失败', 
-                        msg: '底层调用异常，请尝试重新登录后台或检查权限配置。<br><small>错误码：' + (e.message || 'Unknown') + '</small>', 
+                        title: '❌ 写入失败',
+                        msg: '底层调用异常，请尝试重新登录后台或检查权限配置。<br><small>错误码：' + (e.message || 'Unknown') + '</small>',
                         okText: '关闭', isDanger: true
                     });
                 } else {
@@ -751,7 +779,7 @@ return view.extend({
                 }
             });
 
-            setTimeout(function() { if (!rpcDone) handleSuccess(); }, 8000);
+            setTimeout(function () { if (!rpcDone) handleSuccess(); }, 8000);
         });
     }
 });
