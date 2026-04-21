@@ -278,7 +278,7 @@ var i18n = {
         'M_HIDDEN': '已隱藏',
         'M_IP_GW': 'IP及閘道器',
         'M_AUTO_UP': '由上級路由自動分配',
-        'U_NEW': '發現新版本 ',
+        'U_NEW': '新版本 ',
         'U_READY': '升級準備就绪 (',
         'U_BTN_NOW': '立即更新',
         'U_BTN_LATER': '暫不更新',
@@ -416,19 +416,11 @@ function _t(key) {
 
 return view.extend({
     render: function () {
-        // 击穿死缓存机制：检测到标记则强制硬刷新页面，确保用户看到最新版
+        // 检查并执行强制刷新，解决升级或修改配置后需要手动刷新的问题
         if (sessionStorage.getItem('nw_force_refresh') === '1') {
             sessionStorage.removeItem('nw_force_refresh');
             window.location.reload(true);
             return dom.create('div', { id: 'netwiz-container' }, 'Reloading...');
-        }
-
-        // 注入 Viewport 确保手机端网页比例正确
-        if (!document.querySelector('meta[name="viewport"]')) {
-            var meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
-            document.head.appendChild(meta);
         }
 
         var container = dom.create('div', { class: 'cbi-map', id: 'netwiz-container' });
@@ -440,16 +432,13 @@ return view.extend({
             '.nw-header { text-align: center; margin-bottom: 40px; background-color: #5e72e4; padding: 25px; margin-top: -100px; border-radius: 0 0 15px 15px; position: relative; }',
             '.nw-main-title { font-size: 35px; font-weight: 600; margin-bottom: 10px; color: #ffffff; letter-spacing: 2px; }',
             '.nw-header p { color: #ffffff; font-size: 16px; opacity: 0.9; margin: 0; letter-spacing: 1px; }',
-            
-            // 手动切换语言的样式
-            '#nw-lang-switch { position: absolute; top: 15px; left: 15px; z-index: 100; padding: 5px 10px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-size: 13px; outline: none; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.2s; }',
+            '#nw-lang-switch { position: absolute; top: -15px; left: 15px; z-index: 100; padding: 5px 10px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-size: 13px; outline: none; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.2s; }',
             '#nw-lang-switch:hover { background: rgba(255,255,255,0.25); }',
             '#nw-lang-switch option { color: #333; background: #fff; }',
-
-            '#nw-update-badge { position: absolute; top: 20px; right: -200px; white-space: nowrap; padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; z-index: 10; display: none; }',
-            '.nw-badge-new { background: #facc15 !important; color: #854d0e !important; border: 2px solid #eab308 !important; animation: pulse 2s infinite; }',
-            '.nw-badge-new:hover { transform: scale(1.05); background: #fde047 !important; }',
-            '@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); } 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); } }',
+            '#update-red-dot { display: none; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; box-shadow: 0 0 4px rgba(239, 68, 68, 0.8); animation: pulse-dot 2s infinite; }',
+            '@keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }',
+            '#update-tooltip { display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; pointer-events: none; z-index: 100; }',
+            '#version-wrapper:hover #update-tooltip.has-update { display: block; }',
             '.nw-step { width: 100%; max-width: 750px; text-align: center; animation: slideUp 0.4s ease-out; }',
             '@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }',
             '.nw-card-group { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }',
@@ -503,7 +492,6 @@ return view.extend({
             '.nw-modal-btn-danger:hover { background: #dc2626; }',
             '.nw-hl { color: #facc15; font-weight: bold; }',
 
-            /* 响应式布局 (手机端自动适配) */
             '@media screen and (max-width: 768px) {',
             '  .nw-wrapper { padding-top: 3vh; padding-bottom: 5vh; }',
             '  .nw-header { margin-top: -30px; padding: 20px 15px; width: 92%; box-sizing: border-box; border-radius: 12px; }',
@@ -516,28 +504,26 @@ return view.extend({
             '  .nw-top-back { top: 12px; left: 12px; width: 32px; height: 32px; }',
             '  .nw-step-title { font-size: 18px; margin-top: 15px; margin-bottom: 20px; }',
             '  #current-mode-display { width: 92%; min-width: auto; padding: 15px; box-sizing: border-box; }',
-            '  #nw-lang-switch { top: 10px; left: 10px; font-size: 12px; padding: 4px 8px; }',
-            '  .nw-radio-group { flex-wrap: wrap; gap: 12px; }',
-            '  /* 统一手机端按钮排版 */',
-            '  .nw-actions { width: 100%; margin: 20px auto 0; display: flex; flex-direction: row; gap: 12px; box-sizing: border-box; }',
-            '  .nw-actions button { flex: 1; padding: 12px 0; font-size: 15px; margin: 0; }',
+            '  #nw-lang-switch { font-size: 12px; padding: 4px 8px; }',
+            '  .nw-actions { width: 92%; margin: 20px auto 0; gap: 10px; }',
+            '  .nw-actions button { padding: 12px 10px; font-size: 14px; flex: 1; }',
             '  #nw-global-modal .nw-modal-box { padding: 25px 20px; width: 85%; }',
-            '  #nw-global-btn-wrap { flex-direction: row; gap: 12px; }',
-            '  #nw-global-btn-wrap button { flex: 1; padding: 12px 0; margin: 0; }',
+            '  #nw-global-btn-wrap { flex-direction: column; gap: 10px; }',
+            '  #nw-global-btn-wrap button { width: 100%; padding: 12px; }',
+            '  #nw-update-badge { right: -30px; top: -40px;}',
+            '  .nw-radio-group { flex-wrap: wrap; gap: 12px; }',
             '}',
             '</style>',
 
             '<div class="nw-wrapper">',
-            // 加入语言切换器
             '  <select id="nw-lang-switch">',
             '    <option value="zh-cn">简体中文</option>',
             '    <option value="zh-tw">繁體中文</option>',
             '    <option value="en">English</option>',
             '  </select>',
-            
             '  <div class="nw-header">',
             '    <div id="nw-update-badge"></div>',
-            '    <div class="nw-main-title">{{TITLE}} <span style="font-size:14px; background:#67A57B; padding:4px 10px; border-radius:6px; vertical-align:middle;">' + CURRENT_VERSION + '</span></div>',
+            '    <div class="nw-main-title">{{TITLE}} <span id="version-wrapper" style="position:relative; font-size:14px; background:#67A57B; padding:4px 10px; border-radius:6px; vertical-align:middle; transition: all 0.3s;">' + CURRENT_VERSION + '<span id="update-red-dot"></span><span id="update-tooltip"></span></span></div>',
             '    <p>{{SUBTITLE}}</p>',
             '  </div>',
 
@@ -668,7 +654,9 @@ return view.extend({
         }
 
         function doUpdateCheck() {
-            var badge = container.querySelector('#nw-update-badge');
+            var verWrapper = container.querySelector('#version-wrapper');
+            var redDot = container.querySelector('#update-red-dot');
+            var tooltip = container.querySelector('#update-tooltip');
             var now = Date.now();
             var cacheKey = 'nw_last_update_check';
             var cacheExpiry = 5 * 60 * 1000;
@@ -676,15 +664,18 @@ return view.extend({
 
             var showReadyBadge = function(latestVer, rawText) {
                 var cleanText = rawText.split('---')[0].replace(/### ✨ 最新版发布/g, '').trim();
-                badge.className = 'nw-badge-new';
-                badge.innerText = _t('U_NEW') + latestVer;
-                badge.style.display = 'inline-block';
+                
+                redDot.style.display = 'block';
+                tooltip.innerText = _t('U_NEW') + latestVer;
+                tooltip.className = 'has-update';
+                verWrapper.style.cursor = 'pointer';
 
-                var newBadge = badge.cloneNode(true);
-                badge.parentNode.replaceChild(newBadge, badge);
-                badge = newBadge;
+                // 防止多次绑定点击事件
+                var newWrapper = verWrapper.cloneNode(true);
+                verWrapper.parentNode.replaceChild(newWrapper, verWrapper);
+                verWrapper = newWrapper;
 
-                badge.addEventListener('click', function() {
+                verWrapper.addEventListener('click', function() {
                     openModal({
                         title: _t('U_READY') + latestVer + ')',
                         msg: '<b>' + _t('U_INST_MSG').split('<br><br>')[0] + '</b><br><br><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin-top:10px; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>',
@@ -697,7 +688,7 @@ return view.extend({
 
                             openModal({ title: _t('U_INST'), msg: _t('U_INST_MSG'), spin: true });
                             var forceReload = function() { 
-                                // 埋下硬刷新标记，更新完毕重新加载时彻底击穿浏览器缓存
+                                // 写入强制刷新标记，更新完毕重新加载时彻底击穿浏览器缓存
                                 sessionStorage.setItem('nw_force_refresh', '1');
                                 window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime(); 
                             };
@@ -842,7 +833,6 @@ return view.extend({
             }
         }, 5000);
 
-        // 根据 IP 的 A/B/C 类自动推算子网掩码
         function calculateNetmask(ip) {
             if (!ip) return '255.255.255.0';
             var firstByte = parseInt(ip.split('.')[0], 10);
@@ -1024,14 +1014,14 @@ return view.extend({
             if (selectedMode === 'lan') {
                 arg1 = container.querySelector('#lan-ip').value.trim();
                 arg2 = container.querySelector('#lan-gw').value.trim();
-                arg3 = calculateNetmask(arg1); // 智能计算子网掩码
+                arg3 = calculateNetmask(arg1); // 计算掩码
                 arg4 = bypassToggle.checked ? '1' : '0';
             } else if (selectedMode === 'router') {
                 actualMode = (rType === 'dhcp') ? 'wan_dhcp' : 'wan_static';
                 if(rType === 'static') {
                     arg1 = container.querySelector('#router-ip').value.trim();
                     arg2 = container.querySelector('#router-gw').value.trim();
-                    arg3 = calculateNetmask(arg1); // 智能计算子网掩码
+                    arg3 = calculateNetmask(arg1); // 计算掩码
                 }
             } else if (selectedMode === 'pppoe') {
                 arg1 = container.querySelector('#pppoe-user').value;
@@ -1043,20 +1033,16 @@ return view.extend({
             
             var handleSuccess = function() {
                 var currentHost = window.location.hostname, cleanUrl = window.location.href.split('?')[0], ts = new Date().getTime();
+                
+                // 写入强制刷新标记
+                sessionStorage.setItem('nw_force_refresh', '1');
+
                 if (selectedMode === 'lan' && arg1 && arg1 !== currentHost) {
                     openModal({ title: _t('M_SUCC_TIT'), msg: _t('M_SUCC_MSG1') + arg1 + _t('M_SUCC_MSG2'), spin: true });
-                    setTimeout(function() { 
-                        // 应用完毕自动写入硬刷新标记，切换 IP 登录后不卡死
-                        sessionStorage.setItem('nw_force_refresh', '1');
-                        window.location.href = 'http://' + arg1 + '?v=' + ts; 
-                    }, 15000);
+                    setTimeout(function() { window.location.href = 'http://' + arg1 + '?v=' + ts; }, 15000);
                 } else {
                     openModal({ title: _t('M_RST_TIT'), msg: _t('M_RST_MSG'), spin: true });
-                    setTimeout(function() { 
-                        // 重启网络完毕自动写入硬刷新标记
-                        sessionStorage.setItem('nw_force_refresh', '1');
-                        window.location.href = cleanUrl + '?v=' + ts; 
-                    }, 15000); 
+                    setTimeout(function() { window.location.href = cleanUrl + '?v=' + ts; }, 15000); 
                 }
             };
             
