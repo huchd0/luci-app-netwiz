@@ -10,7 +10,7 @@
 'require uci';
 'require poll';
 
-var CURRENT_VERSION = 'v1.0.15';
+var CURRENT_VERSION = 'v1.0.0';
 
 var callNetSetup = rpc.declare({
     object: 'netwiz',
@@ -276,7 +276,7 @@ var i18n = {
         'M_HIDDEN': '已隱藏',
         'M_IP_GW': 'IP及閘道器',
         'M_AUTO_UP': '由上級路由自動分配',
-        'U_NEW': '發現新版本 ',
+        'U_NEW': '新版本 ',
         'U_READY': '升級準備就绪 (',
         'U_BTN_NOW': '立即更新',
         'U_BTN_LATER': '暫不更新',
@@ -399,7 +399,7 @@ var i18n = {
         'M_HIDDEN': '已隐藏',
         'M_IP_GW': 'IP及网关',
         'M_AUTO_UP': '由上级路由自动分配',
-        'U_NEW': '发现新版本 ',
+        'U_NEW': '新版本 ',
         'U_READY': '升级准备就绪 (',
         'U_BTN_NOW': '立即更新',
         'U_BTN_LATER': '暂不更新',
