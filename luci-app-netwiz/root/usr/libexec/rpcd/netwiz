@@ -16,12 +16,11 @@ case "$1" in
                 arg3=$(echo "$input" | jsonfilter -e '@.arg3')
                 arg4=$(echo "$input" | jsonfilter -e '@.arg4')
 
-                # 發現 mode 是更新指令，直接攔截執行熱更新
+                # 拦截执行热更新
                 if [ "$mode" = "prepare_update" ]; then
                     echo '{"result":0}'
                     rm -f /tmp/netwiz_update.*
                     
-                    # 前端傳來的版本號
                     echo "$arg1" > /tmp/netwiz_update.version
                     
                     cat << 'EOF' > /tmp/nw_dl.sh
@@ -31,15 +30,12 @@ URL="https://github.com/huchd0/luci-app-netwiz/releases/latest/download/luci-app
 PROXY_URL="https://mirror.ghproxy.com/${URL}"
 
 for i in 1 2 3; do
-    # 1. 先嘗試官方直連
     wget -qO "/tmp/netwiz_update.${PKG}" --no-check-certificate --timeout=15 "$URL"
     
-    # 2. 官方直連失敗，或者下載下來是空文件，立刻嘗試加速代理
     if [ "$?" -ne 0 ] || [ ! -s "/tmp/netwiz_update.${PKG}" ]; then
         wget -qO "/tmp/netwiz_update.${PKG}" --no-check-certificate --timeout=15 "$PROXY_URL"
     fi
     
-    # 3. 只需確保文件存在且大於 0kb 即可
     if [ -s "/tmp/netwiz_update.${PKG}" ]; then
         touch /tmp/netwiz_update.ready
         break
@@ -57,7 +53,6 @@ EOF
                     exit 0
                     
                 elif [ "$mode" = "check_update" ]; then
-                    # 檔案就緒，且版本號一致
                     if [ -f /tmp/netwiz_update.ready ] && [ "$(cat /tmp/netwiz_update.version 2>/dev/null)" = "$arg1" ]; then
                         echo '{"result":1}'
                     else
@@ -71,33 +66,28 @@ EOF
 #!/bin/sh
 sleep 2
 
-# 【核心修復】防止使用者手動修改檔案導致套件管理員拒絕覆蓋
+# 防止文件被改动导致拒绝覆盖
 rm -f /www/luci-static/resources/view/netwiz.js
 rm -f /usr/libexec/rpcd/netwiz
 
+# 强制安装新包
 if command -v apk >/dev/null 2>&1; then
-    # 針對 ImmortalWrt / Alpine 的 apk，先刪除再強制安裝
     apk del luci-app-netwiz >/dev/null 2>&1
     apk add --allow-untrusted --force-overwrite /tmp/netwiz_update.apk
 else
-    # 針對傳統 OpenWrt 的 opkg，使用強制維護者覆蓋參數
     opkg install /tmp/netwiz_update.ipk --force-reinstall --force-overwrite --force-maintainer
 fi
 
-# 徹底清理 LuCI 快取
+# 核心：只清理缓存，绝对不重启服务，防止踢出登录
 rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
 rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.* /tmp/nw_install.sh
-
-# 重啟相關服務，強迫瀏覽器拉取新文件
-/etc/init.d/rpcd restart >/dev/null 2>&1
-/etc/init.d/uhttpd restart >/dev/null 2>&1
 EOF
                     chmod +x /tmp/nw_install.sh
                     /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
                     exit 0
                 fi
 
-                # 以下是正常的網路設置邏輯
+                # 以下是正常的网络设置逻辑
                 cleanup_lan_for_wan_modes() {
                     uci delete network.lan.gateway 2>/dev/null
                     uci delete network.lan.dns 2>/dev/null
