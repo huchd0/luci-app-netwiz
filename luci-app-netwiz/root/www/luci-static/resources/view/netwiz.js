@@ -10,7 +10,7 @@
 'require uci';
 'require poll';
 
-var RAW_VERSION = 'v1.0.0';
+var RAW_VERSION = 'v1.0.16';
 
 function __cmp(v1, v2) {
     var p1 = String(v1).replace(/[^0-9\.]/g, '').split('.');
