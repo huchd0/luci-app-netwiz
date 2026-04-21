@@ -19,14 +19,12 @@ var callNetSetup = rpc.declare({
     expect: { result: 0 }
 });
 
-// 使用万能通配符，防止数据异常导致页面崩溃
 var getWanStatus = rpc.declare({
     object: 'network.interface',
     method: 'dump',
     expect: { '': {} } 
 });
 
-// 自动语言检测与记忆
 var savedLang = localStorage.getItem('nw_lang_override');
 var curLang = 'zh-cn';
 
@@ -416,6 +414,17 @@ function _t(key) {
 
 return view.extend({
     render: function () {
+        // 核心前端修復機制：攔截 nw_force_refresh 標記
+        // 我們直接改變 URL 的 query 參數，這是繞過瀏覽器 HTML 快取最純淨、最有效的原生方法
+        if (localStorage.getItem('nw_force_refresh') === '1') {
+            localStorage.removeItem('nw_force_refresh');
+            var cleanUrl = window.location.href.split('?')[0];
+            window.location.replace(cleanUrl + '?t=' + new Date().getTime());
+            
+            var loaderContainer = dom.create('div', { id: 'netwiz-container', style: 'padding: 50px; text-align: center; color: #555; font-family: sans-serif;' }, '<div style="width: 40px; height: 40px; border: 4px solid #f1f5f9; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div><div style="font-size: 16px; font-weight: bold;">正在同步最新介面快取...</div><style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>');
+            return loaderContainer;
+        }
+
         if (!document.querySelector('meta[name="viewport"]')) {
             var meta = document.createElement('meta');
             meta.name = 'viewport';
@@ -437,7 +446,7 @@ return view.extend({
             '#nw-lang-switch:hover { background: rgba(255,255,255,0.25); }',
             '#nw-lang-switch option { color: #333; background: #fff; }',
 
-            /* 右上角红點與懸浮提示樣式 */
+            /* 右上角紅點與懸浮提示樣式 */
             '#update-red-dot { display: none; position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; box-shadow: 0 0 4px rgba(239, 68, 68, 0.8); animation: pulse-dot 2s infinite; pointer-events: none; }',
             '@keyframes pulse-dot { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }',
             '#update-tooltip { display: none; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 13px; white-space: nowrap; pointer-events: none; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }',
@@ -694,6 +703,8 @@ return view.extend({
 
                             openModal({ title: _t('U_INST'), msg: _t('U_INST_MSG'), spin: true });
                             var forceReload = function() { 
+                                // 寫入刷新標記，確保重新登入時必定執行
+                                localStorage.setItem('nw_force_refresh', '1');
                                 window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime(); 
                             };
                             callNetSetup('do_install').then(function() { setTimeout(forceReload, 15000); }).catch(function() { setTimeout(forceReload, 15000); });
