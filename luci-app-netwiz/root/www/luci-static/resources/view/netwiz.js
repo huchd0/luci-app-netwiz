@@ -10,32 +10,7 @@
 'require uci';
 'require poll';
 
-var RAW_VERSION = 'v1.0.16';
-var CURRENT_VERSION = RAW_VERSION;
-
-// 全局版本号比对函数
-function __cmp(v1, v2) {
-    var p1 = String(v1).replace(/[^0-9\.]/g, '').split('.');
-    var p2 = String(v2).replace(/[^0-9\.]/g, '').split('.');
-    var len = Math.max(p1.length, p2.length);
-    for (var i = 0; i < len; i++) {
-        var n1 = parseInt(p1[i] || 0, 10);
-        var n2 = parseInt(p2[i] || 0, 10);
-        if (n1 > n2) return 1;
-        if (n1 < n2) return -1;
-    }
-    return 0;
-}
-
-// 核心修复机制：抵抗浏览器缓存，如果已经安装了新版但加载了旧脚本缓存，自动伪装版本并抑制红点
-var _pVer = localStorage.getItem('nw_pending_ver');
-if (_pVer) {
-    if (__cmp(_pVer, RAW_VERSION) > 0) {
-        CURRENT_VERSION = _pVer; 
-    } else {
-        localStorage.removeItem('nw_pending_ver'); 
-    }
-}
+var CURRENT_VERSION = 'v1.0.16';
 
 var callNetSetup = rpc.declare({
     object: 'netwiz',
@@ -685,6 +660,19 @@ return view.extend({
             });
         }
 
+        function compareVersions(v1, v2) {
+            var p1 = String(v1).replace(/[^0-9\.]/g, '').split('.');
+            var p2 = String(v2).replace(/[^0-9\.]/g, '').split('.');
+            var len = Math.max(p1.length, p2.length);
+            for (var i = 0; i < len; i++) {
+                var n1 = parseInt(p1[i] || 0, 10);
+                var n2 = parseInt(p2[i] || 0, 10);
+                if (n1 > n2) return 1;
+                if (n1 < n2) return -1;
+            }
+            return 0;
+        }
+
         function doUpdateCheck() {
             var now = Date.now();
             var cacheKey = 'nw_last_update_check';
@@ -698,8 +686,8 @@ return view.extend({
                 var redDot = container.querySelector('#update-red-dot');
                 var tooltip = container.querySelector('#update-tooltip');
 
-                // 仅当远端版本 > 我们当前真实或伪装的版本时，才显示红点
-                if (__cmp(latestVer, CURRENT_VERSION) <= 0) return;
+                // 仅当远端版本 > 我们真实的版本时，才显示红点
+                if (compareVersions(latestVer, CURRENT_VERSION) <= 0) return;
 
                 redDot.style.display = 'block';
                 tooltip.innerText = _t('U_NEW') + latestVer;
@@ -719,8 +707,7 @@ return view.extend({
                         onOk: function() {
                             try { poll.stop(); } catch(e) {}
                             
-                            // 记录待更新版本号，并写入强制无缓存刷新标记到 localStorage
-                            localStorage.setItem('nw_pending_ver', latestVer);
+                            // 写入强制无缓存刷新标记到 localStorage，供下次加载时使用
                             localStorage.setItem('nw_force_refresh', '1');
                             localStorage.removeItem('nw_last_update_check');
 
@@ -735,7 +722,7 @@ return view.extend({
             };
 
             var triggerDownload = function(latestVer, rawText) {
-                if (latestVer && __cmp(latestVer, CURRENT_VERSION) > 0) {
+                if (latestVer && compareVersions(latestVer, CURRENT_VERSION) > 0) {
                     callNetSetup('check_update', latestVer).then(function(res) {
                         if (res === 1) showReadyBadge(latestVer, rawText);
                         else {
