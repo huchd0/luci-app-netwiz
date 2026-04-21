@@ -10,7 +10,7 @@
 'require uci';
 'require poll';
 
-var CURRENT_VERSION = 'v1.0.16';
+var CURRENT_VERSION = 'v1.0.0';
 
 var callNetSetup = rpc.declare({
     object: 'netwiz',
