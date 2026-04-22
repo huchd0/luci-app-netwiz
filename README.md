@@ -1,6 +1,6 @@
 # NetWiz (luci-app-netwiz) 🚀
 
-**NetWiz** 开箱即用，「纯净 · 安全 · 零破坏」极简网络配置向导。化繁为简，聚焦三大高频接入场景，实现高效完成配置与最小干预部署。
+**NetWiz**网络配置向导-极简，开箱即用，「纯净 · 安全 · 零破坏」。化繁为简，聚焦三大高频接入场景，实现高效完成配置与最小干预部署。
 
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-23.05_|_25.x+-blue.svg) ![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-Supported-orange.svg) ![License](https://img.shields.io/badge/License-GPL--3.0-green.svg) ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 
