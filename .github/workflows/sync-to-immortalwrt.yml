@@ -1,0 +1,48 @@
+name: 🔄 手动同步到 ImmortalWrt 官方库
+
+# 这里是修改的核心：只保留了 workflow_dispatch（手动触发），去掉了所有的 push 触发
+on:
+  workflow_dispatch: 
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 检出核心代码 (luci-app-netwiz)
+        uses: actions/checkout@v4
+        with:
+          path: source-repo
+
+      - name: 2. 检出目标仓库 (ImmortalWrt Fork)
+        uses: actions/checkout@v4
+        with:
+          repository: huchd0/luci  # ⚠️ 请确认这是您的 fork 仓库地址
+          token: ${{ secrets.SYNC_TOKEN }} # 使用刚才配置的跨仓库钥匙
+          path: dest-repo
+          ref: master # ⚠️ immortalwrt/luci 的主分支通常是 master，根据实际情况修改
+
+      - name: 3. 执行魔法搬运
+        run: |
+          echo "🧹 清空目标仓库的旧文件..."
+          rm -rf dest-repo/applications/luci-app-netwiz/*
+          mkdir -p dest-repo/applications/luci-app-netwiz/
+          
+          echo "📦 复制最新代码..."
+          # 👇 【核心修改位置】源路径从 source-repo/ 改成了 source-repo/luci-app-netwiz/
+          rsync -av --exclude='.git/' --exclude='.github/' source-repo/luci-app-netwiz/ dest-repo/applications/luci-app-netwiz/
+
+      - name: 4. 提交并推送到 Fork 仓库
+        run: |
+          cd dest-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add applications/luci-app-netwiz/
+          
+          if git diff --cached --quiet; then
+            echo "✅ 代码完全一致，不需要重复同步。"
+          else
+            git commit -m "sync: 🤖 手动同步 luci-app-netwiz 最新代码"
+            git push origin master # ⚠️ 对应上面的 ref 分支名
+            echo "🚀 成功推送到 Fork 仓库！"
+          fi
