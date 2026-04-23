@@ -115,7 +115,7 @@ var T = {
     'M_SUCC_MSG3': _('Note: You will need to log in again.'),
     'M_RST_TIT': _('Applying Configuration'),
     'M_RST_MSG': _('Underlying network is resetting, please wait...<br><br><span style="font-size: 14px; color: #555;">(If it does not automatically return in 15s, manually refresh)</span>'),
-    'M_FAIL_TIT': _('❌ Write Failed'), // 这里的符号属于翻译字典显示内容，予以保留
+    'M_FAIL_TIT': _('❌ Write Failed'),
     'M_FAIL_MSG': _('Underlying call exception, please try logging in again.'),
     'M_FAIL_CODE': _('Error code: {code}'),
     'M_CLOSE': _('Close'),
@@ -233,9 +233,7 @@ return view.extend({
             '  .nw-form-area, .nw-confirm-board { width: 100% !important; max-width: 320px !important; margin: 0 auto !important; padding: 25px 20px !important; box-sizing: border-box !important; }',
             '  .nw-top-back { top: 12px; left: 12px; width: 32px; height: 32px; }',
             '  .nw-step-title { font-size: 18px; margin-top: 15px; margin-bottom: 20px; }',
-            /* 👇 下面这行是核心修复：强行重置了 min-width 和 padding */
             '  #current-mode-display { width: 100% !important; max-width: 320px !important; min-width: 0 !important; margin: 20px auto 0 !important; padding: 15px !important; box-sizing: border-box !important; display: block !important; }',
-            /* 👇 顺便给底部的按钮也加上全套护甲，确保绝不溢出 */
             '  .nw-actions { width: 100% !important; max-width: 320px !important; margin: 20px auto 0 !important; display: flex !important; flex-direction: row !important; gap: 12px !important; box-sizing: border-box !important; }',
             '  .nw-actions button { flex: 1 !important; padding: 12px 0 !important; font-size: 15px !important; margin: 0 !important; min-width: 0 !important; box-sizing: border-box !important; }',
             '  #nw-global-modal .nw-modal-box { padding: 25px 20px; width: 85%; }',
