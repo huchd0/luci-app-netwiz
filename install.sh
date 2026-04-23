@@ -75,10 +75,20 @@ else
 fi
 
 # 4. 清理缓存
-echo "♻️ 正在重建 LuCI 缓存并重载权限服务..."
-rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* /tmp/*luci-* 2>/dev/null
+echo "♻️ 正在重建 LuCI 缓存并清理当前登录会话..."
+
+# 4.1 清理所有的菜单与编译缓存
+rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/ /var/run/luci-indexcache /var/run/luci-modulecache/ 2>/dev/null
+
+# 4.2 清除安装包残留文件
+rm -f /tmp/*luci-* 2>/dev/null
+
+# 4.3 删除当前所有的登录 Session！确保菜单刷新！
+rm -rf /tmp/luci-sessions/* /var/run/luci-sessions/* 2>/dev/null
+
+# 4.4 重载 RPC 守护进程
 /etc/init.d/rpcd reload 2>/dev/null
 
 echo -e "\n🎉 NetWiz 核心程序及多语言包更新与部署完成！"
-echo -e "💡 请返回浏览器，按下键盘的 【Ctrl + F5】 (或 Shift+F5) 强制刷新网页，即可享受最新界面！"
+echo -e "💡 登录状态已安全重置，请返回浏览器按下 【F5】 刷新，重新登录即可看到新菜单！"
 exit 0
