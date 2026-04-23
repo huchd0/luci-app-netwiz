@@ -106,6 +106,15 @@ jobs:
           tag_name: v${{ needs.prepare.outputs.pkg_version }}
           name: "Netwiz 网络设置向导 v${{ needs.prepare.outputs.pkg_version }} 发布"
           body: |
+            ### 🚀 全平台一键极速安装
+            请使用 SSH 登录路由器终端，直接复制并运行下方代码：
+            
+            ```bash
+            wget -qO- https://raw.githubusercontent.com/${{ github.repository }}/master/install.sh | sh
+            ```
+            
+            ---
+           
             ### 📥 下载指南
             
             #### 📦 如果您的系统使用 APK 格式 (推荐/新版系统)：
@@ -127,9 +136,11 @@ jobs:
             > **不知道自己是哪种？** > 登录您的路由器后台，进入“系统 -> 软件包”，如果页面顶部提示“使用 apk 安装...”，那就是 APK；如果什么都没特别说明，通常就是传统的 IPK。
             
             ---
+            
             ⚠️ **注意**：
               * **插件界面将随设备系统语言自动适配；也可在路由器【系统 → 语言与界面 → 语言选择】中随时切换。**
               * **安装完成后，请务必在浏览器按下 **`Ctrl + F5`** (或 `Shift + F5`) 强制刷新网页缓存，否则可能无法显示中文或新菜单！**
+
           draft: false
           prerelease: false
           files: |
