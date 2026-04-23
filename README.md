@@ -6,11 +6,9 @@
 
 ---
 
-[English](#english) | [简体中文](#简体中文)
-
 ## English
 
-### Description
+### Description | [简体中文](#简体中文)
 `luci-app-netwiz` (Network Setup Wizard) is a minimalist, safe, and non-destructive network configuration interface for OpenWrt/ImmortalWrt. 
 
 It is designed to be highly user-friendly for novices setting up secondary routers (DHCP/Static IP) or bypass routers.
@@ -49,9 +47,9 @@ Core Supported Modules
    * You have a main router providing Wi-Fi and DHCP for your home. You add a bypass router and set only your laptop’s gateway to it. Now, your laptop’s traffic goes through the bypass router (e.g., for proxy or special routing), while all other devices continue using the main router normally. This way, you get advanced control on one device without affecting the rest of the network.
 ---
 
-## 简体中文 | [English](#english) | 
+## 简体中文
 
-### 📖简介
+### 📖简介 | [English](#english)
 
 `luci-app-netwiz` (网络设置向导) 是一款专为 OpenWrt / ImmortalWrt 设计的极简、安全且“零破坏”的网络配置界面。
 
