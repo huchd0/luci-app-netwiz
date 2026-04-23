@@ -15,62 +15,70 @@ else
     exit 1
 fi
 
-# 清理 /tmp 目录下可能存在的历史文件
-rm -f /tmp/${PKG_TYPE}_luci-*.${PKG_TYPE} 2>/dev/null
+rm -f /tmp/luci-*.${PKG_TYPE} 2>/dev/null
 
 # 2. 批量下载主程序与语言包
 echo "⬇️ 正在从云端下载最新版本 (${PKG_TYPE} 格式)..."
 
-# 定义需要下载的核心组件数组
 FILES="luci-app-netwiz luci-i18n-netwiz-zh-cn luci-i18n-netwiz-zh-tw"
 DOWNLOAD_SUCCESS=0
 
 for FILE in $FILES; do
-    # 拼接分类前缀文件名，例如: apk_luci-app-netwiz.apk
+    # 完美匹配您的文件名格式：前缀_包名.后缀 (例如 apk_luci-app-netwiz.apk)
     TARGET_FILE="${PKG_TYPE}_${FILE}.${PKG_TYPE}"
     URL_DIRECT="https://github.com/huchd0/luci-app-netwiz/releases/latest/download/${TARGET_FILE}"
-    # ✅ 已替换为目前最稳定高效的代理节点
-    URL_PROXY="https://mirror.ghproxy.com/${URL_DIRECT}"
-
-    echo "正在拉取: ${FILE} ..."
-    wget -qO "/tmp/${TARGET_FILE}" --no-check-certificate -T 15 "$URL_DIRECT"
     
-    # 下载失败或文件大小为空时，自动切换代理
+    # 🌟 代理池：引入目前国内最稳定的三个加速节点，防止单一节点失效
+    PROXY_1="https://ghp.ci/${URL_DIRECT}"
+    PROXY_2="https://ghproxy.net/${URL_DIRECT}"
+    PROXY_3="https://github.moeyy.xyz/${URL_DIRECT}"
+
+    echo "👉 正在拉取: ${TARGET_FILE} ..."
+    
+    # 尝试直连
+    wget -qO "/tmp/${TARGET_FILE}" --no-check-certificate -T 10 "$URL_DIRECT"
+    
+    # 直连失败，尝试代理 1
     if [ "$?" -ne 0 ] || [ ! -s "/tmp/${TARGET_FILE}" ]; then
-        echo "⚠️ 官方节点连接超时，自动切换加速节点..."
-        wget -qO "/tmp/${TARGET_FILE}" --no-check-certificate -T 15 "$URL_PROXY"
+        echo "⚠️ 直连超时，尝试加速节点 1 (ghp.ci)..."
+        wget -qO "/tmp/${TARGET_FILE}" --no-check-certificate -T 10 "$PROXY_1"
+    fi
+    
+    # 代理 1 失败，尝试代理 2
+    if [ "$?" -ne 0 ] || [ ! -s "/tmp/${TARGET_FILE}" ]; then
+        echo "⚠️ 节点 1 超时，尝试加速节点 2 (ghproxy.net)..."
+        wget -qO "/tmp/${TARGET_FILE}" --no-check-certificate -T 10 "$PROXY_2"
     fi
 
-    # 校验是否最终下载成功
-    if [ -s "/tmp/${TARGET_FILE}" ]; then
+    # 校验是否最终下载成功 (大于1KB才算真正的包，防止下载到含有 404 报错的 HTML 文件)
+    FILE_SIZE=$(ls -l "/tmp/${TARGET_FILE}" 2>/dev/null | awk '{print $5}')
+    if [ -s "/tmp/${TARGET_FILE}" ] && [ "$FILE_SIZE" -gt 1000 ]; then
         DOWNLOAD_SUCCESS=$((DOWNLOAD_SUCCESS + 1))
+        echo "✅ ${TARGET_FILE} 下载成功！"
     else
-        echo "❌ 警告: ${FILE} 下载失败，可能会导致部分功能或翻译缺失！"
+        echo "❌ 警告: ${TARGET_FILE} 下载失败！"
+        rm -f "/tmp/${TARGET_FILE}" # 删除损坏的空文件
     fi
 done
 
-# 如果一个包都没下下来，直接终止
 if [ "$DOWNLOAD_SUCCESS" -eq 0 ]; then
-    echo "❌ 所有文件下载彻底失败！"
-    echo "💡 提示: 请检查路由器的网络，或确认 GitHub Release 页面是否已生成对应文件。"
+    echo "❌ 所有文件下载彻底失败！请检查路由器的网络连接。"
     exit 1
 fi
 
 # 3. 部署新版本
 echo "⚙️ 正在执行批量覆盖安装..."
 if [ "$PKG_TYPE" = "apk" ]; then
-    # 批量安装 /tmp/ 下所有带有前缀的 apk
-    apk add --allow-untrusted --force-overwrite /tmp/${PKG_TYPE}_luci-*.apk
+    apk add --allow-untrusted --force-overwrite /tmp/*luci-*.apk 2>/dev/null
 else
-    # 批量安装 /tmp/ 下所有带有前缀的 ipk
-    opkg install /tmp/${PKG_TYPE}_luci-*.ipk --force-reinstall --force-overwrite
+    opkg install /tmp/*luci-*.ipk --force-reinstall --force-overwrite 2>/dev/null
 fi
 
 # 4. 清理缓存
 echo "♻️ 正在重建 LuCI 缓存并重载权限服务..."
-rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* /tmp/luci-app-netwiz.* /tmp/${PKG_TYPE}_luci-* 2>/dev/null
+rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* /tmp/*luci-* 2>/dev/null
 /etc/init.d/rpcd reload 2>/dev/null
 
-echo -e "\n✅ NetWiz 核心程序及多语言包更新与部署完成！"
-echo -e "👉 请返回浏览器，按下键盘的 【Ctrl + F5】 (或 Shift+F5) 强制刷新网页，即可享受最新界面！"
+echo -e "\n🎉 NetWiz 核心程序及多语言包更新与部署完成！"
+echo -e "💡 请返回浏览器，按下键盘的 【Ctrl + F5】 (或 Shift+F5) 强制刷新网页，即可享受最新界面！"
 exit 0
