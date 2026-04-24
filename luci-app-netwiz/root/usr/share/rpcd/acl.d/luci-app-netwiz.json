@@ -1,6 +1,6 @@
 {
-    "luci-access": {
-        "description": "Grant authenticated users full access to netwiz RPC",
+    "luci-app-netwiz": {
+        "description": "Grant access to netwiz",
         "read": {
             "ubus": {
                 "netwiz": [ "*" ]
