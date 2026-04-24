@@ -48,27 +48,25 @@ while true; do
     fi
 
     # ---------------- 2. LAN 防失联雷达与炸弹 ----------------
-    if [ -f /tmp/netwiz_rollback_time ]; then
-        TARGET_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
+    if [ -f /tmp/netwiz_rollback_time ] && [ -f /tmp/netwiz_target_ip ]; then
+        # 🌟 终极雷达：只认死命令纸条上的 IP
+        TARGET_IP=$(cat /tmp/netwiz_target_ip)
         
-        # 终极雷达扫描
         if netstat -tn 2>/dev/null | grep -E "(^|[ \t:])${TARGET_IP}:(80|443)[ \t]+.*ESTABLISHED" >/dev/null; then
             log "SUCCESS: Radar detected browser access on $TARGET_IP. Defusing bomb autonomously."
-            rm -f /tmp/netwiz_rollback_time /tmp/network.netwiz_bak /tmp/dhcp.netwiz_bak
+            rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /tmp/network.netwiz_bak /tmp/dhcp.netwiz_bak
         else
-            # 超时引爆判定
             TARGET_TIME=$(cat /tmp/netwiz_rollback_time)
             CURRENT_TIME=$(date +%s)
             if [ "$CURRENT_TIME" -ge "$TARGET_TIME" ]; then
-                log "Time is up (120s)! No browser access detected. BOOM!"
-                rm -f /tmp/netwiz_rollback_time
+                log "Time is up (120s)! No browser access to $TARGET_IP detected. BOOM!"
+                rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip
                 if [ -f /tmp/network.netwiz_bak ]; then
                     log "Restoring original network config..."
                     cp /tmp/network.netwiz_bak /etc/config/network
                     cp /tmp/dhcp.netwiz_bak /etc/config/dhcp
                     rm -f /tmp/network.netwiz_bak /tmp/dhcp.netwiz_bak
-                
-                    #  DHCP (dnsmasq) 和 网页服务器 (uhttpd) 重启！
+                    
                     (
                         exec >/dev/null 2>&1 </dev/null
                         /etc/init.d/network restart
