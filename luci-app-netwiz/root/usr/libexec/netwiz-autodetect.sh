@@ -63,8 +63,11 @@ if [ "$ORIG_PROTO" != "dhcp" ]; then
     log "Switching to DHCP..."
     uci set network.wan.proto='dhcp'
     uci commit network
-    /etc/init.d/network restart
-    sleep 5 # 留出缓冲时间
+    
+    # 热重载代替完全重启，极其丝滑！
+    /etc/init.d/network reload
+    
+    # 进入探测循环，循环里面本来就有 2 秒一次的 ping
     if wait_for_internet; then success=1; fi
 fi
 
@@ -73,8 +76,9 @@ if [ "$success" -eq 0 ] && [ "$ORIG_PROTO" != "pppoe" ] && [ -n "$HAS_PPPOE_USER
     cp "$BAK_FILE" /etc/config/network
     uci set network.wan.proto='pppoe'
     uci commit network
-    /etc/init.d/network restart
-    sleep 5 # 留出缓冲时间
+    
+    # 使用热重载
+    /etc/init.d/network reload
     if wait_for_internet; then success=1; fi
 fi
 
@@ -85,6 +89,7 @@ else
     log "All protocols failed. Rolling back to original."
     cp "$BAK_FILE" /etc/config/network
     rm -f "$BAK_FILE"
-    /etc/init.d/network restart
+
+    /etc/init.d/network reload
 fi
 exit 0
