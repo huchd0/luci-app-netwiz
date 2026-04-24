@@ -1,15 +1,19 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
 # Licensed under the GNU General Public License v3.0
-# Execution priority must be strictly earlier than 'network' (which is usually 20)
+
 START=15
 
 boot() {
-    BAK_FILE="/etc/config/network.netwiz_bak"
-    
-    if [ -f "$BAK_FILE" ]; then
-        logger -t Netwiz "Detect interrupted by power loss. Recovering original WAN protocol..."
-        cp "$BAK_FILE" /etc/config/network
-        rm -f "$BAK_FILE"
+    if [ -f /etc/config/network.netwiz_bak ]; then
+        logger -t Netwiz "Power loss detected during test! Forcefully recovering network..."
+        
+        cp /etc/config/network.netwiz_bak /etc/config/network
+        cp /etc/config/dhcp.netwiz_bak /etc/config/dhcp
+        
+
+        rm -f /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
+        rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip
+        
     fi
 }
