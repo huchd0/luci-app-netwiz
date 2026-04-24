@@ -56,8 +56,16 @@ while true; do
                     cp /tmp/network.netwiz_bak /etc/config/network
                     cp /tmp/dhcp.netwiz_bak /etc/config/dhcp
                     rm -f /tmp/network.netwiz_bak /tmp/dhcp.netwiz_bak
-                    /etc/init.d/network restart
-                    log "Rollback successfully completed."
+                
+                    #  DHCP (dnsmasq) 和 网页服务器 (uhttpd) 重启！
+                    (
+                        exec >/dev/null 2>&1 </dev/null
+                        /etc/init.d/network restart
+                        /etc/init.d/dnsmasq restart
+                        /etc/init.d/uhttpd restart
+                        sleep 3
+                        echo "$(date '+%F %T') [Monitor] Rollback completely finished. Services restarted." >> /tmp/netwiz.log
+                    ) &
                 fi
             fi
         fi
