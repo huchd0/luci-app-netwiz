@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+# Execution priority must be strictly earlier than 'network' (which is usually 20)
+START=15
+
+boot() {
+    BAK_FILE="/etc/config/network.netwiz_bak"
+    
+    if [ -f "$BAK_FILE" ]; then
+        logger -t Netwiz "Detect interrupted by power loss. Recovering original WAN protocol..."
+        cp "$BAK_FILE" /etc/config/network
+        rm -f "$BAK_FILE"
+    fi
+}
