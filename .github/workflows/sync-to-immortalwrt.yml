@@ -42,6 +42,11 @@ jobs:
           # 注意这里的源路径是 ../source-repo/luci-app-netwiz/
           rsync -av --exclude='.git/' --exclude='.github/' ../source-repo/luci-app-netwiz/ applications/luci-app-netwiz/
           
+          # Makefile 版本号并注入前端
+          echo "🏷️ 正在提取 Makefile 版本号..."
+          PKG_VER=$(grep -E '^PKG_VERSION:=' applications/luci-app-netwiz/Makefile | cut -d '=' -f 2 | tr -d ' ')
+          echo "获取到版本号: v$PKG_VER，开始注入前端..."
+          sed -i "s/{{APP_VERSION}}/v$PKG_VER/g" applications/luci-app-netwiz/htdocs/luci-static/resources/view/netwiz.js
           git add applications/luci-app-netwiz/
           
           if git diff --cached --quiet; then
