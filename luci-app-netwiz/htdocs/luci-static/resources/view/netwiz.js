@@ -125,6 +125,7 @@ var T = {
     'M_HIDDEN': _('Hidden'),
     'M_IP_GW': _('IP & Gateway'),
     'M_AUTO_UP': _('Auto-assigned by upstream router')
+    'M_SUCC_ROLLBACK': _('Connection to new IP timed out, automatically rolled back configuration, reconnecting...')
 };
 
 // 声明后端的 RPC 接口调用
@@ -389,7 +390,6 @@ return view.extend({
                         container.querySelector('#lan-main-warning').style.display = isBypass ? 'none' : 'block';
                     }
 
-                    // 修复手机端UI排版：使用 flex-wrap 和 white-space 防止换行断裂
                     var mkB = function(bg, txt) { return "<span style='font-size:12px; background:" + bg + "; color:#fff; padding:3px 10px; border-radius:12px; white-space:nowrap;'>" + txt + "</span>"; };
                     var mkD = function(l1, v1, l2, v2) { return "<span style='white-space:nowrap; margin: 0 10px;'>" + l1 + " <span class='nw-hl'>" + v1 + "</span></span><span style='white-space:nowrap; margin: 0 10px;'>" + l2 + " <span class='nw-hl'>" + v2 + "</span></span>"; };
 
@@ -447,7 +447,7 @@ return view.extend({
         container.querySelector('#btn-back-2').addEventListener('click', function () { step3.style.display = 'none'; step2.style.display = 'block'; });
         container.querySelector('#top-back-2').addEventListener('click', function () { step3.style.display = 'none'; step2.style.display = 'block'; });
 
-        // 下一步：数据校验逻辑
+        // 数据校验逻辑
         container.querySelector('#btn-next-2').addEventListener('click', function () {
             try {
                 var rType = container.querySelector('input[name="router_type"]:checked').value, targetIp = '', targetGw = '', isBypass = false;
@@ -466,7 +466,7 @@ return view.extend({
                     
                     if ((selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass) || (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) || (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp')) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
                     
-                    // 防呆：处理 IP 与网关的冲突逻辑
+                    // 处理 IP 与网关的冲突逻辑
                     if (selectedMode === 'router' && rType === 'static') { 
                         if (targetIp === currentLanIp || isSameSubnet(targetIp, currentLanIp)) { 
                             openModal({title:T['M_CFLT_TIT'], msg: (targetIp === currentLanIp ? T['M_CFLT_IP'].replace('{ip}', currentLanIp) : T['M_CFLT_SUB1'].replace('{ip}', currentLanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; 
@@ -485,7 +485,7 @@ return view.extend({
                         } 
                     }
 
-                    // 动态生成确认画面的内容
+                    // 生成确认画面的内容
                     var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);'><span style='opacity:0.8;'>" + p[i][0] + "</span><span style='font-family:monospace;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
                     if (selectedMode === 'lan') confirmText.innerHTML = b(isBypass ? T['MODE_LAN_TITLE']+" - "+T['STAT_BYPASS'] : T['MODE_LAN_TITLE']+" - "+T['STAT_LAN'], [[T['TXT_DEV_IP'].replace(':',''), targetIp], [T['LBL_GW'], targetGw || T['TXT_NOT_SET']], ["DHCP", isBypass ? T['TXT_OFF'] : T['TXT_ON']]]);
                     else if (selectedMode === 'router') confirmText.innerHTML = (rType === 'static' ? b(T['STAT_SEC_STATIC'], [[T['TXT_WAN_IP'].replace(':',''), targetIp], [T['TXT_UP_GW'].replace(':',''), targetGw]]) : b(T['STAT_SEC_DHCP'], [[T['LBL_CONN_TYPE'], T['OPT_DHCP']], [T['M_IP_GW'], T['M_AUTO_UP']]]));
@@ -498,7 +498,7 @@ return view.extend({
             } catch (e) { openModal({title:T['ERR_RD_SYS'], msg:T['ERR_CRASH'], okText:T['M_CLOSE']}); }
         });
 
-        // 最终提交：向后端 RPC 发送写入请求
+        // 向后端 RPC 发送写入请求
         container.querySelector('#btn-apply').addEventListener('click', function () {
             var mode = selectedMode, a1 = '', a2 = '', a3 = '', a4 = '', rType = container.querySelector('input[name="router_type"]:checked').value;
             if (selectedMode === 'lan') { a1 = container.querySelector('#lan-ip').value.trim(); a2 = container.querySelector('#lan-gw').value.trim(); a3 = calculateNetmask(a1); a4 = bypassToggle.checked ? '1' : '0';
@@ -509,14 +509,59 @@ return view.extend({
             var start = Date.now(), done = false;
             var succ = function() {
                 var h = window.location.hostname, ts = new Date().getTime();
-                // 若修改了 LAN IP，尝试重定向至新地址
+                
+                // 重定向至新地址
                 if (selectedMode === 'lan' && a1 && a1 !== h) { 
                     var succHtml = T['M_SUCC_MSG1'].replace('{ip}', '<b style="color:#3b82f6;">' + a1 + '</b>') + '<br>' + T['M_SUCC_MSG2'] + '<br><br><small>' + T['M_SUCC_MSG3'] + '</small><br><br><div style="background:#fef2f2; border:1px solid #fecaca; color:#ef4444; padding:10px; border-radius:8px; font-size:13px; line-height:1.5;">' + T['M_SUCC_MSG4'] + '</div>';
                     openModal({ title: T['M_SUCC_TIT'], msg: succHtml, spin: true }); 
-                    setTimeout(function() { window.location.href = 'http://' + a1 + '?v=' + ts; }, 15000);
+                    
+                    // --- IP 探測 ---
+                    var startTime = Date.now();
+                    var bombTime = 120 * 1000; // 120秒倒計時
+                    var checkInterval = 2000;  // 每2秒开一次門
+
+                    var checkNewIpTimer = setInterval(function() {
+                        var elapsed = Date.now() - startTime;
+                        if (elapsed < bombTime) {
+
+                            fetch('http://' + a1 + '/cgi-bin/luci/?v=' + ts, { mode: 'no-cors', cache: 'no-store' })
+                            .then(function() {
+                                clearInterval(checkNewIpTimer);
+
+                                window.location.href = 'http://' + a1 + '/cgi-bin/luci/';
+                            }).catch(function() {
+
+                            });
+                        } else {
+
+                            clearInterval(checkNewIpTimer);
+                            var rollbackHtml = '<div style="color:#ef4444; font-weight:bold; font-size:15px; margin-bottom:10px;">' + T['M_SUCC_ROLLBACK'] + '</div><div style="font-size:13px; color:#666;">Please do not close this page.</div>';
+                            openModal({ title: T['M_RST_TIT'], msg: rollbackHtml, spin: true });
+
+
+                            var checkOldIpTimer = setInterval(function() {
+                                fetch('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
+                                .then(function() {
+                                    clearInterval(checkOldIpTimer);
+
+                                    window.location.reload();
+                                }).catch(function() {});
+                            }, 2000);
+                        }
+                    }, checkInterval);
+
                 } else { 
+
                     openModal({ title: T['M_RST_TIT'], msg: T['M_RST_MSG'], spin: true }); 
-                    setTimeout(function() { window.location.href = window.location.href.split('?')[0] + '?v=' + ts; }, 15000); 
+                    
+                    var checkSameTimer = setInterval(function() {
+                         fetch('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
+                         .then(function() {
+                             clearInterval(checkSameTimer);
+
+                             window.location.reload();
+                         }).catch(function() {});
+                    }, 2000);
                 }
             };
             callNetSetup(mode, a1, a2, a3, a4).then(function() { done = true; succ(); }).catch(function(e){ 
