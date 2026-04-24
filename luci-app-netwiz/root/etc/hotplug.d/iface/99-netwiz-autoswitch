@@ -1,0 +1,9 @@
+#!/bin/sh
+# Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
+# Licensed under the GNU General Public License v3.0
+# Only listen for WAN interface connection events (cable plugged in)
+[ "$ACTION" = "ifup" ] || exit 0
+[ "$INTERFACE" = "wan" ] || exit 0
+
+# Execute the detection task in the background to avoid blocking the hotplug process
+/usr/libexec/netwiz-autodetect.sh &
