@@ -27,7 +27,7 @@ jobs:
         run: |
           INPUT_VER="${{ github.event.inputs.new_version }}"
           if [ -z "$INPUT_VER" ]; then
-            # 🌟 升級版：兼容 Makefile 中有空格的情況，並同時提取 VERSION 和 RELEASE
+            # 兼容 Makefile 中有空格的情況，並同時提取 VERSION 和 RELEASE
             PKG_VER=$(grep -m 1 -E '^PKG_VERSION[ \t]*:?=' luci-app-netwiz/Makefile | cut -d '=' -f 2 | tr -d ' \t"')
             PKG_REL=$(grep -m 1 -E '^PKG_RELEASE[ \t]*:?=' luci-app-netwiz/Makefile | cut -d '=' -f 2 | tr -d ' \t"')
             
