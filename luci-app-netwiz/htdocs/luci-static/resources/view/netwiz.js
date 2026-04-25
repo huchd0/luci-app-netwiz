@@ -12,7 +12,10 @@ var T = {
     'Network_Wizard': _('Network Wizard'),
     'TITLE': _('Netwiz NETWORK SETUP'),
     'SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
-    'APP_VERSION': 'v1.0.0',
+    
+    // 🌟 修复：补充了缺失的版本号变量
+    'APP_VERSION': 'v1.0.0', 
+    
     'MODE_ROUTER_TITLE': _('Secondary Router Mode'),
     'MODE_ROUTER_DESC': _('Upstream network dials up, this device acts as a secondary router.'),
     'MODE_PPPOE_TITLE': _('PPPoE Dial-up'),
@@ -35,6 +38,12 @@ var T = {
     'LBL_PASS': _('PPPoE Password'),
     'PH_PASS': _('Enter PPPoE password'),
     'TITLE_LAN': _('Configure LAN'),
+    
+    // 🌟 新增：强制应用开关的词条
+    'LBL_FORCE_APPLY': _('Direct Force Apply'),
+    'DESC_FORCE_APPLY': _('If enabled, NO rollback bomb will be planted. Changes apply permanently.'),
+    'MSG_SAFE_OFF': _('Safe mode bypassed. Applying permanently...'),
+    
     'LBL_BYPASS': _('Enable Bypass Mode'),
     'WARN_BYPASS': _('<b style="font-size: 16px;">Bypass Mode Enabled:</b><br>1. DHCP will be disabled. <b style="color: #059669;">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style="color: #059669;">losing access</b>.'),
     'WARN_MAIN': _('<b style="font-size: 16px;">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style="color: #dc2626;">losing access</b>.'),
@@ -127,9 +136,8 @@ var T = {
     'M_IP_GW': _('IP & Gateway'),
     'M_AUTO_UP': _('Auto-assigned by upstream router'),
     
-    // 动态情境与回退提示语
     'LBL_TARGET': _('Target:'),
-    'M_SUCC_ROLLBACK': _('Connection to new IP timed out, automatically rolled back configuration, reconnecting...'),
+    'M_SUCC_ROLLBACK': _('Reverting changes, reconnecting...'),
     'ACT_LAN': _('Modifying LAN IP'),
     'ACT_BYPASS': _('Switching to Bypass Mode'),
     'ACT_WAN_DHCP': _('Switching WAN to DHCP'),
@@ -138,44 +146,26 @@ var T = {
     'MSG_WRITING': _('Writing configuration to system, please do not close the page...'),
     'MSG_KNOCKING': _('Connecting to new IP... Config will auto-rollback upon timeout.'),
     'MSG_WAIT_NET': _('Waiting for network service to restart... Elapsed: {sec}s'),
-    'MSG_WAIT_OLD': _('Waiting for old IP to recover... Elapsed: {sec}s'),
+    'MSG_WAIT_OLD': _('Waiting for router to safely restore... Elapsed: {sec}s'),
     'MSG_PREP_ENV': _('Preparing environment...'),
     'MSG_TIMER': _('Rollback countdown: <b style="color:#f59e0b;">{sec}</b> / {total} s'),
-    'MSG_SCOUT_OK': _('✅ Handshake successful'),
     'MSG_REDIRECTING': _('Network connected! Automatically redirecting...'),
-    
-    // 防失联手动操作面板字典
-    'BTN_CANCEL_MOD': _('Cancel Changes'),
-    'BTN_FORCE_APP': _('Force Apply'),
-    'MSG_REVERTING': _('Reverting configuration...'),
-    'MSG_WAIT_RESTORE': _('Please wait for the router to restore...')
+    'MSG_MANUAL_VISIT': _('If IP changed, please update PC IP. Auto-redirecting when connected...'),
+    'MSG_ABANDONING': _('Waiting for router to abort changes and restore network...')
 };
 
-// 声明后端的 RPC 接口调用
-var callNetSetup = rpc.declare({
-    object: 'netwiz',
-    method: 'set_network',
-    params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4'],
-    expect: { result: 0 }
-});
-
-// 声明主动取消定时装置接口
-var callNetDefuse = rpc.declare({
-    object: 'netwiz',
-    method: 'confirm',
-    expect: { result: 0 }
-});
-
-// 获取外网连线状态的 RPC 接口
-var getWanStatus = rpc.declare({
-    object: 'network.interface',
-    method: 'dump',
-    expect: { '': {} } 
-});
+// RPC 请求增加了 arg5 参数
+var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5'], expect: { result: 0 } });
+var callNetDefuse = rpc.declare({ object: 'netwiz', method: 'confirm', expect: { result: 0 } });
+var getWanStatus = rpc.declare({ object: 'network.interface', method: 'dump', expect: { '': {} } });
 
 return view.extend({
+    // 🌟 屏蔽 LuCI 框架千万不要渲染底部的 [保存并应用 / 保存 / 复位] 原生按钮
+    handleSaveApply: null,
+    handleSave: null,
+    handleReset: null,
+
     render: function () {
-        // 确保手机端视口缩放正常
         if (!document.querySelector('meta[name="viewport"]')) {
             var meta = document.createElement('meta');
             meta.name = 'viewport';
@@ -218,7 +208,6 @@ return view.extend({
             '.nw-top-back svg { width: 20px; height: 20px; }',
             '.nw-step-title { text-align: center; margin-bottom: 30px; color: #111; font-weight: 600; font-size: 20px; }',
             
-            // 表单元素样式隔离
             '.nw-form-area .nw-value { border: none !important; padding: 12px 0 !important; display: flex !important; flex-direction: column !important; width: 100% !important; margin: 0 !important; background: transparent !important; }',
             '.nw-form-area .nw-value-title { text-align: left !important; font-weight: 600 !important; color: #334155 !important; font-size: 14.5px !important; margin: 0 0 10px 4px !important; line-height: 1.2 !important; display: block !important; padding: 0 !important; width: auto !important; float: none !important; }',
             '.nw-form-area .nw-value-field { width: 100% !important; margin: 0 !important; padding: 0 !important; display: block !important; float: none !important; }',
@@ -241,7 +230,7 @@ return view.extend({
             '.nw-switch input { opacity: 0; width: 0; height: 0; }',
             '.nw-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 24px; }',
             '.nw-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }',
-            'input:checked + .nw-slider { background-color: #3b82f6; }',
+            'input:checked + .nw-slider { background-color: #ef4444; } /* 红色开关，警告意味 */',
             'input:checked + .nw-slider:before { transform: translateX(22px); }',
             
             '#nw-global-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); z-index: 999999; display: flex; align-items: center; justify-content: center; }',
@@ -250,21 +239,11 @@ return view.extend({
             '#nw-global-modal p { font-size: 15px; color: #475569; line-height: 1.6; margin: 0; }',
             '.nw-spinner { width: 50px; height: 50px; border: 4px solid #f1f5f9; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 25px; }',
             '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }',
-            '.nw-modal-btn-ok { background: #3b82f6 !important; color: white !important; border: none !important; padding: 12px 30px !important; border-radius: 8px !important; font-size: 15px !important; cursor: pointer !important; flex: 1 !important; transition: background 0.2s !important; height: auto !important; margin: 0 !important; }',
-            '.nw-modal-btn-ok:hover { background: #2563eb !important; }',
-            '.nw-modal-btn-cancel { background: #f1f5f9 !important; color: #475569 !important; border: none !important; padding: 12px 20px !important; border-radius: 8px !important; font-size: 15px !important; cursor: pointer !important; flex: 1 !important; transition: background 0.2s !important; height: auto !important; margin: 0 !important; }',
-            '.nw-modal-btn-cancel:hover { background: #e2e8f0 !important; }',
-            '.nw-modal-btn-danger { background: #ef4444 !important; color: white !important; border: none !important; padding: 12px 30px !important; border-radius: 8px !important; font-size: 15px !important; cursor: pointer !important; flex: 1 !important; transition: background 0.2s !important; height: auto !important; margin: 0 !important; }',
-            '.nw-modal-btn-danger:hover { background: #dc2626 !important; }',
-            
+            '.nw-modal-btn-ok, .nw-modal-btn-cancel, .nw-modal-btn-danger { color: white !important; border: none !important; padding: 12px 30px !important; border-radius: 8px !important; font-size: 15px !important; cursor: pointer !important; flex: 1 !important; transition: background 0.2s !important; height: auto !important; margin: 0 !important; }',
+            '.nw-modal-btn-ok { background: #3b82f6 !important; } .nw-modal-btn-ok:hover { background: #2563eb !important; }',
+            '.nw-modal-btn-cancel { background: #f1f5f9 !important; color: #475569 !important; } .nw-modal-btn-cancel:hover { background: #e2e8f0 !important; }',
+            '.nw-modal-btn-danger { background: #ef4444 !important; } .nw-modal-btn-danger:hover { background: #dc2626 !important; }',
             '.nw-hl { color: #facc15; font-weight: bold; margin-left: 6px; }',
-            
-            /* 新增：撤销进度条与决策按钮样式 */
-            '.nw-revert-container { width: 100%; height: 10px; background: #e2e8f0; border-radius: 6px; margin-top: 15px; overflow: hidden; position: relative; }',
-            '.nw-revert-bar { position: absolute; right: 0; top: 0; height: 100%; width: 0%; background: #10b981; transition: width 1.8s cubic-bezier(0.4, 0, 0.2, 1); }',
-            '.nw-decision-group { display: flex; gap: 15px; justify-content: center; margin-top: 5px; }',
-            '.nw-btn-safe { background: #10b981 !important; box-shadow: 0 4px 6px rgba(16,185,129,0.2) !important; }',
-            '.nw-btn-danger { background: #ef4444 !important; box-shadow: 0 4px 6px rgba(239,68,68,0.2) !important; }',
             
             // 手机端响应式样式适配
             '@media screen and (max-width: 768px) {',
@@ -288,7 +267,6 @@ return view.extend({
             '}',
             '</style>',
 
-            // 主界面 HTML 结构
             '<div class="nw-wrapper">',
             '  <div class="nw-header">',
             '    <div class="nw-title-wrap">',
@@ -351,8 +329,16 @@ return view.extend({
             '           <div style="font-weight: 600; color: #222; font-size: 16px;">{{LBL_BYPASS}}</div>',
             '           <label class="nw-switch"><input type="checkbox" id="lan-bypass-toggle"><span class="nw-slider"></span></label>',
             '        </div>',
-            '        <div id="lan-bypass-warning" style="display:none; background: #fef2f2; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #fecaca; line-height: 1.7; letter-spacing: 1px; font-weight: bolder;">{{WARN_BYPASS}}</div>',
-            '        <div id="lan-main-warning" style="background: #f0fdf4; color: #059669; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #bbf7d0; line-height: 1.7; letter-spacing: 1px; font-weight: bolder;">{{WARN_MAIN}}</div>',
+            '        ',
+            '        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0 15px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 15px;">',
+            '           <div>',
+            '               <div style="font-weight: 600; color: #222; font-size: 16px;">{{LBL_FORCE_APPLY}}</div>',
+            '               <div style="font-size: 12px; color: #64748b; margin-top: 4px;">{{DESC_FORCE_APPLY}}</div>',
+            '           </div>',
+            '           <label class="nw-switch"><input type="checkbox" id="lan-force-toggle"><span class="nw-slider"></span></label>',
+            '        </div>',
+            '        <div id="lan-bypass-warning" style="display:none; background: #fef2f2; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #fecaca; line-height: 1.7; font-weight: bolder;">{{WARN_BYPASS}}</div>',
+            '        <div id="lan-main-warning" style="background: #f0fdf4; color: #059669; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #bbf7d0; line-height: 1.7; font-weight: bolder;">{{WARN_MAIN}}</div>',
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_LAN_IP}}</label><div class="nw-value-field"><input type="text" id="lan-ip" placeholder="{{PH_IP}}" autocomplete="new-password"></div></div>',
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_LAN_GW}}</label><div class="nw-value-field"><input type="text" id="lan-gw" placeholder="{{PH_LAN_GW}}" autocomplete="new-password"></div></div>',
             '      </div>',
@@ -407,19 +393,14 @@ return view.extend({
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
                     var activeWan = ifaces.find(function(i) { return i && (i.interface === 'wan' || i.proto === wProto || i.device === 'eth0' || i.device === 'wan'); }) || {};
                     var liveWanIp = ((activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) ? activeWan['ipv4-address'][0].address : '').split('/')[0];
-
-                    // 网关抓取(兼容 Static, DHCP, PPPoE)
                     var liveGw = activeWan.nexthop || '';
-                    // 如果根目录没有，去路由表里找目标为 0.0.0.0 的默认网关 (DHCP)
                     if (!liveGw && Array.isArray(activeWan.route)) { 
                         var defaultRoute = activeWan.route.find(function(r) { return r.target === '0.0.0.0'; }); 
                         if (defaultRoute) liveGw = defaultRoute.nexthop; 
                     }
-                    // 尝试找点对点地址 (PPPoE)
-                    if (!liveGw && activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) {
-                        liveGw = activeWan['ipv4-address'][0].ptpaddress || '';
-                    }
+                    if (!liveGw && activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) liveGw = activeWan['ipv4-address'][0].ptpaddress || '';
                     liveGw = liveGw || T['TXT_GETTING'];
+                    
                     var wIp = safeUciGet('network', 'wan', 'ipaddr', T['TXT_NOT_GOT']).split('/')[0], wGw = safeUciGet('network', 'wan', 'gateway', T['TXT_NOT_SET']); 
                     var lIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0], lGw = safeUciGet('network', 'lan', 'gateway', T['TXT_NOT_SET']), lIgnore = safeUciGet('dhcp', 'lan', 'ignore', ''), isBypass = (lIgnore === '1' || lIgnore === 'true' || lIgnore === 'on' || lIgnore === 'yes');
 
@@ -454,7 +435,6 @@ return view.extend({
                     } else { sTitle = T['STAT_LAN']; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_DHCP_SRV'], T['TXT_ON']); }
 
                     if (modeTextEl) modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:12px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;'><span style='white-space:nowrap;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:14.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.8;'>" + sDetails + "</div>";
-                
                 }).catch(function() { if (modeTextEl) modeTextEl.innerHTML = "<div style='color:#ef4444; font-weight:bold;'>" + T['ERR_RD_SYS'] + "</div>"; });
             } catch(e) { if (modeTextEl) modeTextEl.innerHTML = "<div style='color:#ef4444; font-weight:bold;'>" + T['ERR_CRASH'] + "</div>"; }
         }
@@ -504,25 +484,14 @@ return view.extend({
                 uci.load('network').then(function() {
                     var currentLanIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0], currentLanGw = safeUciGet('network', 'lan', 'gateway', ''), currentWanProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
                     var currentWanIp = (currentWanProto === 'static') ? safeUciGet('network', 'wan', 'ipaddr', '').split('/')[0] : '', currentWanGw = safeUciGet('network', 'wan', 'gateway', ''), currentBypass = (safeUciGet('dhcp', 'lan', 'ignore', '') === '1' ? '1' : '0'), newBypass = bypassToggle.checked ? '1' : '0';
-                    
                     if ((selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass) || (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) || (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp')) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
-                    
                     if (selectedMode === 'router' && rType === 'static') { 
-                        if (targetIp === currentLanIp || isSameSubnet(targetIp, currentLanIp)) { 
-                            openModal({title:T['M_CFLT_TIT'], msg: (targetIp === currentLanIp ? T['M_CFLT_IP'].replace('{ip}', currentLanIp) : T['M_CFLT_SUB1'].replace('{ip}', currentLanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; 
-                        } 
-                        if (targetIp === targetGw || !isSameSubnet(targetIp, targetGw)) { 
-                            openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_GW'] : T['M_SUB_ERR_WAN1'] + '<br>' + T['M_SUB_ERR_WAN2'].replace('{gw}', targetGw).replace('{ip}', targetGw.substring(0, targetGw.lastIndexOf('.')))), okText:T['BTN_EDIT']}); return; 
-                        } 
+                        if (targetIp === currentLanIp || isSameSubnet(targetIp, currentLanIp)) { openModal({title:T['M_CFLT_TIT'], msg: (targetIp === currentLanIp ? T['M_CFLT_IP'].replace('{ip}', currentLanIp) : T['M_CFLT_SUB1'].replace('{ip}', currentLanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; } 
+                        if (targetIp === targetGw || !isSameSubnet(targetIp, targetGw)) { openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_GW'] : T['M_SUB_ERR_WAN1'] + '<br>' + T['M_SUB_ERR_WAN2'].replace('{gw}', targetGw).replace('{ip}', targetGw.substring(0, targetGw.lastIndexOf('.')))), okText:T['BTN_EDIT']}); return; } 
                     }
-                    
                     if (selectedMode === 'lan') { 
-                        if (isBypass && (targetIp === targetGw || !isSameSubnet(targetIp, targetGw))) { 
-                            openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_BYP']:T['M_SUB_ERR_BYP']), okText:T['BTN_EDIT']}); return; 
-                        } 
-                        if (currentWanIp && (targetIp === currentWanIp || isSameSubnet(targetIp, currentWanIp))) { 
-                            openModal({title:T['M_CFLT_TIT'], msg:(targetIp===currentWanIp ? T['M_CFLT_LAN_IP'].replace('{ip}', currentWanIp) : T['M_CFLT_LAN_SUB'].replace('{ip}', currentWanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; 
-                        } 
+                        if (isBypass && (targetIp === targetGw || !isSameSubnet(targetIp, targetGw))) { openModal({title:(targetIp===targetGw?T['M_LOGIC_TIT']:T['M_SUB_ERR_TIT']), msg:(targetIp===targetGw?T['M_SAME_BYP']:T['M_SUB_ERR_BYP']), okText:T['BTN_EDIT']}); return; } 
+                        if (currentWanIp && (targetIp === currentWanIp || isSameSubnet(targetIp, currentWanIp))) { openModal({title:T['M_CFLT_TIT'], msg:(targetIp===currentWanIp ? T['M_CFLT_LAN_IP'].replace('{ip}', currentWanIp) : T['M_CFLT_LAN_SUB'].replace('{ip}', currentWanIp) + '<br>' + T['M_CFLT_SUB2']), okText:T['BTN_EDIT']}); return; } 
                     }
 
                     var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1);'><span style='opacity:0.8;'>" + p[i][0] + "</span><span style='font-family:monospace;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
@@ -536,162 +505,120 @@ return view.extend({
             } catch (e) { openModal({title:T['ERR_RD_SYS'], msg:T['ERR_CRASH'], okText:T['M_CLOSE']}); }
         });
 
-        // 向后端 RPC 发送写入请求
         container.querySelector('#btn-apply').addEventListener('click', function () {
-            var mode = selectedMode, a1 = '', a2 = '', a3 = '', a4 = '', rType = container.querySelector('input[name="router_type"]:checked').value;
-            if (selectedMode === 'lan') { a1 = container.querySelector('#lan-ip').value.trim(); a2 = container.querySelector('#lan-gw').value.trim(); a3 = calculateNetmask(a1); a4 = bypassToggle.checked ? '1' : '0';
+            // 🌟 动态获取开关状态 (arg5): 开启强制生效则传 '0'（不埋雷），否则传 '1'（埋雷）
+            var mode = selectedMode, a1 = '', a2 = '', a3 = '', a4 = '', a5 = '1', rType = container.querySelector('input[name="router_type"]:checked').value;
+            if (selectedMode === 'lan') { 
+                a1 = container.querySelector('#lan-ip').value.trim(); 
+                a2 = container.querySelector('#lan-gw').value.trim(); 
+                a3 = calculateNetmask(a1); 
+                a4 = bypassToggle.checked ? '1' : '0';
+                // 判断开关：打勾表示“直接强制应用”，传参数0给后端
+                a5 = container.querySelector('#lan-force-toggle').checked ? '0' : '1';
             } else if (selectedMode === 'router') { mode = (rType === 'dhcp') ? 'wan_dhcp' : 'wan_static'; if(rType === 'static') { a1 = container.querySelector('#router-ip').value.trim(); a2 = container.querySelector('#router-gw').value.trim(); a3 = calculateNetmask(a1); }
             } else if (selectedMode === 'pppoe') { a1 = container.querySelector('#pppoe-user').value; a2 = container.querySelector('#pppoe-pass').value; }
 
-            // 1. 动态判断当前操作内容
-            var dynamicTitle = "";
-            var actionDetail = "";
-            if (selectedMode === 'lan') {
-                dynamicTitle = (a4 === '1') ? T['ACT_BYPASS'] : T['ACT_LAN'];
-                actionDetail = '<b style="color:#3b82f6;">' + a1 + '</b>';
-            } else if (selectedMode === 'router') {
-                dynamicTitle = (rType === 'dhcp') ? T['ACT_WAN_DHCP'] : T['ACT_WAN_STATIC'];
-                actionDetail = (rType === 'dhcp') ? 'Auto IP' : '<b style="color:#10b981;">' + a1 + '</b>';
-            } else if (selectedMode === 'pppoe') {
-                dynamicTitle = T['ACT_PPPOE'];
-                actionDetail = '<b style="color:#9333ea;">' + a1 + '</b>';
-            }
+            var dynamicTitle = "", actionDetail = "";
+            if (selectedMode === 'lan') { dynamicTitle = (a4 === '1') ? T['ACT_BYPASS'] : T['ACT_LAN']; actionDetail = '<b style="color:#3b82f6;">' + a1 + '</b>';
+            } else if (selectedMode === 'router') { dynamicTitle = (rType === 'dhcp') ? T['ACT_WAN_DHCP'] : T['ACT_WAN_STATIC']; actionDetail = (rType === 'dhcp') ? 'Auto IP' : '<b style="color:#10b981;">' + a1 + '</b>';
+            } else if (selectedMode === 'pppoe') { dynamicTitle = T['ACT_PPPOE']; actionDetail = '<b style="color:#9333ea;">' + a1 + '</b>'; }
 
-            // 2. 弹出带有实际操作内容的初始面板
             var initMsg = '<div style="font-size: 16px; margin-bottom: 10px;">' + T['LBL_TARGET'] + ' ' + actionDetail + '</div><div style="color: #64748b; font-size: 16px;">' + T['MSG_WRITING'] + '</div>';
             openModal({ title: dynamicTitle, msg: initMsg, spin: true });
             
             var start = Date.now(), done = false;
             
-            // 3. 防并发
             var succ = function() {
                 var h = window.location.hostname;
                 var sec = 0;
                 
                 if (selectedMode === 'lan' && a1 && a1 !== h) { 
-                    var bombTime = 120, showBtnTime = 15, isProbing = false;
+                    var bombTime = 120, isProbing = false;
 
-                    // 🟢 撤销修改函数 (左侧绿色：时光倒流动画)
-                    var forceRevert = function() {
-                        clearInterval(countdownTimer);
-                        var msgBox = document.getElementById('nw-global-msg');
-                        
-                        // 切换为进度条界面
-                        msgBox.innerHTML = 
-                            '<div style="color:#10b981; font-weight:bold; font-size:16px; margin-bottom:10px;">' + T['MSG_REVERTING'] + '</div>' +
-                            '<div class="nw-revert-container"><div id="nw-bar" class="nw-revert-bar"></div></div>' +
-                            '<div style="color:#64748b; font-size:13px; margin-top:15px; font-weight:500;">' + T['MSG_WAIT_RESTORE'] + '</div>';
-                        
-                        // 触发右向左动画 (通过CSS right:0 定位)
-                        setTimeout(function() {
-                            var bar = document.getElementById('nw-bar');
-                            if (bar) bar.style.width = '100%';
-                        }, 50);
+                    if (a5 === '1') {
+                        // 开关【关闭】：埋了定时装置 -> 默认的安全模式（等待+探测+自动回滚）
+                        var msgHtml = 
+                            '<div style="font-size: 16px; margin-bottom: 12px;">' + T['LBL_TARGET'] + ' <b style="color:#3b82f6; font-size: 18px;">' + a1 + '</b></div>' +
+                            '<div id="nw-status-text" style="color: #10b981; font-size: 16px; font-weight: bold; margin-bottom: 10px;">' + T['MSG_WRITING'] + '</div>' +
+                            '<div id="nw-timer-text" style="color: #64748b; font-size: 14px; font-weight: bold; margin-bottom: 20px;">' + T['MSG_PREP_ENV'] + '</div>';
+                        document.getElementById('nw-global-msg').innerHTML = msgHtml;
 
-                        // 动画结束回首页
-                        setTimeout(function() {
-                            window.location.href = 'http://' + h + '/cgi-bin/luci/admin/network/netwiz';
-                        }, 1900);
-                    };
+                        var countdownTimer = setInterval(function() {
+                            sec += 2;
 
-                    // 🔴 强制应用函数 (右侧红色：强拆定时装置)
-                    var forceDefuse = function() {
-                        clearInterval(countdownTimer);
-                        callNetDefuse().then(function() {
-                            document.getElementById('nw-status-text').innerHTML = '<span style="color:#3b82f6;">' + T['MSG_REDIRECTING'] + '</span>';
-                            setTimeout(function() { window.location.href = 'http://' + a1 + '/cgi-bin/luci/'; }, 500);
-                        }).catch(function() {
-                            // 即使报错，底层可能已经连通，照常尝试跳转
-                            document.getElementById('nw-status-text').innerHTML = '<span style="color:#3b82f6;">' + T['MSG_REDIRECTING'] + '</span>';
-                            setTimeout(function() { window.location.href = 'http://' + a1 + '/cgi-bin/luci/'; }, 500);
-                        });
-                    };
-
-                    // 初始化等待 UI，并植入左绿右红决策按钮组
-                    var msgHtml = 
-                        '<div style="font-size: 16px; margin-bottom: 12px;">' + T['LBL_TARGET'] + ' <b style="color:#3b82f6; font-size: 18px;">' + a1 + '</b></div>' +
-                        '<div id="nw-status-text" style="color: #10b981; font-size: 16px; font-weight: bold; margin-bottom: 10px;">' + T['MSG_WRITING'] + '</div>' +
-                        '<div id="nw-timer-text" style="color: #64748b; font-size: 14px; font-weight: bold; margin-bottom: 20px;">' + T['MSG_PREP_ENV'] + '</div>' +
-                        '<div id="nw-decision-ui" class="nw-decision-group" style="display:none;">' +
-                            '<button id="nw-btn-revert" class="cbi-button nw-btn-safe" style="flex:1; color:white !important; border:none !important; padding:10px !important; border-radius:8px !important; font-weight:600; cursor:pointer;">' + T['BTN_CANCEL_MOD'] + '</button>' +
-                            '<button id="nw-btn-force" class="cbi-button nw-btn-danger" style="flex:1; color:white !important; border:none !important; padding:10px !important; border-radius:8px !important; font-weight:600; cursor:pointer;">' + T['BTN_FORCE_APP'] + '</button>' +
-                        '</div>';
-                    
-                    document.getElementById('nw-global-msg').innerHTML = msgHtml;
-
-                    var decisionUI = document.getElementById('nw-decision-ui');
-                    document.getElementById('nw-btn-revert').onclick = forceRevert;
-                    document.getElementById('nw-btn-force').onclick = forceDefuse;
-
-                    var countdownTimer = setInterval(function() {
-                        sec += 2;
-                        
-                        // 15秒安全期过后显示决策按钮
-                        if (sec >= showBtnTime && decisionUI && decisionUI.style.display === 'none') {
-                            decisionUI.style.display = 'flex';
-                        }
-
-                        if (sec <= bombTime) {
-                            // 动态倒计时
-                            document.getElementById('nw-timer-text').innerHTML = T['MSG_TIMER'].replace('{sec}', sec).replace('{total}', bombTime);
-                            
-                            // 延时 8 秒，且「当前沒有正在卡住」時，才探測
-                            if (sec >= 8 && !isProbing) {
-                                isProbing = true; // 上锁
-                                document.getElementById('nw-status-text').innerHTML = '<span style="color:#f59e0b;">' + T['MSG_KNOCKING'].replace('{sec}', sec) + '</span>';
+                            if (sec <= bombTime) {
+                                document.getElementById('nw-timer-text').innerHTML = T['MSG_TIMER'].replace('{sec}', sec).replace('{total}', bombTime);
                                 
-                                // 单线程探测
-                                fetch('http://' + a1 + '/luci-static/resources/view/netwiz.js?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
-                                .then(function() {
-                                    forceDefuse(); // 探测通了直接走强拆流程跳转
-                                }).catch(function() {
-                                    // 探測失敗（网络不通），解锁，允許下一个周期探测
-                                    setTimeout(function() { isProbing = false; }, 500);
-                                });
+                                // 8秒后自动探测新 IP，通了就直接跳转并下达拆弹指令
+                                if (sec >= 8 && !isProbing) {
+                                    isProbing = true;
+                                    document.getElementById('nw-status-text').innerHTML = '<span style="color:#f59e0b;">' + T['MSG_KNOCKING'] + '</span>';
+                                    
+                                    fetch('http://' + a1 + '/luci-static/resources/view/netwiz.js?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
+                                    .then(function() { 
+                                        clearInterval(countdownTimer);
+                                        // 调用拆定时装置接口后跳转
+                                        callNetDefuse().then(function() {
+                                            document.getElementById('nw-status-text').innerHTML = '<span style="color:#3b82f6;">' + T['MSG_REDIRECTING'] + '</span>';
+                                            setTimeout(function() { window.location.href = 'http://' + a1 + '/cgi-bin/luci/'; }, 500);
+                                        }).catch(function() {
+                                            window.location.href = 'http://' + a1 + '/cgi-bin/luci/';
+                                        });
+                                    }) 
+                                    .catch(function() { setTimeout(function() { isProbing = false; }, 500); });
+                                }
+                            } else {
+                                // 120秒超时，进入旧 IP 探测转圈循环
+                                clearInterval(countdownTimer);
+                                var msgBox = document.getElementById('nw-global-msg');
+                                var rollbackSec = 0;
+                                var checkOldIpTimer = setInterval(function() {
+                                    rollbackSec += 2;
+                                    msgBox.innerHTML = 
+                                        '<div class="nw-spinner" style="width:40px; height:40px; border-width:4px; margin-top:20px; border-top-color:#10b981;"></div>' +
+                                        '<div style="color:#10b981; font-weight:bold; font-size:15px; margin-bottom:10px;">' + T['MSG_WAIT_OLD'].replace('{sec}', rollbackSec) + '</div>' +
+                                        '<div style="color:#64748b; font-size:13px;">' + T['MSG_ABANDONING'] + '</div>';
+
+                                    fetch('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
+                                    .then(function() { clearInterval(checkOldIpTimer); window.location.href = 'http://' + h + '/cgi-bin/luci/admin/network/netwiz'; })
+                                    .catch(function() {});
+                                }, 2000);
                             }
-                        } 
-                        else {
-                            // 120秒超時，真正失联，自动执行丝滑撤销动画
-                            forceRevert();
-                        }
-                    }, 2000);
+                        }, 2000);
+
+                    } else {
+                        // 开关【开启】：没有埋定时装置 -> 提示配置已永久生效，并转圈引导跳转新 IP
+                        var offHtml = 
+                            '<div style="font-size: 16px; margin-bottom: 12px;">' + T['LBL_TARGET'] + ' <b style="color:#3b82f6; font-size: 18px;">' + a1 + '</b></div>' +
+                            '<div class="nw-spinner" style="width:40px; height:40px; border-width:4px; margin-top:10px;"></div>' +
+                            '<div style="color: #ef4444; font-size: 16px; font-weight: bold; margin-bottom: 10px;">' + T['MSG_SAFE_OFF'] + '</div>' +
+                            '<div style="color:#64748b; font-size:13px; line-height:1.6; margin-top:10px;">' + T['MSG_MANUAL_VISIT'] + '<br><br><a href="http://' + a1 + '/cgi-bin/luci/" style="color:#10b981; font-weight:bold; font-size:16px;">http://' + a1 + '</a></div>';
+                        document.getElementById('nw-global-msg').innerHTML = offHtml;
+                        
+                        // 尽管关闭了安全模式，依旧帮用户后台探活，通了就顺手跳过去
+                        var probeNewTimer = setInterval(function() {
+                            fetch('http://' + a1 + '/luci-static/resources/view/netwiz.js?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
+                            .then(function() { clearInterval(probeNewTimer); window.location.href = 'http://' + a1 + '/cgi-bin/luci/'; })
+                            .catch(function() {});
+                        }, 2000);
+                    }
 
                 } else { 
-                    // 非 LAN IP 修改的原地等待
                     var checkSameTimer = setInterval(function() {
                         sec += 2;
-                        var waitNetMsg = '<div style="font-size: 16px; margin-bottom: 10px;">' + T['LBL_TARGET'] + ' ' + actionDetail + '</div><div style="color: #059669; font-size: 16px; font-weight: bold;">' + T['MSG_WAIT_NET'].replace('{sec}', sec) + '</div>';
-                        document.getElementById('nw-global-msg').innerHTML = waitNetMsg;
-
+                        document.getElementById('nw-global-msg').innerHTML = '<div style="font-size: 16px; margin-bottom: 10px;">' + T['LBL_TARGET'] + ' ' + actionDetail + '</div><div style="color: #059669; font-size: 16px; font-weight: bold;">' + T['MSG_WAIT_NET'].replace('{sec}', sec) + '</div>';
                         fetch('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
-                        .then(function() {
-                            clearInterval(checkSameTimer);
-                            window.location.reload();
-                        }).catch(function() {});
+                        .then(function() { clearInterval(checkSameTimer); window.location.reload(); }).catch(function() {});
                     }, 2000);
                 }
             };
 
-            callNetSetup(mode, a1, a2, a3, a4).then(function() { 
-                done = true; succ(); 
-            }).catch(function(e) { 
+            callNetSetup(mode, a1, a2, a3, a4, a5).then(function() { done = true; succ(); }).catch(function(e) { 
                 done = true;
                 var errMsg = e.message || '';
-                
-                // 网络断开、中止等预期内的错误，视为成功并进入探测流程
-                if (errMsg.indexOf('aborted') !== -1 || errMsg.indexOf('NetworkError') !== -1 || errMsg.indexOf('Failed to fetch') !== -1) {
-                    console.log("捕获到预期的网络断开，继续执行跳转探测逻辑...");
-                    succ();
-                } 
-                // 其他真实的底层逻辑报错（且发生得极快），才弹窗提示
-                else if (Date.now() - start < 1500) { 
-                    var failHtml = T['M_FAIL_MSG'] + '<br><small>' + T['M_FAIL_CODE'].replace('{code}', errMsg) + '</small>';
-                    openModal({ title: T['M_FAIL_TIT'], msg: failHtml, okText: T['M_CLOSE'], isDanger: true }); 
-                } 
-                // 超过 1.5 秒的超时报错，大概率也是网络已断开，进入探测流程
-                else { 
-                    succ(); 
-                } 
+                if (errMsg.indexOf('aborted') !== -1 || errMsg.indexOf('NetworkError') !== -1 || errMsg.indexOf('Failed to fetch') !== -1) { succ(); } 
+                else if (Date.now() - start < 1500) { openModal({ title: T['M_FAIL_TIT'], msg: T['M_FAIL_MSG'] + '<br><small>' + T['M_FAIL_CODE'].replace('{code}', errMsg) + '</small>', okText: T['M_CLOSE'], isDanger: true }); } 
+                else { succ(); } 
             });
             setTimeout(function() { if (!done) succ(); }, 8000);
         });
