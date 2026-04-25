@@ -395,13 +395,13 @@ msgid "Direct Force Apply"
 msgstr "直接强制生效 (不防失联)"
 
 msgid "If enabled, NO rollback bomb will be planted. Changes apply permanently."
-msgstr "开启后将不埋设 120 秒防失联定时装置，配置立刻永久生效。"
+msgstr "开启后将不埋设 120 秒防失联定时装置，配置立刻生效且不可自动撤销。"
 
 msgid "Safe mode bypassed. Applying permanently..."
-msgstr "已跳过防失联机制，配置永久生效中..."
+msgstr "已跳过防失联机制，配置生效中..."
 
 msgid "If IP changed, please update PC IP. Auto-redirecting when connected..."
-msgstr "若 IP 已更改，请手动更新电脑 IP。网络连通后将自动跳转..."
+msgstr "若 IP 修改引发失联，把设备 IP 改为同网段即可正常访问路由器，网络连通后将自动跳转..."
 
 msgid "Waiting for router to abort changes and restore network..."
 msgstr "正在等待路由器放弃修改并恢复网络..."
