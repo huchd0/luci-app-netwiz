@@ -14,14 +14,15 @@ log() {
 
 case "$1" in
     list)
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string" }, "confirm": {} }'
+        # 🌟 增加 arg5 用于接收前端的安全开关状态
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string" }, "confirm": {} }'
         exit 0
         ;;
     call)
         case "$2" in
             confirm)
                 if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ]; then
-                    # 确保四个文件被彻底删除干净，彻底解除炸弹 (修正为持久化闪存路径 /etc/config)
+                    # 确保四个文件被彻底删除干净，彻底解除炸弹
                     rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
                     log "成功：前端主动下发确认指令，已手动拆除回退炸弹"
                 fi
@@ -35,6 +36,7 @@ case "$1" in
                 arg2=$(echo "$input" | jsonfilter -e '@.arg2')
                 arg3=$(echo "$input" | jsonfilter -e '@.arg3')
                 arg4=$(echo "$input" | jsonfilter -e '@.arg4')
+                arg5=$(echo "$input" | jsonfilter -e '@.arg5') # 🌟 接收 arg5
 
                 cleanup_lan_for_wan_modes() {
                     uci delete network.lan.gateway 2>/dev/null
@@ -44,13 +46,17 @@ case "$1" in
                 
                 CURRENT_LAN_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
 
+                # 🌟 根据 arg5 判断是否埋设防失联炸弹 (0代表不埋，1代表埋设)
                 if [ "$mode" = "lan" ] && [ -n "$arg1" ] && [ "$arg1" != "$CURRENT_LAN_IP" ]; then
-                    log "LAN IP 已修改为 $arg1，安放 120 秒防失联回退炸弹"
-                    cp /etc/config/network /etc/config/network.netwiz_bak
-                    cp /etc/config/dhcp /etc/config/dhcp.netwiz_bak
-    
-                    echo "$arg1" > /tmp/netwiz_target_ip
-                    echo $(($(date +%s) + 120)) > /tmp/netwiz_rollback_time
+                    if [ "$arg5" != "0" ]; then
+                        log "LAN IP 修改为 $arg1，安放 120 秒防失联回退炸弹"
+                        cp /etc/config/network /etc/config/network.netwiz_bak
+                        cp /etc/config/dhcp /etc/config/dhcp.netwiz_bak
+                        echo "$arg1" > /tmp/netwiz_target_ip
+                        echo $(($(date +%s) + 120)) > /tmp/netwiz_rollback_time
+                    else
+                        log "LAN IP 修改为 $arg1，(直接生效模式) 跳过回退炸弹"
+                    fi
                 fi
 
                 if [ "$mode" = "wan_dhcp" ]; then
