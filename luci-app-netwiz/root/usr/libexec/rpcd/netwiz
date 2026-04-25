@@ -21,14 +21,13 @@ case "$1" in
         case "$2" in
             confirm)
                 if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ]; then
-                    # 确保四个文件被彻底删除干净，彻底解除
-                    rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /tmp/network.netwiz_bak /tmp/dhcp.netwiz_bak
-                    log "SUCCESS: Manual defuse triggered by frontend RPC!"
+                    # 确保四个文件被彻底删除干净，彻底解除炸弹 (修正为持久化闪存路径 /etc/config)
+                    rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
+                    log "成功：前端主动下发确认指令，已手动拆除回退炸弹"
                 fi
                 echo '{"result":0}'
                 exit 0
                 ;;
-                
             set_network)
                 input=$(cat)
                 mode=$(echo "$input" | jsonfilter -e '@.mode')
@@ -46,8 +45,7 @@ case "$1" in
                 CURRENT_LAN_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
 
                 if [ "$mode" = "lan" ] && [ -n "$arg1" ] && [ "$arg1" != "$CURRENT_LAN_IP" ]; then
-                    log "LAN IP changed to $arg1. Arming 120s bomb."
-    
+                    log "LAN IP 已修改为 $arg1，安放 120 秒防失联回退炸弹"
                     cp /etc/config/network /etc/config/network.netwiz_bak
                     cp /etc/config/dhcp /etc/config/dhcp.netwiz_bak
     
