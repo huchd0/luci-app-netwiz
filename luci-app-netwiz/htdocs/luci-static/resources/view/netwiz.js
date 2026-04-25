@@ -135,7 +135,7 @@ var T = {
     'ACT_WAN_STATIC': _('Switching WAN to Static IP'),
     'ACT_PPPOE': _('Applying PPPoE Dial-up'),
     'MSG_WRITING': _('Writing configuration to system, please do not close the page...'),
-    'MSG_KNOCKING': _('Knocking on the new IP door... Elapsed: {sec}s'),
+    'MSG_KNOCKING': _('Connecting to new IP... Config will auto-rollback upon timeout.'),
     'MSG_WAIT_NET': _('Waiting for network service to restart... Elapsed: {sec}s'),
     'MSG_WAIT_OLD': _('Waiting for old IP to recover... Elapsed: {sec}s'),
     'MSG_PREP_ENV': _('Preparing environment...'),
