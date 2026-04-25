@@ -392,7 +392,7 @@ msgid "Network connected! Automatically redirecting..."
 msgstr "網路已連通！正在為您自動跳轉..."
 
 msgid "Direct Force Apply"
-msgstr "直接強制生效 (不防失聯)"
+msgstr "強制生效 (不防失聯)"
 
 msgid "If enabled, NO rollback bomb will be planted. Changes apply permanently."
 msgstr "開啟後跳過 120 秒防失聯機制，配置立刻生效。"
