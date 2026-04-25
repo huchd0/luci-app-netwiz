@@ -390,3 +390,15 @@ msgstr "✅ 侦察握手成功"
 
 msgid "Network connected! Automatically redirecting..."
 msgstr "网络已连通！正在为您自动跳转..."
+
+msgid "Cancel Changes"
+msgstr "撤销修改"
+
+msgid "Force Apply"
+msgstr "强制应用"
+
+msgid "Reverting configuration..."
+msgstr "正在撤销修改，恢复安全配置..."
+
+msgid "Please wait for the router to restore..."
+msgstr "即将返回原地址，请等待路由器恢复网络..."
