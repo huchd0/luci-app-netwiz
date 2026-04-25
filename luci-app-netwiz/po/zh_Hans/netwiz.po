@@ -395,7 +395,7 @@ msgid "Direct Force Apply"
 msgstr "直接强制生效 (不防失联)"
 
 msgid "If enabled, NO rollback bomb will be planted. Changes apply permanently."
-msgstr "开启后将不埋设 120 秒防失联炸弹，配置立刻永久生效。"
+msgstr "开启后将不埋设 120 秒防失联定时装置，配置立刻永久生效。"
 
 msgid "Safe mode bypassed. Applying permanently..."
 msgstr "已跳过防失联机制，配置永久生效中..."
