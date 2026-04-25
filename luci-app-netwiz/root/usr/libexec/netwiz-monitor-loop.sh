@@ -71,16 +71,15 @@ while true; do
         # 获取我们刚刚修改的最新目标 IP
         TARGET_IP=$(cat /tmp/netwiz_target_ip 2>/dev/null)
         
-        # 🌟 全新精准雷达：只统计目标地址是“新IP:80”或“新IP:443”的连接
         # 彻底排除局域网设备访问外网产生的 NAT 干扰
         conns=$(netstat -nt 2>/dev/null | grep "ESTABLISHED" | awk '{print $4}' | grep -E "(${TARGET_IP}:80$|${TARGET_IP}:443$)" | wc -l)
 
-        # 门槛降为 1：只要浏览器成功加载了新 IP 的页面，哪怕只有 1 个连接，也说明网络通了！
-        if [ "$conns" -ge 1 ]; then
-            log "成功：雷达检测到浏览器成功加载了新 IP ($TARGET_IP) 的登录页，自动拆除炸弹"
+        # 阈值设为 3：过滤单线程探针，完美捕捉真实浏览器并发加载
+        if [ "$conns" -ge 3 ]; then
+            log "成功：雷达检测到浏览器成功并发加载了新 IP ($TARGET_IP) 的页面，自动拆除炸弹"
             rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
         else
-            log "雷达扫描：尚未检测到用户访问新 IP，继续等待 (当前连接数: $conns)"
+            log "雷达扫描：等待用户浏览器跳转至新 IP (当前目标连接数: $conns)"
         fi
             
             # 检查时间是否到期
