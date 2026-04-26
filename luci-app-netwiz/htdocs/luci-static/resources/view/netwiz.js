@@ -109,7 +109,7 @@ var T = {
     'M_CFLT_LAN_SUB': _('LAN cannot be in the same subnet as WAN ({ip})!'),
     'M_WARN_TIT': _('Config Warning'),
     'M_WARN_MSG': _('You selected [Main Router Mode] but filled in the [Gateway].<br><br><b>For a standard main router, the gateway must be blank.</b> Entering a gateway may cause the device to fail at distributing network, leading to a total outage!<br><br>Are you sure you want to do this?'),
-    'M_WARN_BTN': _('Force Apply'),
+    'M_WARN_BTN': _('Force Apply (Recommended OFF)'),
     'M_SYS_ERR': _('System Exception'),
     'M_SYS_MSG': _('Cannot read underlying config for validation, please refresh.'),
     'M_APP_TIT': _('Applying Config'),
