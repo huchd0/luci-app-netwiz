@@ -164,8 +164,7 @@ return view.extend({
         var htmlTemplate = [
             '<style>',
             // 强制显示滚动条占位
-            '#maincontent, .main-right { overflow-y: auto !important; scrollbar-width: none !important; -ms-overflow-style: none !important; }',
-            '#maincontent::-webkit-scrollbar, .main-right::-webkit-scrollbar { display: none !important; }',
+            '#maincontent, .main-right { overflow-y: scroll !important; scrollbar-gutter: stable !important; }',
             '.nw-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 101vh; padding-bottom: 10vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }',
             '.nw-header { text-align: center; margin-bottom: 40px; background-color: #5e72e4; padding: 25px; border-radius: 16px; position: relative; width: 100%; max-width: 750px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(94, 114, 228, 0.15); z-index: 20; }',
         
@@ -204,7 +203,7 @@ return view.extend({
             '.nw-actions .cbi-button-apply { background: #10b981 !important; color: white !important; }',
             '.nw-actions .cbi-button-apply:hover { background: #059669 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35) !important; }',
             '.nw-actions .cbi-button-reset { background: #f43f5e !important; color: #fff !important; }',
-            '.nw-actions .cbi-button-reset:hover { background: #e11d48 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(244, 63, 94, 0.35) !important; }','.nw-radio-group label { cursor: pointer; display: flex; align-items: center; gap: 6px; margin: 0 !important; padding: 0 !important; height: 20px; line-height: 1 !important; font-weight: normal; }',
+            '.nw-actions .cbi-button-reset:hover { background: #e11d48 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(244, 63, 94, 0.35) !important; }','.nw-radio-group label { cursor: pointer; display: flex; align-items: center; gap: 6px; margin: 5px !important; padding: 0 !important; height: 20px; line-height: 1 !important; font-weight: normal; }',
             '.nw-radio-group input[type="radio"] { margin: 0 !important; padding: 0 !important; cursor: pointer; width: 16px !important; height: 16px !important; position: relative; top: 0; appearance: auto !important; }',
             '.nw-switch { position: relative; display: inline-block; width: 46px; height: 24px; margin: 0; }',
             '.nw-switch input { opacity: 0; width: 0; height: 0; }',
