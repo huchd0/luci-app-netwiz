@@ -2,6 +2,7 @@
 # Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
 # Licensed under the GNU General Public License v3.0
 
+# 将日志写入内存虚拟磁盘，防止磨损路由器闪存
 LOG_FILE="/tmp/netwiz.log"
 
 log() {
@@ -23,7 +24,7 @@ case "$1" in
         case "$2" in
             confirm)
                 if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ]; then
-                    # 确保四个文件被彻底删除干净，彻底解除防失联回退装置
+                    # 确保四个文件被彻底删除干净，彻底解除防失联回退装置 (路径已修正为 /tmp)
                     rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /tmp/network.netwiz_bak /tmp/dhcp.netwiz_bak
                     log "成功：前端主动下发确认指令，已手动拆除回退定时装置"
                 fi
@@ -39,7 +40,7 @@ case "$1" in
                 arg4=$(echo "$input" | jsonfilter -e '@.arg4')
                 arg5=$(echo "$input" | jsonfilter -e '@.arg5') # 接收 arg5 开关状态
 
-                # 严格校验函数：只允许数字和点，防止前端被绕过后发生命令注入
+                # [安全新增] 严格校验函数：只允许数字和点，防止前端被绕过后发生命令注入
                 validate_strict_ip() {
                     if [ -n "$1" ] && ! echo "$1" | grep -Eq '^[0-9.]+$'; then
                         log "安全拦截：参数 '$1' 包含非法字符，已拒绝操作"
@@ -65,6 +66,7 @@ case "$1" in
                 if [ "$mode" = "lan" ] && [ -n "$arg1" ] && [ "$arg1" != "$CURRENT_LAN_IP" ]; then
                     if [ "$arg5" != "0" ]; then
                         log "LAN IP 修改为 $arg1，安放 120 秒防失联回退定时装置"
+                        # 备份文件存放在 /tmp 下，绝不污染系统 /etc/config/ 目录
                         cp /etc/config/network /tmp/network.netwiz_bak
                         cp /etc/config/dhcp /tmp/dhcp.netwiz_bak
                         echo "$arg1" > /tmp/netwiz_target_ip
