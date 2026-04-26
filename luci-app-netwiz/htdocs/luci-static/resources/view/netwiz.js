@@ -305,7 +305,7 @@ return view.extend({
             '            <label class="nw-radio-btn"><input type="radio" name="router_type" value="static"> <span class="nw-radio-btn-text">{{OPT_STATIC}}</span></label>',
             '          </div>',
             '        </div>',
-            '        <div id="router-static-fields" style="display: none; margin-top: 5px; border-top: 1px dashed #e5e7eb; padding-top: 0px;">',
+            '        <div id="router-static-fields" style="display: none; margin-top: 5px; border-top: 1px dashed #e5e7eb; padding-top: 10px;">',
             '          <div class="nw-value"><label class="nw-value-title">{{LBL_IP}}</label><div class="nw-value-field"><input type="text" id="router-ip" placeholder="{{PH_IP}}" autocomplete="new-password"></div></div>',
             '          <div class="nw-value"><label class="nw-value-title">{{LBL_GW}}</label><div class="nw-value-field"><input type="text" id="router-gw" placeholder="{{PH_GW}}" autocomplete="new-password"></div></div>',
             '        </div>',
