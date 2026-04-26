@@ -564,7 +564,7 @@ return view.extend({
                                         '<div style="color:#64748b; font-size:13px;">' + T['MSG_ABANDONING'] + '</div>';
 
                                     fetch('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
-                                    .then(function() { clearInterval(checkOldIpTimer); window.location.href = 'http://' + h + '/cgi-bin/luci/admin/network/netwiz'; })
+                                    .then(function() { clearInterval(checkOldIpTimer); window.location.href = 'http://' + h + '//cgi-bin/luci/admin/netwiz'; })
                                     .catch(function() {});
                                 }, 2000);
                             }
