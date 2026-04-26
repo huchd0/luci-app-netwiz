@@ -73,7 +73,7 @@ msgstr "请输入宽带密码"
 msgid "Configure LAN"
 msgstr "配置局域网 (LAN)"
 
-msgid "Bypass Safe Mode(Recommended OFF"
+msgid "Bypass Safe Mode(Recommended OFF)"
 msgstr "绕过安全模式 (建议关闭，防失联)"
 
 msgid "Enable Bypass Mode"
