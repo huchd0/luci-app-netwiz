@@ -28,7 +28,7 @@ It is designed to be highly user-friendly for novices setting up secondary route
 * **Multi-language:** Native built-in i18n support, automatically adapting to English, zh-Hans, and zh-Hant.
 
 ### Breadcrumb Trail
-* 👉 **System -> Network Wizard**。
+* 👉 **A primary menu entry appearing right before “Logout -> Network Wizard**。
 
 🌐 **Secondary Router Mode (DHCP / Static IP)**
    * Use Case: When the upstream modem (ONT) already handles PPPoE dialing, or an existing primary router is present. This device operates as a secondary router or segmented subnet router.
