@@ -508,6 +508,33 @@ return view.extend({
                             console.log("[Netwiz] ====== 开始读取底层 wireless 配置 ======");
                             var wDevs = uci.sections('wireless', 'wifi-device') || [];
                             var wIfaces = uci.sections('wireless', 'wifi-iface') || [];
+                            // --- 芯片字典控制台彩色列印 ---
+                            var getWifiGen = function(hw, ht) {
+                                hw = (hw || '').toLowerCase(); ht = (ht || '').toLowerCase();
+                                if (hw.indexOf('be') !== -1 || ht.indexOf('eht') !== -1) return 'Wi-Fi 7 (802.11be 極速)';
+                                if (hw.indexOf('ax') !== -1 || ht.indexOf('he') !== -1) return 'Wi-Fi 6 (802.11ax 高速)';
+                                if (hw.indexOf('ac') !== -1 || ht.indexOf('vht') !== -1) return 'Wi-Fi 5 (802.11ac 標準)';
+                                if (ht.indexOf('ht') !== -1 || hw.indexOf('n') !== -1) return 'Wi-Fi 4 (802.11n 基礎)';
+                                if (hw.indexOf('g') !== -1) return 'Wi-Fi 3 (802.11g 老旧)';
+                                if (hw.indexOf('a') !== -1) return 'Wi-Fi 2 (802.11a 古董)';
+                                if (hw.indexOf('b') !== -1) return 'Wi-Fi 1 (802.11b 远古)';
+                                return '未知协议 (Unknown)';
+                            };
+
+                            if (wDevs.length > 0) {
+                                console.groupCollapsed("%c[Netwiz] 📡 芯片扫描報告", "color:#3b82f6; font-weight:bold; font-size:14px;");
+                                wDevs.forEach(function(dev) {
+                                    var gen = getWifiGen(dev.hwmode, dev.htmode);
+                                    var bd = (dev.band || '').toLowerCase();
+                                    var hw = (dev.hwmode || '').toLowerCase();
+                                    var bandStr = (bd === '5g' || hw.indexOf('a') !== -1) ? '5 GHz' : '2.4 GHz';
+                                    console.log("%c晶片 ID: %c" + dev['.name'] + " %c| 物理頻段: %c" + bandStr + " %c| 支持协议: %c" + gen, 
+                                        "color:#64748b", "color:#10b981; font-weight:bold", 
+                                        "color:#64748b", "color:#f59e0b; font-weight:bold",
+                                        "color:#64748b", "color:#ef4444; font-weight:bold");
+                                });
+                                console.groupEnd();
+                            }
 
                             var smartToggle = container.querySelector('#wifi-smart-toggle');
                             var legacyToggle = container.querySelector('#legacy-b-toggle');
