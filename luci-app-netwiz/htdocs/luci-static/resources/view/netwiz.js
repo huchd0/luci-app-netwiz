@@ -318,11 +318,11 @@ return view.extend({
             '  <div id="step-1" class="nw-step">',
             '    <div class="nw-card-group">',
             
-            // 1. PPPoE 拔号
+            // 1. PPPoE拔号
             '      <div class="nw-card" data-mode="pppoe"><div class="nw-badge nw-badge-pppoe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>',
             '        <div class="nw-card-title">{{MODE_PPPOE_TITLE}}</div><span>{{MODE_PPPOE_DESC}}</span></div>',
 
-            // 2. Wi-Fi 設定
+            // 2. Wi-Fi设置
             '      <div class="nw-card" id="card-wifi" data-mode="wifi" style="display: none;"><div class="nw-badge nw-badge-wifi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>', 
             '        <div class="nw-card-title">{{MODE_WIFI_TITLE}}</div><span>{{MODE_WIFI_DESC}}</span></div>',
 
