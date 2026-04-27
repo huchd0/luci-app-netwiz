@@ -489,3 +489,12 @@ msgstr "通道宽度 (频宽)"
 
 msgid "Auto"
 msgstr "自动"
+
+msgid "Wireless Mode"
+msgstr "无线模式 (Mode)"
+
+msgid "⚠️ Severe Warning"
+msgstr "⚠️ 严重警告"
+
+msgid "Forcibly modifying the wireless physical mode may cause the hardware driver to crash or the Wi-Fi to disappear permanently if the chip does not support it! It is highly recommended to keep it on [Auto].<br><br>Are you absolutely sure you want to change this?"
+msgstr "如果强行指定的物理模式与网卡芯片实际支持的能力不匹配，将导致<b>底层驱动直接崩溃、Wi-Fi 永久消失！</b>强烈建议保持为【自动 (推荐)】。<br><br>您确定要强行修改模式吗？"
