@@ -22,7 +22,7 @@ var T = {
     'MODE_WIFI_TITLE': _('Wi-Fi Settings'),
     'MODE_WIFI_DESC': _('Configure wireless network, SSID, and password.'),
     'TITLE_WIFI': _('Configure Wi-Fi'),
-    'LBL_SMART_CONN': _('Smart Connect (All Bands)'), // 🌟 改为 All Bands
+    'LBL_SMART_CONN': _('Smart Connect (All Bands)'),
     'LBL_WIFI_SWITCH': _('Enable Wi-Fi'),
     'LBL_WIFI_2G_EN': _('Enable 2.4G Wi-Fi'),
     'LBL_WIFI_5G_EN': _('Enable 5G Wi-Fi'),
@@ -199,7 +199,7 @@ return view.extend({
             '@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }',
             
             '.nw-card-group { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin-top: 20px; width: 100%; box-sizing: border-box; }',
-            '.nw-card { flex: 1; min-width: 170px; max-width: 250px; padding: 35px 20px; border-radius: 16px; cursor: pointer; backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.03); box-shadow: 0px 0px 15px 2px #b7b7b7; transition: all 0.25s ease; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }',
+            '.nw-card { flex: 1; min-width: 170px; max-width: 220px; padding: 35px 20px; border-radius: 16px; cursor: pointer; backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.03); box-shadow: 0px 0px 15px 2px #b7b7b7; transition: all 0.25s ease; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }',
             '.nw-card:hover { transform: translateY(-5px); }',
             '.nw-card[data-mode="router"] { background: rgba(79, 150, 101, 0.85); }',
             '.nw-card[data-mode="pppoe"] { background: rgba(80, 0, 183, 0.85); }',
@@ -448,7 +448,7 @@ return view.extend({
         function safePromise(p, f) { return new Promise(function(r) { var t = setTimeout(function() { r(f); }, 3000); if (!p || !p.then) { clearTimeout(t); return r(f); } p.then(function(res) { clearTimeout(t); r(res); }).catch(function() { clearTimeout(t); r(f); }); }); }
         function safeUciGet(c, s, o, d) { try { var v = uci.get(c, s, o); return (v === null || v === undefined) ? d : String(v).trim(); } catch(e) { return d; } }
 
-        // 👇 替换为包含硬件型号安全校验的新逻辑
+        // 安全校验
         Promise.all([
             callNetCheckWifi(),
             safePromise(callSystemBoard(), {}) // 加入安全捕获防止 RPC 报错中断
@@ -459,11 +459,11 @@ return view.extend({
             
             console.log("[Netwiz] 硬件状态探测 - WiFi结果:", wifiRes, "型号:", boardRes.model);
             
-            // 1. 判断是否真的有 WiFi 芯片
+            // 判断是否真的有 WiFi 芯片
             var hasWifi = (wifiRes === true || (typeof wifiRes === 'object' && wifiRes && wifiRes.has_wifi === true));
             
-            // 2. 核心防呆：判断是否处于未激活的 Generic / Unknown 状态
-            var isUnknownDevice = (modelName.indexOf('unknown') !== -1 || modelName.indexOf('generic') !== -1);
+            // 必须【同时】包含 'generic' 和 'unknown' 才判定为未激活。
+            var isUnknownDevice = (modelName.indexOf('generic') !== -1 && modelName.indexOf('unknown') !== -1);
 
             // 只有在“有芯片”且“设备已正确激活识别”的情况下，才显示配置卡片
             if (hasWifi && !isUnknownDevice) {
