@@ -1,0 +1,494 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Network Wizard"
+msgstr "Network Wizard"
+
+msgid "Netwiz NETWORK SETUP"
+msgstr "Netwiz NETWORK SETUP"
+
+msgid "Pure · Secure · Non-destructive Minimalist Config"
+msgstr "Pure · Secure · Non-destructive Minimalist Config"
+
+msgid "Secondary Router Mode"
+msgstr "Secondary Router Mode"
+
+msgid "Upstream network dials up, this device acts as a secondary router."
+msgstr "Upstream network dials up, this device acts as a secondary router."
+
+msgid "PPPoE Dial-up"
+msgstr "PPPoE Dial-up"
+
+msgid "Dial up directly using account and password on this device."
+msgstr "Dial up directly using account and password on this device."
+
+msgid "LAN Settings"
+msgstr "LAN Settings"
+
+msgid "Change device LAN IP, or switch to Bypass Router mode."
+msgstr "Change device LAN IP, or switch to Bypass Router mode."
+
+msgid "Reading underlying config..."
+msgstr "Reading underlying config..."
+
+msgid "Back to Home"
+msgstr "Back to Home"
+
+msgid "Configure WAN"
+msgstr "Configure WAN"
+
+msgid "Connection Type"
+msgstr "Connection Type"
+
+msgid "DHCP (Auto)"
+msgstr "DHCP (Auto)"
+
+msgid "Static IP"
+msgstr "Static IP"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "e.g., 192.168.1.2"
+msgstr "e.g., 192.168.1.2"
+
+msgid "e.g., 192.168.1.1"
+msgstr "e.g., 192.168.1.1"
+
+msgid "PPPoE Credentials"
+msgstr "PPPoE Credentials"
+
+msgid "PPPoE Username"
+msgstr "PPPoE Username"
+
+msgid "Enter PPPoE username"
+msgstr "Enter PPPoE username"
+
+msgid "PPPoE Password"
+msgstr "PPPoE Password"
+
+msgid "Enter PPPoE password"
+msgstr "Enter PPPoE password"
+
+msgid "Configure LAN"
+msgstr "Configure LAN"
+
+msgid "Bypass Safe Mode(Recommended OFF)"
+msgstr "Bypass Safe Mode(Recommended OFF)"
+
+msgid "Enable Bypass Mode"
+msgstr "Enable Bypass Mode"
+
+msgid "<b style=\"font-size: 16px;\">Bypass Mode Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">Bypass Mode Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
+
+msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #dc2626;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #dc2626;\">losing access</b>."
+
+msgid "Device LAN IP"
+msgstr "Device LAN IP"
+
+msgid "LAN Gateway"
+msgstr "LAN Gateway"
+
+msgid "Blank for Main, required for Bypass"
+msgstr "Blank for Main, required for Bypass"
+
+msgid "Back"
+msgstr "Back"
+
+msgid "Next Step"
+msgstr "Next Step"
+
+msgid "Back to Edit"
+msgstr "Back to Edit"
+
+msgid "Confirm Configuration"
+msgstr "Confirm Configuration"
+
+msgid "The following settings will be applied, please verify:"
+msgstr "The following settings will be applied, please verify:"
+
+msgid "Application Notes:"
+msgstr "Application Notes:"
+
+msgid "After confirmation, the network will restart and apply new settings."
+msgstr "After confirmation, the network will restart and apply new settings."
+
+msgid "The system will auto-refresh or redirect in 15 seconds."
+msgstr "The system will auto-refresh or redirect in 15 seconds."
+
+msgid "Apply Settings"
+msgstr "Apply Settings"
+
+msgid "Bypass Mode"
+msgstr "Bypass Mode"
+
+msgid "Main Router (PPPoE)"
+msgstr "Main Router (PPPoE)"
+
+msgid "Secondary Router (DHCP)"
+msgstr "Secondary Router (DHCP)"
+
+msgid "Secondary Router (Static IP)"
+msgstr "Secondary Router (Static IP)"
+
+msgid "LAN Mode"
+msgstr "LAN Mode"
+
+msgid "Device IP:"
+msgstr "Device IP:"
+
+msgid "Upstream GW:"
+msgstr "Upstream GW:"
+
+msgid "Public IP:"
+msgstr "Public IP:"
+
+msgid "Remote GW:"
+msgstr "Remote GW:"
+
+msgid "LAN IP:"
+msgstr "LAN IP:"
+
+msgid "Status:"
+msgstr "Status:"
+
+msgid "Waiting for remote response"
+msgstr "Waiting for remote response"
+
+msgid "WAN IP:"
+msgstr "WAN IP:"
+
+msgid "Getting IP..."
+msgstr "Getting IP..."
+
+msgid "DHCP Service:"
+msgstr "DHCP Service:"
+
+msgid "Enabled"
+msgstr "Enabled"
+
+msgid "Disabled"
+msgstr "Disabled"
+
+msgid "Dial Success"
+msgstr "Dial Success"
+
+msgid "Dialing / Disconnected"
+msgstr "Dialing / Disconnected"
+
+msgid "IP Acquired"
+msgstr "IP Acquired"
+
+msgid "Waiting for IP..."
+msgstr "Waiting for IP..."
+
+msgid "Interface Connected"
+msgstr "Interface Connected"
+
+msgid "Cable Unplugged"
+msgstr "Cable Unplugged"
+
+msgid "Getting..."
+msgstr "Getting..."
+
+msgid "Not acquired"
+msgstr "Not acquired"
+
+msgid "Not set"
+msgstr "Not set"
+
+msgid "System read error, anti-freeze triggered"
+msgstr "System read error, anti-freeze triggered"
+
+msgid "Underlying crash intercepted, please force refresh"
+msgstr "Underlying crash intercepted, please force refresh"
+
+msgid "Incomplete info"
+msgstr "Incomplete info"
+
+msgid "Device IP cannot be empty."
+msgstr "Device IP cannot be empty."
+
+msgid "Static IP and Gateway cannot be empty."
+msgstr "Static IP and Gateway cannot be empty."
+
+msgid "PPPoE username and password cannot be empty."
+msgstr "PPPoE username and password cannot be empty."
+
+msgid "Format Error"
+msgstr "Format Error"
+
+msgid "The device IP is invalid, please check!"
+msgstr "The device IP is invalid, please check!"
+
+msgid "WAN IP is invalid, please check!"
+msgstr "WAN IP is invalid, please check!"
+
+msgid "Gateway IP is invalid, please check!"
+msgstr "Gateway IP is invalid, please check!"
+
+msgid "Logic Error"
+msgstr "Logic Error"
+
+msgid "Bypass mode requires an upstream gateway IP."
+msgstr "Bypass mode requires an upstream gateway IP."
+
+msgid "WAN Static IP MUST NOT be the same as the gateway!"
+msgstr "WAN Static IP MUST NOT be the same as the gateway!"
+
+msgid "The Bypass Device IP MUST NOT be the same as the Gateway!"
+msgstr "The Bypass Device IP MUST NOT be the same as the Gateway!"
+
+msgid "No Changes Needed"
+msgstr "No Changes Needed"
+
+msgid "Your settings match the current router config exactly."
+msgstr "Your settings match the current router config exactly."
+
+msgid "Exit to Home"
+msgstr "Exit to Home"
+
+msgid "Conflict Blocked"
+msgstr "Conflict Blocked"
+
+msgid "The WAN IP cannot be the same as the current LAN IP ({ip})!"
+msgstr "The WAN IP cannot be the same as the current LAN IP ({ip})!"
+
+msgid "The WAN port cannot be in the same subnet as the LAN ({ip})!"
+msgstr "The WAN port cannot be in the same subnet as the LAN ({ip})!"
+
+msgid "This causes a routing loop."
+msgstr "This causes a routing loop."
+
+msgid "Suggestion: Your upstream network uses the same IP subnet. Please go to [LAN Settings] first and change your Device LAN IP (e.g. to 192.168.10.1) to prevent network crash."
+msgstr "Suggestion: Your upstream network uses the same IP subnet. Please go to [LAN Settings] first and change your Device LAN IP (e.g. to 192.168.10.1) to prevent network crash."
+
+msgid "Subnet Error"
+msgstr "Subnet Error"
+
+msgid "The WAN Static IP must be in the same subnet as the Gateway!"
+msgstr "The WAN Static IP must be in the same subnet as the Gateway!"
+
+msgid "e.g., if gateway is {gw}, the IP must be {ip}.x"
+msgstr "e.g., if gateway is {gw}, the IP must be {ip}.x"
+
+msgid "The Bypass Device IP must be in the same subnet as the Gateway!"
+msgstr "The Bypass Device IP must be in the same subnet as the Gateway!"
+
+msgid "LAN IP cannot be the same as the existing WAN IP ({ip})!"
+msgstr "LAN IP cannot be the same as the existing WAN IP ({ip})!"
+
+msgid "LAN cannot be in the same subnet as WAN ({ip})!"
+msgstr "LAN cannot be in the same subnet as WAN ({ip})!"
+
+msgid "Config Warning"
+msgstr "Config Warning"
+
+msgid "You selected [Main Router Mode] but filled in the [Gateway].<br><br><b>For a standard main router, the gateway must be blank.</b> Entering a gateway may cause the device to fail at distributing network, leading to a total outage!<br><br>Are you sure you want to do this?"
+msgstr "You selected [Main Router Mode] but filled in the [Gateway].<br><br><b>For a standard main router, the gateway must be blank.</b> Entering a gateway may cause the device to fail at distributing network, leading to a total outage!<br><br>Are you sure you want to do this?"
+
+msgid "Force Apply"
+msgstr "Force Apply"
+
+msgid "System Exception"
+msgstr "System Exception"
+
+msgid "Cannot read underlying config for validation, please refresh."
+msgstr "Cannot read underlying config for validation, please refresh."
+
+msgid "Applying Config"
+msgstr "Applying Config"
+
+msgid "Writing request, please wait..."
+msgstr "Writing request, please wait..."
+
+msgid "Config Applied"
+msgstr "Config Applied"
+
+msgid "Since the IP has changed to {ip},"
+msgstr "Since the IP has changed to {ip},"
+
+msgid "the system will attempt to redirect to the new address in 15 seconds."
+msgstr "the system will attempt to redirect to the new address in 15 seconds."
+
+msgid "Note: You will need to log in again."
+msgstr "Note: You will need to log in again."
+
+msgid "Applying Configuration"
+msgstr "Applying Configuration"
+
+msgid "Underlying network is resetting, please wait...<br><br><span style=\"font-size: 14px; color: #555;\">(If it does not automatically return in 15s, manually refresh)</span>"
+msgstr "Underlying network is resetting, please wait...<br><br><span style=\"font-size: 14px; color: #555;\">(If it does not automatically return in 15s, manually refresh)</span>"
+
+msgid "❌ Write Failed"
+msgstr "❌ Write Failed"
+
+msgid "Underlying call exception, please try logging in again."
+msgstr "Underlying call exception, please try logging in again."
+
+msgid "Error code: {code}"
+msgstr "Error code: {code}"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Account"
+msgstr "Account"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Hidden"
+msgstr "Hidden"
+
+msgid "IP & Gateway"
+msgstr "IP & Gateway"
+
+msgid "Auto-assigned by upstream router"
+msgstr "Auto-assigned by upstream router"
+
+msgid "<b style=\"color:#ef4444;\">Please note:</b> If you do not successfully log in to the new IP within 2 minutes, the system will automatically restore the original settings."
+msgstr "<b style=\"color:#ef4444;\">Please note:</b> If you do not successfully log in to the new IP within 2 minutes, the system will automatically restore the original settings."
+
+msgid "Target:"
+msgstr "Target:"
+
+msgid "Connection to new IP timed out, automatically rolled back configuration, reconnecting..."
+msgstr "Connection to new IP timed out, automatically rolled back configuration, reconnecting..."
+
+msgid "Modifying LAN IP"
+msgstr "Modifying LAN IP"
+
+msgid "Switching to Bypass Mode"
+msgstr "Switching to Bypass Mode"
+
+msgid "Switching WAN to DHCP"
+msgstr "Switching WAN to DHCP"
+
+msgid "Switching WAN to Static IP"
+msgstr "Switching WAN to Static IP"
+
+msgid "Applying PPPoE Dial-up"
+msgstr "Applying PPPoE Dial-up"
+
+msgid "Writing configuration to system, please do not close the page..."
+msgstr "Writing configuration to system, please do not close the page..."
+
+msgid "Connecting to new IP... Config will auto-rollback upon timeout."
+msgstr "Connecting to new IP... Config will auto-rollback upon timeout."
+
+msgid "Waiting for network service to restart... Elapsed: {sec}s"
+msgstr "Waiting for network service to restart... Elapsed: {sec}s"
+
+msgid "Waiting for old IP to recover... Elapsed: {sec}s"
+msgstr "Waiting for old IP to recover... Elapsed: {sec}s"
+
+msgid "Preparing environment..."
+msgstr "Preparing environment..."
+
+msgid "Rollback countdown: <b style=\"color:#f59e0b;\">{sec}</b> / {total} s"
+msgstr "Rollback countdown: <b style=\"color:#f59e0b;\">{sec}</b> / {total} s"
+
+msgid "✅ Handshake successful"
+msgstr "✅ Handshake successful"
+
+msgid "Network connected! Automatically redirecting..."
+msgstr "Network connected! Automatically redirecting..."
+
+msgid "If enabled, the 120s rollback timer is bypassed."
+msgstr "If enabled, the 120s rollback timer is bypassed."
+
+msgid "Safe mode bypassed. Applying immediately..."
+msgstr "Safe mode bypassed. Applying immediately..."
+
+msgid "If IP changed, please update PC IP. Auto-redirecting when connected..."
+msgstr "If IP changed, please update PC IP. Auto-redirecting when connected..."
+
+msgid "Waiting for router to abort changes and restore network..."
+msgstr "Waiting for router to abort changes and restore network..."
+
+msgid "Wi-Fi Settings"
+msgstr "Wi-Fi Settings"
+
+msgid "Configure wireless network, SSID, and password."
+msgstr "Configure wireless network, SSID, and password."
+
+msgid "Configure Wi-Fi"
+msgstr "Configure Wi-Fi"
+
+msgid "Smart Connect (All Bands)"
+msgstr "Smart Connect (All Bands)"
+
+msgid "Enable Wi-Fi"
+msgstr "Enable Wi-Fi"
+
+msgid "Enable 2.4G Wi-Fi"
+msgstr "Enable 2.4G Wi-Fi"
+
+msgid "Enable 5G Wi-Fi"
+msgstr "Enable 5G Wi-Fi"
+
+msgid "Network Name (SSID)"
+msgstr "Network Name (SSID)"
+
+msgid "Wi-Fi Password"
+msgstr "Wi-Fi Password"
+
+msgid "Encryption"
+msgstr "Encryption"
+
+msgid "Enable 802.11b (Legacy Mode)"
+msgstr "Enable 802.11b (Legacy Mode)"
+
+msgid "Only enable if very old IoT devices cannot connect."
+msgstr "Only enable if very old IoT devices cannot connect."
+
+msgid "No Password (Open)"
+msgstr "No Password (Open)"
+
+msgid "WPA2-PSK (Stable)"
+msgstr "WPA2-PSK (Stable)"
+
+msgid "WPA3-SAE (Secure)"
+msgstr "WPA3-SAE (Secure)"
+
+msgid "WPA2/WPA3 Mixed (Recommended)"
+msgstr "WPA2/WPA3 Mixed (Recommended)"
+
+msgid "2.4G Wi-Fi"
+msgstr "2.4G Wi-Fi"
+
+msgid "5G Wi-Fi"
+msgstr "5G Wi-Fi"
+
+msgid "SSID cannot be empty."
+msgstr "SSID cannot be empty."
+
+msgid "Wi-Fi password must be at least 8 characters."
+msgstr "Wi-Fi password must be at least 8 characters."
+
+msgid "Applying Wi-Fi Settings"
+msgstr "Applying Wi-Fi Settings"
+
+msgid "Smart Connect cannot be enabled because 802.11b (Legacy Mode) is active. Disable it in 2.4G settings first."
+msgstr "Smart Connect cannot be enabled because 802.11b (Legacy Mode) is active. Disable it in 2.4G settings first."
+
+msgid "Advanced Settings"
+msgstr "Advanced Settings"
+
+msgid "Hide Advanced"
+msgstr "Hide Advanced"
+
+msgid "Hide Wi-Fi Name (SSID)"
+msgstr "Hide Wi-Fi Name (SSID)"
+
+msgid "Channel"
+msgstr "Channel"
+
+msgid "Channel Width"
+msgstr "Channel Width"
+
+msgid "Auto"
+msgstr "Auto"
