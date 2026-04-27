@@ -498,3 +498,6 @@ msgstr "⚠️ 嚴重警告"
 
 msgid "Forcibly modifying the wireless physical mode may cause the hardware driver to crash or the Wi-Fi to disappear permanently if the chip does not support it! It is highly recommended to keep it on [Auto].<br><br>Are you absolutely sure you want to change this?"
 msgstr "如果強行指定的物理模式與網卡晶片實際支援的能力不匹配，將導致<b>底層驅動直接崩潰、Wi-Fi 永久消失！</b>強烈建議保持為【自動 (推薦)】。<br><br>您確定要強行修改模式嗎？"
+
+msgid "Enable IPv6 (DHCPv6)"
+msgstr "啟用 IPv6 (DHCPv6)"
