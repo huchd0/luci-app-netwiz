@@ -66,6 +66,7 @@ var T = {
     'LBL_PASS': _('PPPoE Password'),
     'PH_PASS': _('Enter PPPoE password'),
     'TITLE_LAN': _('Configure LAN'),
+    'LBL_IPV6': _('Enable IPv6 (DHCPv6)'),
     'LBL_FORCE_APPLY': _('Bypass Safe Mode(Recommended OFF)'),
     'DESC_FORCE_APPLY': _('If enabled, the 120s rollback timer is bypassed.'),
     'MSG_SAFE_OFF': _('Safe mode bypassed. Applying immediately...'),
@@ -172,7 +173,7 @@ var T = {
     'MSG_ABANDONING': _('Waiting for router to abort changes and restore network...')
 };
 
-var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5'], expect: { result: 0 } });
+var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
 var callNetDefuse = rpc.declare({ object: 'netwiz', method: 'confirm', expect: { result: 0 } });
 var getWanStatus = rpc.declare({ object: 'network.interface', method: 'dump', expect: { '': {} } });
 var callNetCheckWifi = rpc.declare({ object: 'netwiz', method: 'check_wifi', expect: { has_wifi: false } });
@@ -467,10 +468,17 @@ return view.extend({
             '      </div>',
             '      <div id="fields-lan" style="display: none;">',
             '        <div class="nw-step-title">{{TITLE_LAN}}</div>',
+
+            '        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0 15px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 15px;">',
+            '           <div style="font-weight: 600; color: #222; font-size: 16px;">{{LBL_IPV6}}</div>',
+            '           <label class="nw-switch"><input type="checkbox" id="lan-ipv6-toggle" checked><span class="nw-slider"></span></label>',
+            '        </div>',
+
             '        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 15px;">',
             '           <div style="font-weight: 600; color: #222; font-size: 16px;">{{LBL_BYPASS}}</div>',
             '           <label class="nw-switch"><input type="checkbox" id="lan-bypass-toggle"><span class="nw-slider"></span></label>',
             '        </div>',
+
             '        <div id="lan-bypass-warning" style="display:none; background: #fef2f2; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #fecaca; line-height: 1.7; font-weight: bolder;">{{WARN_BYPASS}}</div>',
             '        <div id="lan-main-warning" style="background: #f0fdf4; color: #059669; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #bbf7d0; line-height: 1.7; font-weight: bolder;">{{WARN_MAIN}}</div>',
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_LAN_IP}}</label><div class="nw-value-field"><input type="text" id="lan-ip" placeholder="{{PH_IP}}" autocomplete="new-password"></div></div>',
@@ -558,6 +566,9 @@ return view.extend({
                     liveGw = liveGw || T['TXT_GETTING'];
                     var wIp = safeUciGet('network', 'wan', 'ipaddr', T['TXT_NOT_GOT']).split('/')[0], wGw = safeUciGet('network', 'wan', 'gateway', T['TXT_NOT_SET']); 
                     var lIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0], lGw = safeUciGet('network', 'lan', 'gateway', T['TXT_NOT_SET']), lIgnore = safeUciGet('dhcp', 'lan', 'ignore', ''), isBypass = (lIgnore === '1' || lIgnore === 'true' || lIgnore === 'on' || lIgnore === 'yes');
+                    var ipv6Mode = safeUciGet('dhcp', 'lan', 'dhcpv6', '');
+                    var ipv6Toggle = container.querySelector('#lan-ipv6-toggle');
+                    if (ipv6Toggle) ipv6Toggle.checked = (ipv6Mode === 'server' || ipv6Mode === 'relay');
                     if (container.querySelector('#pppoe-user')) container.querySelector('#pppoe-user').value = safeUciGet('network', 'wan', 'username', '');
                     if (container.querySelector('#pppoe-pass')) container.querySelector('#pppoe-pass').value = safeUciGet('network', 'wan', 'password', '');
                     if (container.querySelector('#router-ip')) container.querySelector('#router-ip').value = (wIp !== T['TXT_NOT_GOT']) ? wIp : '';
@@ -1021,6 +1032,8 @@ return view.extend({
                 a4 = bypassToggle.checked ? '1' : '0'; 
                 var forceEl = container.querySelector('#lan-force-toggle'); 
                 a5 = (forceEl && forceEl.checked) ? '0' : '1';
+                var ipv6El = container.querySelector('#lan-ipv6-toggle'); 
+                a6 = (ipv6El && ipv6El.checked) ? '1' : '0';
                 actionDetail = '<b style="color:#3b82f6;">' + a1 + '</b>';
             } else if (selectedMode === 'router') { 
                 mode = (rType === 'dhcp') ? 'wan_dhcp' : 'wan_static'; 
@@ -1126,7 +1139,7 @@ return view.extend({
                     }, 3000);
                 }
             };
-            callNetSetup(mode, a1, a2, a3, a4, a5).then(function() { succ(); }).catch(function() { succ(); });
+            callNetSetup(mode, a1, a2, a3, a4, a5, a6).then(function() { succ(); }).catch(function() { succ(); });
         });
     }
 });
