@@ -493,5 +493,14 @@ msgstr "Channel Width"
 msgid "Auto"
 msgstr "Auto"
 
+msgid "Wireless Mode"
+msgstr "Wireless Mode"
+
+msgid "⚠️ Severe Warning"
+msgstr "⚠️ Severe Warning"
+
+msgid "Forcibly modifying the wireless physical mode may cause the hardware driver to crash or the Wi-Fi to disappear permanently if the chip does not support it! It is highly recommended to keep it on [Auto].<br><br>Are you absolutely sure you want to change this?"
+msgstr "Forcibly modifying the wireless physical mode may cause the hardware driver to crash or the Wi-Fi to disappear permanently if the chip does not support it! It is highly recommended to keep it on [Auto].<br><br>Are you absolutely sure you want to change this?"
+
 msgid "Enable IPv6 (DHCPv6)"
 msgstr "Enable IPv6 (DHCPv6)"
