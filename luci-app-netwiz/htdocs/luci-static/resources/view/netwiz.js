@@ -167,6 +167,7 @@ var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params
 var callNetDefuse = rpc.declare({ object: 'netwiz', method: 'confirm', expect: { result: 0 } });
 var getWanStatus = rpc.declare({ object: 'network.interface', method: 'dump', expect: { '': {} } });
 var callNetCheckWifi = rpc.declare({ object: 'netwiz', method: 'check_wifi', expect: { has_wifi: false } });
+var callSystemBoard = rpc.declare({ object: 'system', method: 'board', expect: { '': {} } });
 
 return view.extend({
     handleSaveApply: null,
@@ -447,12 +448,33 @@ return view.extend({
         function safePromise(p, f) { return new Promise(function(r) { var t = setTimeout(function() { r(f); }, 3000); if (!p || !p.then) { clearTimeout(t); return r(f); } p.then(function(res) { clearTimeout(t); r(res); }).catch(function() { clearTimeout(t); r(f); }); }); }
         function safeUciGet(c, s, o, d) { try { var v = uci.get(c, s, o); return (v === null || v === undefined) ? d : String(v).trim(); } catch(e) { return d; } }
 
-        callNetCheckWifi().then(function(res) {
-            if (res === true || (typeof res === 'object' && res && res.has_wifi === true)) {
+        // 👇 替换为包含硬件型号安全校验的新逻辑
+        Promise.all([
+            callNetCheckWifi(),
+            safePromise(callSystemBoard(), {}) // 加入安全捕获防止 RPC 报错中断
+        ]).then(function(results) {
+            var wifiRes = results[0];
+            var boardRes = results[1] || {};
+            var modelName = (boardRes.model || '').toLowerCase();
+            
+            console.log("[Netwiz] 硬件状态探测 - WiFi结果:", wifiRes, "型号:", boardRes.model);
+            
+            // 1. 判断是否真的有 WiFi 芯片
+            var hasWifi = (wifiRes === true || (typeof wifiRes === 'object' && wifiRes && wifiRes.has_wifi === true));
+            
+            // 2. 核心防呆：判断是否处于未激活的 Generic / Unknown 状态
+            var isUnknownDevice = (modelName.indexOf('unknown') !== -1 || modelName.indexOf('generic') !== -1);
+
+            // 只有在“有芯片”且“设备已正确激活识别”的情况下，才显示配置卡片
+            if (hasWifi && !isUnknownDevice) {
                 var wifiCard = container.querySelector('#card-wifi');
                 if (wifiCard) wifiCard.style.display = 'flex';
+            } else if (isUnknownDevice) {
+                console.warn("[Netwiz] 警告: 设备型号为未激活状态 (" + boardRes.model + ")，为防止底层崩溃，已强制锁定并隐藏 Wi-Fi 配置入口。");
             }
-        }).catch(function(err) {});
+        }).catch(function(err) {
+            console.error("[Netwiz] 硬件联合探测失败:", err);
+        });
 
         function updateStatusDisplay(isSilent) {
             try {
