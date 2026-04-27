@@ -48,16 +48,19 @@ case "$1" in
                 arg5=$(echo "$input" | jsonfilter -e '@.arg5')
 
                 validate_strict_ip() {
-                    if [ -n "$1" ] && ! echo "$1" | grep -Eq '^[0-9.]+$'; then
-                        log "安全拦截：参数 '$1' 包含非法字符，已拒绝底层操作"
+                    if [ -n "$1" ] && ! echo "$1" | awk -F. 'NF==4 && $1>=0 && $1<=255 && $2>=0 && $2<=255 && $3>=0 && $3<=255 && $4>=0 && $4<=255 {print "ok"}' | grep -q "ok"; then
+                        log "安全拦截：参数 '$1' 格式非法，已拒绝底层操作"
                         echo '{"result":1,"error":"Invalid format"}'
                         exit 1
                     fi
                 }
 
-                [ "$mode" != "pppoe" ] && [ "$mode" != "wifi" ] && validate_strict_ip "$arg1"
-                [ "$mode" != "wifi" ] && validate_strict_ip "$arg2"
-                validate_strict_ip "$arg3"
+                # 在配置 IP 的模式下安全拦截，绝 PPPoE 和 Wi-Fi 的密码参数！
+                if [ "$mode" = "wan_static" ] || [ "$mode" = "lan" ]; then
+                    validate_strict_ip "$arg1" # IP
+                    validate_strict_ip "$arg2" # 网关
+                    validate_strict_ip "$arg3" # 掩码
+                fi
 
                 cleanup_lan_for_wan_modes() {
                     uci delete network.lan.gateway 2>/dev/null
@@ -123,12 +126,23 @@ case "$1" in
                         path=$(uci -q get wireless.$dev.path || true)
                         
                         is_5g=0
-                        if echo "$hwmode" | grep -q "a"; then
-                            is_5g=1
-                        elif echo "$hwmode" | grep -qE "g|b"; then
-                            is_5g=0
-                        elif [ "$band" = "5g" ] || echo "$path" | grep -qi "pcie1" || echo "$path" | grep -qi "pcie2"; then
-                            is_5g=1
+                        
+                        if command -v iwinfo >/dev/null 2>&1; then
+                            if iwinfo $dev freqlist 2>/dev/null | grep -q "^  5"; then
+                                is_5g=1
+                            elif iwinfo $dev hwmodelist 2>/dev/null | grep -qi "ac\|ax\|be\|a"; then
+                                is_5g=1
+                            fi
+                        fi
+                        
+                        if [ "$is_5g" = "0" ]; then
+                            if echo "$hwmode" | grep -q "a"; then
+                                is_5g=1
+                            elif echo "$hwmode" | grep -qE "g|b"; then
+                                is_5g=0
+                            elif [ "$band" = "5g" ] || echo "$path" | grep -qi "pcie1" || echo "$path" | grep -qi "pcie2"; then
+                                is_5g=1
+                            fi
                         fi
 
                         if [ "$is_5g" = "1" ]; then
@@ -157,7 +171,6 @@ case "$1" in
                         local p_enc=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.encryption" || echo "psk2+sae")
                         local p_hidden=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.hidden" || echo "0")
                         
-                        # 获取強切的 Mode, 信道与宽频
                         local p_mode=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.mode" || echo "auto")
                         local p_chan=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.channel" || echo "auto")
                         local p_bw=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.bandwidth" || echo "auto")
@@ -202,7 +215,6 @@ case "$1" in
                         if [ "$intended_band" = "5g" ]; then final_bw="80"; fi
                         if [ "$p_bw" != "auto" ] && [ -n "$p_bw" ]; then final_bw="$p_bw"; fi
 
-                        # 处理用戶強制修改物理模式的危险操作
                         if [ "$p_mode" != "auto" ] && [ -n "$p_mode" ]; then
                             uci set wireless.$dev.hwmode="$p_mode"
                             if [ "$intended_band" = "2g" ]; then uci set wireless.$dev.band='2g' 2>/dev/null || true; fi
@@ -216,7 +228,6 @@ case "$1" in
                             
                             log "  - ！！！危险警告：强制越权指定物理模式: $p_mode ！！！"
                         else
-                            # 清洗
                             if [ "$intended_band" = "2g" ]; then
                                 if [ "$arg4" = "1" ]; then
                                     uci set wireless.$dev.hwmode='11b'
