@@ -760,9 +760,64 @@ return view.extend({
                     var mkB = function(bg, txt) { return "<span style='font-size:12px; background:" + bg + "; color:#fff; padding:3px 10px; border-radius:12px; white-space:nowrap;'>" + txt + "</span>"; };
                     var mkD = function(l1, v1, l2, v2) { return "<span style='white-space:nowrap; margin: 0 10px;'>" + l1 + " <span class='nw-hl'>" + v1 + "</span></span><span style='white-space:nowrap; margin: 0 10px;'>" + l2 + " <span class='nw-hl'>" + v2 + "</span></span>"; };
                     var sTitle = "", sDetails = "", statusBadge = "";
-                    if (isBypass) { sTitle = T['STAT_BYPASS']; sDetails = mkD(T['TXT_DEV_IP'], lIp, T['TXT_UP_GW'], lGw); } else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']); sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']); sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = activeWan.up ? mkB('#10b981', T['BDG_CONN']) : mkB('#ef4444', T['BDG_UNPLUG']); sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } else { sTitle = T['STAT_LAN']; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_DHCP_SRV'], T['TXT_ON']); }
-                    if (modeTextEl) modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:12px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;'><span style='white-space:nowrap;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:14.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.8;'>" + sDetails + "</div>";
-                }).catch(function() {});
+                    
+                    if (isBypass) { sTitle = T['STAT_BYPASS']; sDetails = mkD(T['TXT_DEV_IP'], lIp, T['TXT_UP_GW'], lGw); } 
+                    else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']); sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } 
+                    else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']); sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } 
+                    else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = activeWan.up ? mkB('#10b981', T['BDG_CONN']) : mkB('#ef4444', T['BDG_UNPLUG']); sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } 
+                    else { sTitle = T['STAT_LAN']; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_DHCP_SRV'], T['TXT_ON']); }
+                    
+                    // 首页展示 Wi-Fi 与 IPv6 状态
+                    var ipv6Label = (ipv6Mode === 'server' || ipv6Mode === 'relay') ? '<b style="color:#10b981;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444;">' + T['TXT_OFF'] + '</b>';
+                    
+                    var wDevsList = uci.sections('wireless', 'wifi-device') || [];
+                    var wIfacesList = uci.sections('wireless', 'wifi-iface') || [];
+                    var activeIfaces = wIfacesList.filter(function(i) { return i.disabled !== '1' && i.mode === 'ap' && i.ssid; });
+                    var wifiLines = [];
+                    
+                    if (activeIfaces.length === 0) {
+                        wifiLines.push("<div><span style='opacity:0.9;'>Wi-Fi 状态: </span><b style='color:#ef4444;'>" + T['TXT_OFF'] + "</b></div>");
+                    } else {
+                        // 利用算法聚合 SSID 以自动判断是否为多频合一
+                        var sMap = {};
+                        activeIfaces.forEach(function(i) {
+                            var s = i.ssid, k = i.key || '无密码';
+                            if(!sMap[s]) sMap[s] = { key: k, count: 0, devs: [] };
+                            sMap[s].count++;
+                            sMap[s].devs.push(i.device);
+                        });
+                        
+                        for (var sName in sMap) {
+                            var obj = sMap[sName];
+                            var tLbl = "Wi-Fi";
+                            // 计数大于 1 说明两个频段叫同一个名字 = 多频合一
+                            if (obj.count > 1) {
+                                tLbl = "<b style='color:#fff;'>多频合一</b>";
+                            } else if (obj.devs[0]) {
+                                var dObj = wDevsList.find(function(x) { return x['.name'] === obj.devs[0]; });
+                                var hw = dObj ? (dObj.hwmode||'').toLowerCase() : '';
+                                var bd = dObj ? (dObj.band||'').toLowerCase() : '';
+                                var path = dObj ? (dObj.path||'').toLowerCase() : '';
+                                // 判断到底是 5G 还是 2.4G
+                                if (hw.indexOf('a') !== -1 || bd === '5g' || path.indexOf('pcie1') !== -1 || path.indexOf('pcie2') !== -1) tLbl = "<b style='color:#fff;'>5G Wi-Fi帐号</b>";
+                                else tLbl = "<b style='color:#fff;'>2.4G Wi-Fi帐号</b>";
+                            }
+                            var kTxt = (obj.key === '无密码') ? "<span style='color:#ef4444;'>无密码</span>" : obj.key;
+                            
+                            wifiLines.push("<div style='display:flex; align-items:center; justify-content:center; gap:8px;'><span><span style='font-size:15.5px; opacity:0.9; font-weight: 600;'>" + tLbl + ":</span> <span class='nw-hl' style='font-size:16.5px; letter-spacing:0.5px; margin-left:4px;'>" + sName + "</span></span><span style='color:#ffffff; font-size:16.5px; font-weight: 600; margin-left:4px; '>(密码: " + kTxt + ")</span></div>");
+                        }
+                    }
+                    
+                    // 虚线的透明度0.6，整体字号 15.5px
+                    var extraInfo = "<div style='margin-top: 20px; padding-top: 18px; border-top: 1px dashed rgba(255,255,255,0.6); font-size:15.5px; color:#ffffff; font-weight: 600; font-family:monospace; display:flex; flex-direction:column; gap:12px; align-items:center;'>";
+                    extraInfo += "<div><span style='font-weight: 900;'>IPv6 (DHCPv6): </span>" + ipv6Label + "</div>";
+                    extraInfo += wifiLines.join('');
+                    extraInfo += "</div>";
+
+                    // 最终渲染输出
+                    if (modeTextEl) modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:12px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;'><span style='white-space:nowrap;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.8;'>" + sDetails + "</div>" + extraInfo;
+
+                    }).catch(function() {});
             } catch(e) {}
         }
         updateStatusDisplay(false);
@@ -913,7 +968,7 @@ return view.extend({
             container.querySelector('#wifi-2g-form').style.display = 'block';
             container.querySelector('#wifi-5g-form').style.display = 'none';
             
-            // 🌟 场景3：点击 2.4G 标签页时，如果为空，根据 5G 智能填充！
+            // 点击 2.4G 标签页时，如果为空，根据 5G 智能填充！
             var s5 = container.querySelector('#wifi-5g-ssid').value;
             if (!container.querySelector('#wifi-2g-ssid').value && s5) {
                 container.querySelector('#wifi-2g-ssid').value = smartConvertSsid(s5, '2g');
@@ -927,7 +982,7 @@ return view.extend({
             container.querySelector('#wifi-5g-form').style.display = 'block';
             container.querySelector('#wifi-2g-form').style.display = 'none';
             
-            // 🌟 场景4：点击 5G 标签页时，如果为空，根据 2.4G 智能填充！
+            // 点击 5G 标签页时，如果为空，根据 2.4G 智能填充！
             var s2 = container.querySelector('#wifi-2g-ssid').value;
             if (!container.querySelector('#wifi-5g-ssid').value && s2) {
                 container.querySelector('#wifi-5g-ssid').value = smartConvertSsid(s2, '5g');
