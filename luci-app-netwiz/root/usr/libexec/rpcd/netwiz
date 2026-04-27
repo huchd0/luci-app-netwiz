@@ -14,7 +14,7 @@ log() {
 
 case "$1" in
     list)
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string" }, "confirm": {}, "check_wifi": {} }'
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "confirm": {}, "check_wifi": {} }'
         exit 0
         ;;
     call)
@@ -46,6 +46,7 @@ case "$1" in
                 arg3=$(echo "$input" | jsonfilter -e '@.arg3')
                 arg4=$(echo "$input" | jsonfilter -e '@.arg4')
                 arg5=$(echo "$input" | jsonfilter -e '@.arg5')
+                arg6=$(echo "$input" | jsonfilter -e '@.arg6')
 
                 validate_strict_ip() {
                     if [ -n "$1" ] && ! echo "$1" | awk -F. 'NF==4 && $1>=0 && $1<=255 && $2>=0 && $2<=255 && $3>=0 && $3<=255 && $4>=0 && $4<=255 {print "ok"}' | grep -q "ok"; then
@@ -101,6 +102,15 @@ case "$1" in
                         [ -n "$arg2" ] && uci set network.lan.dns="$arg2"
                     else
                         uci set dhcp.lan.ignore='0'; uci delete network.lan.dns 2>/dev/null
+                    fi
+                    if [ "$arg6" = "1" ]; then
+                        uci set dhcp.lan.dhcpv6='server'
+                        uci set dhcp.lan.ra='server'
+                        uci set dhcp.lan.ndp='hybrid'
+                    else
+                        uci set dhcp.lan.dhcpv6='disabled'
+                        uci set dhcp.lan.ra='disabled'
+                        uci set dhcp.lan.ndp='disabled'
                     fi
                     uci commit network; uci commit dhcp
                 elif [ "$mode" = "wifi" ]; then
@@ -193,6 +203,21 @@ case "$1" in
                         [ -n "$p_ssid" ] && uci set wireless.$iface_name.ssid="$p_ssid"
                         [ -n "$p_enc" ] && uci set wireless.$iface_name.encryption="$p_enc"
                         [ -n "$p_key" ] && uci set wireless.$iface_name.key="$p_key"
+
+                        if [ "$p_enc" != "none" ]; then
+                            uci set wireless.$iface_name.ieee80211k='1'
+                            uci set wireless.$iface_name.ieee80211v='1'
+                            uci set wireless.$iface_name.ieee80211r='1'
+                            uci set wireless.$iface_name.ft_psk_generate_local='1'
+                            uci set wireless.$iface_name.ft_over_ds='0'
+                            uci set wireless.$iface_name.mobility_domain='e5e7' # 漫游域识别码
+                        else
+                            uci delete wireless.$iface_name.ieee80211k 2>/dev/null
+                            uci delete wireless.$iface_name.ieee80211v 2>/dev/null
+                            uci delete wireless.$iface_name.ieee80211r 2>/dev/null
+                            uci delete wireless.$iface_name.ft_psk_generate_local 2>/dev/null
+                            uci delete wireless.$iface_name.mobility_domain 2>/dev/null
+                        fi
                         
                         if [ "$p_hidden" = "1" ]; then
                             uci set wireless.$iface_name.hidden='1'
