@@ -382,7 +382,7 @@ msgstr "正在嘗試連接新 IP... 失聯超時將會自動回滾配置"
 msgid "Waiting for network service to restart... Elapsed: {sec}s"
 msgstr "正在等待網路服務重啟... 已耗時：{sec}秒"
 
-msgid "Waiting for old IP to recover... Elapsed: {sec}s"
+msgid "Waiting for router to safely restore... Elapsed: {sec}s"
 msgstr "正在等待舊 IP 恢復... 已耗時：{sec}秒"
 
 msgid "Preparing environment..."
