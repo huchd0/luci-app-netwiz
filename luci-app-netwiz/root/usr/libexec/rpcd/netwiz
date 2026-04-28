@@ -75,9 +75,9 @@ case "$1" in
                     if [ "$arg5" != "0" ]; then
                         log "LAN IP 即将修改为 $arg1，安放 120 秒防失联回退装置"
                         
-                        cp -f /etc/config/network /tmp/network.netwiz_bak
-                        cp -f /etc/config/dhcp /tmp/dhcp.netwiz_bak
-                        
+                        cp -f /etc/config/network /etc/config/network.netwiz_bak
+                        cp -f /etc/config/dhcp /etc/config/dhcp.netwiz_bak
+
                         echo "$arg1" > /tmp/netwiz_target_ip
                         echo $(($(date +%s) + 120)) > /tmp/netwiz_rollback_time
                     else
