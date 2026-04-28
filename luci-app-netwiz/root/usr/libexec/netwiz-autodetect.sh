@@ -2,7 +2,7 @@
 # Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
 # Licensed under the GNU General Public License v3.0
 
-LOG_FILE="/etc/netwiz.log"
+LOG_FILE="/tmp/netwiz.log"
 
 log() {
     echo "$(date '+%F %T') [Engine] $1" >> "$LOG_FILE"
