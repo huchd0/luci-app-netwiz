@@ -150,11 +150,19 @@ case "$1" in
                         fi
                         
                         if [ "$is_5g" = "0" ]; then
-                            if echo "$hwmode" | grep -q "a"; then
+                            local current_channel=$(uci -q get wireless.$dev.channel || echo "0")
+                    
+                            if [ "$band" = "5g" ]; then
                                 is_5g=1
-                            elif echo "$hwmode" | grep -qE "g|b"; then
+                            elif [ "$band" = "2g" ]; then
                                 is_5g=0
-                            elif [ "$band" = "5g" ] || echo "$path" | grep -qi "pcie1" || echo "$path" | grep -qi "pcie2"; then
+                            elif [ "$current_channel" != "0" ] && [ "$current_channel" != "auto" ] && [ "$current_channel" -ge 36 ]; then
+                                is_5g=1
+                            elif echo "$hwmode" | grep -qE "11a|11ac|11ax"; then
+                                is_5g=1
+                            elif echo "$hwmode" | grep -qE "11b|11g"; then
+                                is_5g=0
+                            elif echo "$path" | grep -qi "pcie1" || echo "$path" | grep -qi "pcie2"; then
                                 is_5g=1
                             fi
                         fi
