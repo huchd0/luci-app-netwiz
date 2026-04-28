@@ -3,7 +3,7 @@
 # Licensed under the GNU General Public License v3.0
 # START=15 确保在 network 服务前或同步执行
 START=15
-LOG_FILE="/etc/netwiz.log"
+LOG_FILE="/tmp/netwiz.log"
 
 boot() {
     # 发现残留备份说明测试中途异常断电
