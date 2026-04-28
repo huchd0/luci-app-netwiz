@@ -2,6 +2,8 @@
 
 **NetWiz**网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，极致的无感体验，大屏小屏体验行云流水、观感丝滑。
 
+**NetWiz(NetWiz Network Wizard)** — minimalist and ready out of the box. Built with rigorous, well-structured logic, it features an enterprise-grade LAN fail-safe mechanism, intelligent WAN mode switching (Auto-detect will be triggered only when the WAN cable is reinserted after a 10-second disconnection), smart validation and error prevention, and full-performance WiFi with automatic hiding when hardware is unavailable. It also enables one-click IPv6 activation, proactively resolves IP, gateway, WAN, and LAN conflicts, and delivers comprehensive protection with a seamless, intuitive experience across both large and small screens.
+
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-23.05_|_25.x+-blue.svg) ![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-Supported-orange.svg) ![License](https://img.shields.io/badge/License-GPL--3.0-green.svg) ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 
 [English](#english) | [简体中文](#简体中文)
