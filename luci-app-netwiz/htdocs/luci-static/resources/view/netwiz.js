@@ -608,6 +608,9 @@ return view.extend({
                             var legacyToggle = container.querySelector('#legacy-b-toggle');
 
                             if (wDevs.length > 0) {
+                                console.log("========== Netwiz 前端硬件识别日志 ==========");
+                                console.log("-> 系统汇报实体网卡数量: " + wDevs.length);
+
                                 function findMainIfaceForDev(devName) {
                                     var validIfaces = wIfaces.filter(function(i) { return i.device === devName; });
                                     if (validIfaces.length === 0) return {};
@@ -621,6 +624,7 @@ return view.extend({
                                 if (wDevs.length === 1) {
                                     window._isSingleChip = true;
                                     var theDev = wDevs[0];
+                                    
                                     smartToggle.closest('#wifi-smart-row').style.display = 'none';
                                     container.querySelector('#wifi-smart-ui').style.display = 'none';
                                     container.querySelector('#wifi-split-ui').style.display = 'block';
@@ -631,6 +635,9 @@ return view.extend({
                                     var ht = (theDev.htmode || '').toLowerCase();
                                     var hm = (theDev.hwmode || '').toLowerCase();
 
+                                    console.log("-> 判定为 [单芯片] 架构, 网卡名称: " + theDev['.name']);
+                                    console.log("   - 解析底层参数: band=" + bd + ", channel=" + ch + ", htmode=" + ht + ", hwmode=" + hm);
+
                                     if (bd === '5g' || bd === '6g') { is5G = true; }
                                     else if (bd === '2g') { is5G = false; }
                                     else if (!isNaN(ch) && ch >= 36) { is5G = true; }
@@ -640,12 +647,16 @@ return view.extend({
                                     else if (hm === '11g' || hm === '11b') { is5G = false; }
                                     else { is5G = (theDev['.name'] === 'radio0'); }
 
+                                    console.log("   - 最终判定结果: 该单芯片目前被激活于 [" + (is5G ? "5G" : "2.4G") + "] 频段");
+
                                     var isLegacy = (hm === '11b');
 
-                                    // 🌟 核心逻辑：获取该芯片下的所有接口，并区分启动与未启动
+                                    // 获取该芯片下的所有接口，并区分启动与未启动
                                     var allIfaces = wIfaces.filter(function(i) { return i.device === theDev['.name']; });
                                     var activeIface = allIfaces.find(function(i) { return i.disabled !== '1' && i.mode === 'ap'; }) || allIfaces[0];
                                     var inactiveIface = activeIface ? allIfaces.find(function(i) { return i['.name'] !== activeIface['.name'] && i.mode === 'ap'; }) : null;
+
+                                    console.log("   - 读取到激活接口: " + (activeIface ? activeIface['.name'] : "无") + " | 闲置接口: " + (inactiveIface ? inactiveIface['.name'] : "无"));
 
                                     var actSsid = activeIface ? (activeIface.ssid || '') : '';
                                     var actKey = activeIface ? (activeIface.key || '') : '';
@@ -684,7 +695,6 @@ return view.extend({
                                         // 【填充 2.4G 闲置面板】
                                         container.querySelector('#wifi-2g-en').checked = false;
                                         if (inactiveIface && inactSsid) {
-                                            // 🌟 如果历史记录和当前 5G 完全同名，强制加上 2.4G 后缀！
                                             container.querySelector('#wifi-2g-ssid').value = (inactSsid === actSsid) ? smartConvertSsid(actSsid, '2g') : inactSsid;
                                             container.querySelector('#wifi-2g-key').value = inactKey;
                                             var enc2gEl = container.querySelector('#wifi-2g-enc'); if(enc2gEl.querySelector('option[value="'+inactEnc+'"]')) enc2gEl.value = inactEnc;
@@ -695,7 +705,6 @@ return view.extend({
                                             var enc2gEl = container.querySelector('#wifi-2g-enc'); if(enc2gEl.querySelector('option[value="'+actEnc+'"]')) enc2gEl.value = actEnc;
                                             container.querySelector('#wifi-2g-hidden').checked = false;
                                         }
-                                        // 加载完毕后，自动切换到 5G 标签页！
                                         setTimeout(function(){ container.querySelector('#tab-5g').click(); }, 50);
                                     } else {
                                         // 【当前激活 2.4G 面板】
@@ -712,7 +721,6 @@ return view.extend({
                                         // 【填充 5G 闲置面板】
                                         container.querySelector('#wifi-5g-en').checked = false;
                                         if (inactiveIface && inactSsid) {
-                                            // 历史记录和当前 2.4G 完全同名，强制加上 5G 后缀！
                                             container.querySelector('#wifi-5g-ssid').value = (inactSsid === actSsid) ? smartConvertSsid(actSsid, '5g') : inactSsid;
                                             container.querySelector('#wifi-5g-key').value = inactKey;
                                             var enc5gEl = container.querySelector('#wifi-5g-enc'); if(enc5gEl.querySelector('option[value="'+inactEnc+'"]')) enc5gEl.value = inactEnc;
@@ -723,11 +731,11 @@ return view.extend({
                                             var enc5gEl = container.querySelector('#wifi-5g-enc'); if(enc5gEl.querySelector('option[value="'+actEnc+'"]')) enc5gEl.value = actEnc;
                                             container.querySelector('#wifi-5g-hidden').checked = false;
                                         }
-                                        // 加载完毕后，自动切换到 2.4G 标签页！
                                         setTimeout(function(){ container.querySelector('#tab-2g').click(); }, 50);
                                     }
                                 } else {
                                     window._isSingleChip = false;
+                                    console.log("-> 判定为 [多芯片] 独立架构");
                                     var dev2g = null, dev5g = null;
                                     
                                     wDevs.forEach(function(d) {
@@ -749,11 +757,13 @@ return view.extend({
                                         else if (hm === '11g' || hm === '11b') { is_5g_chip = false; }
                                         else if (d.path && (d.path.indexOf('pcie1') !== -1 || d.path.indexOf('pcie2') !== -1)) { is_5g_chip = true; }
 
+                                        console.log("   - 扫描网卡 [" + d['.name'] + "]: band=" + bd + ", ch=" + ch + ", ht=" + ht + ", hm=" + hm + ", path=" + path + " => 归类为 [" + (is_5g_chip ? "5G" : "2.4G") + "] 阵列");
+
                                         if (is_5g_chip) { if (!dev5g) dev5g = d; } 
                                         else { if (!dev2g) dev2g = d; }
                                     });
                                     
-                                    // 防重叠分配：不允许 dev2g 和 dev5g 指向同一个芯片
+                                    // 防重叠分配
                                     if(!dev2g && wDevs.length > 0) dev2g = wDevs[0];
                                     if(!dev5g && wDevs.length > 1) dev5g = wDevs.find(d => d['.name'] !== dev2g['.name']);
                                     if(dev2g && dev5g && dev2g['.name'] === dev5g['.name']) {
@@ -765,7 +775,6 @@ return view.extend({
 
                                     var isLegacy = dev2g && dev2g.hwmode === '11b';
                                     
-                                    // 联合判断双频网卡的禁用状态
                                     var s2 = i2g.ssid || '', k2 = i2g.key || '', e2 = i2g.encryption || 'psk2+sae', h2 = i2g.hidden === '1';
                                     var d2 = (i2g.disabled === '1' || (dev2g && dev2g.disabled === '1'));
                                     
@@ -795,7 +804,6 @@ return view.extend({
                                             var bwM2 = (dev2g.htmode||'').match(/\d+/); var bw2 = bwM2 ? bwM2[0] : 'auto';
                                             var bwEl2 = container.querySelector('#wifi-2g-bw'); if(bwEl2.querySelector('option[value="'+bw2+'"]')) bwEl2.value = bw2;
                                             
-                                            // 2.4G 模式反向解析
                                             var ht2 = (dev2g.htmode||'').toLowerCase(), hm2 = (dev2g.hwmode||'').toLowerCase(), md2 = 'auto';
                                             if(ht2.indexOf('eht') !== -1) md2 = '11be'; else if(ht2.indexOf('he') !== -1) md2 = '11ax'; else if(ht2.indexOf('vht') !== -1) md2 = '11ac'; else if(ht2.indexOf('ht') !== -1) md2 = '11g'; else if(hm2 === '11b') md2 = '11b';
                                             var mEl2 = container.querySelector('#wifi-2g-mode'); if(mEl2.querySelector('option[value="'+md2+'"]')) mEl2.value = md2;
@@ -811,7 +819,6 @@ return view.extend({
                                             var bwM5 = (dev5g.htmode||'').match(/\d+/); var bw5 = bwM5 ? bwM5[0] : 'auto';
                                             var bwEl5 = container.querySelector('#wifi-5g-bw'); if(bwEl5.querySelector('option[value="'+bw5+'"]')) bwEl5.value = bw5;
                                             
-                                            // 5G 模式反向解析
                                             var ht5 = (dev5g.htmode||'').toLowerCase(), hm5 = (dev5g.hwmode||'').toLowerCase(), md5 = 'auto';
                                             if(ht5.indexOf('eht') !== -1) md5 = '11be'; else if(ht5.indexOf('he') !== -1) md5 = '11ax'; else if(ht5.indexOf('vht') !== -1) md5 = '11ac'; else if(ht5.indexOf('ht') !== -1) md5 = '11a';
                                             var mEl5 = container.querySelector('#wifi-5g-mode'); if(mEl5.querySelector('option[value="'+md5+'"]')) mEl5.value = md5;
