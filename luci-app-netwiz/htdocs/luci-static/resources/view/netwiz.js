@@ -170,7 +170,12 @@ var T = {
     'MSG_TIMER': _('Rollback countdown: <b style="color:#f59e0b;">{sec}</b> / {total} s'),
     'MSG_REDIRECTING': _('Network connected! Automatically redirecting...'),
     'MSG_MANUAL_VISIT': _('If IP changed, please update PC IP. Auto-redirecting when connected...'),
-    'MSG_ABANDONING': _('Waiting for router to abort changes and restore network...')
+    'MSG_ABANDONING': _('Waiting for router to abort changes and restore network...'),
+    'TXT_WIFI_STATUS': _('Wi-Fi Status'),
+    'TXT_SMART_ACCT': _('Smart Connect'),
+    'TXT_5G_ACCT': _('5G Wi-Fi Account'),
+    'TXT_2G_ACCT': _('2.4G Wi-Fi Account'),
+    'TXT_NO_PASS': _('No Password'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -776,12 +781,12 @@ return view.extend({
                     var wifiLines = [];
                     
                     if (activeIfaces.length === 0) {
-                        wifiLines.push("<div><span style='opacity:0.9;'>Wi-Fi 状态: </span><b style='color:#ef4444;'>" + T['TXT_OFF'] + "</b></div>");
+                        wifiLines.push("<div><span style='opacity:0.9;'>" + T['TXT_WIFI_STATUS'] + ": </span><b style='color:#ef4444;'>" + T['TXT_OFF'] + "</b></div>");
                     } else {
                         // 利用算法聚合 SSID 以自动判断是否为多频合一
                         var sMap = {};
                         activeIfaces.forEach(function(i) {
-                            var s = i.ssid, k = i.key || '无密码';
+                            var s = i.ssid, k = i.key || T['TXT_NO_PASS'];
                             if(!sMap[s]) sMap[s] = { key: k, count: 0, devs: [] };
                             sMap[s].count++;
                             sMap[s].devs.push(i.device);
@@ -792,19 +797,19 @@ return view.extend({
                             var tLbl = "Wi-Fi";
                             // 计数大于 1 说明两个频段叫同一个名字 = 多频合一
                             if (obj.count > 1) {
-                                tLbl = "<b style='color:#fff;'>多频合一</b>";
+                                tLbl = "<b style='color:#fff;'>" + T['TXT_SMART_ACCT'] + "</b>";
                             } else if (obj.devs[0]) {
                                 var dObj = wDevsList.find(function(x) { return x['.name'] === obj.devs[0]; });
                                 var hw = dObj ? (dObj.hwmode||'').toLowerCase() : '';
                                 var bd = dObj ? (dObj.band||'').toLowerCase() : '';
                                 var path = dObj ? (dObj.path||'').toLowerCase() : '';
                                 // 判断到底是 5G 还是 2.4G
-                                if (hw.indexOf('a') !== -1 || bd === '5g' || path.indexOf('pcie1') !== -1 || path.indexOf('pcie2') !== -1) tLbl = "<b style='color:#fff;'>5G Wi-Fi帐号</b>";
-                                else tLbl = "<b style='color:#fff;'>2.4G Wi-Fi帐号</b>";
+                                if (hw.indexOf('a') !== -1 || bd === '5g' || path.indexOf('pcie1') !== -1 || path.indexOf('pcie2') !== -1) tLbl = "<b style='color:#fff;'>" + T['TXT_5G_ACCT'] + "</b>";
+                                else tLbl = "<b style='color:#fff;'>" + T['TXT_2G_ACCT'] + "</b>";
                             }
-                            var kTxt = (obj.key === '无密码') ? "<span style='color:#ef4444;'>无密码</span>" : obj.key;
+                            var kTxt = (obj.key === T['TXT_NO_PASS']) ? "<span style='color:#ef4444;'>" + T['TXT_NO_PASS'] + "</span>" : obj.key;
                             
-                            wifiLines.push("<div style='display:flex; align-items:center; justify-content:center; gap:8px;'><span><span style='font-size:15.5px; opacity:0.9; font-weight: 600;'>" + tLbl + ":</span> <span class='nw-hl' style='font-size:16.5px; letter-spacing:0.5px; margin-left:4px;'>" + sName + "</span></span><span style='color:#ffffff; font-size:16.5px; font-weight: 600; margin-left:4px; '>(密码: " + kTxt + ")</span></div>");
+                            wifiLines.push("<div style='display:flex; align-items:center; justify-content:center; gap:8px;'><span><span style='font-size:15.5px; opacity:0.9; font-weight: 600;'>" + tLbl + ":</span> <span class='nw-hl' style='font-size:16.5px; letter-spacing:0.5px; margin-left:4px;'>" + sName + "</span></span><span style='color:#ffffff; font-size:16.5px; font-weight: 600; margin-left:4px; '>(" + T['M_PWD'] + ": " + kTxt + ")</span></div>");
                         }
                     }
                     
