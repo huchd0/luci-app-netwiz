@@ -641,9 +641,19 @@ return view.extend({
                                     var enc = theIface.encryption || 'psk2+sae';
                                     var disabled = (theIface.disabled === '1');
                                     var isHidden = (theIface.hidden === '1');
+                                    
+                                    // 读取通道和宽度
                                     var chan = theDev.channel || 'auto';
                                     var bwMatch = htmode.match(/\d+/);
                                     var bw = bwMatch ? bwMatch[0] : 'auto';
+                                    
+                                    // 智能反向解析无线物理模式 (Wi-Fi 4/5/6/7)
+                                    var pMode = 'auto';
+                                    if (htmode.indexOf('eht') !== -1) pMode = '11be';
+                                    else if (htmode.indexOf('he') !== -1) pMode = '11ax';
+                                    else if (htmode.indexOf('vht') !== -1) pMode = '11ac';
+                                    else if (htmode.indexOf('ht') !== -1) pMode = (hwmode.indexOf('a') !== -1 || is5G) ? '11a' : '11g';
+                                    else if (hwmode === '11b') pMode = '11b';
 
                                     container.querySelector('#wifi-2g-ssid').value = ssid;
                                     container.querySelector('#wifi-2g-key').value = key;
@@ -660,12 +670,16 @@ return view.extend({
                                         container.querySelector('#wifi-2g-en').checked = false;
                                         var chanEl = container.querySelector('#wifi-5g-chan'); if(chanEl.querySelector('option[value="'+chan+'"]')) chanEl.value = chan;
                                         var bwEl = container.querySelector('#wifi-5g-bw'); if(bwEl.querySelector('option[value="'+bw+'"]')) bwEl.value = bw;
+                                        // 將模式写入下拉选单
+                                        var mEl = container.querySelector('#wifi-5g-mode'); if(mEl.querySelector('option[value="'+pMode+'"]')) mEl.value = pMode;
                                         legacyToggle.checked = false;
                                     } else {
                                         container.querySelector('#wifi-2g-en').checked = !disabled;
                                         container.querySelector('#wifi-5g-en').checked = false;
                                         var chanEl = container.querySelector('#wifi-2g-chan'); if(chanEl.querySelector('option[value="'+chan+'"]')) chanEl.value = chan;
                                         var bwEl = container.querySelector('#wifi-2g-bw'); if(bwEl.querySelector('option[value="'+bw+'"]')) bwEl.value = bw;
+                                        // 將模式写入下拉选单
+                                        var mEl = container.querySelector('#wifi-2g-mode'); if(mEl.querySelector('option[value="'+pMode+'"]')) mEl.value = pMode;
                                         legacyToggle.checked = isLegacy;
                                     }
                                 } else {
@@ -715,6 +729,11 @@ return view.extend({
                                             var chanEl2 = container.querySelector('#wifi-2g-chan'); if(chanEl2.querySelector('option[value="'+(dev2g.channel||'auto')+'"]')) chanEl2.value = (dev2g.channel||'auto');
                                             var bwM2 = (dev2g.htmode||'').match(/\d+/); var bw2 = bwM2 ? bwM2[0] : 'auto';
                                             var bwEl2 = container.querySelector('#wifi-2g-bw'); if(bwEl2.querySelector('option[value="'+bw2+'"]')) bwEl2.value = bw2;
+                                            
+                                            // 🌟 2.4G 模式反向解析
+                                            var ht2 = (dev2g.htmode||'').toLowerCase(), hm2 = (dev2g.hwmode||'').toLowerCase(), md2 = 'auto';
+                                            if(ht2.indexOf('eht') !== -1) md2 = '11be'; else if(ht2.indexOf('he') !== -1) md2 = '11ax'; else if(ht2.indexOf('vht') !== -1) md2 = '11ac'; else if(ht2.indexOf('ht') !== -1) md2 = '11g'; else if(hm2 === '11b') md2 = '11b';
+                                            var mEl2 = container.querySelector('#wifi-2g-mode'); if(mEl2.querySelector('option[value="'+md2+'"]')) mEl2.value = md2;
                                         }
 
                                         container.querySelector('#wifi-5g-en').checked = !d5;
@@ -726,6 +745,11 @@ return view.extend({
                                             var chanEl5 = container.querySelector('#wifi-5g-chan'); if(chanEl5.querySelector('option[value="'+(dev5g.channel||'auto')+'"]')) chanEl5.value = (dev5g.channel||'auto');
                                             var bwM5 = (dev5g.htmode||'').match(/\d+/); var bw5 = bwM5 ? bwM5[0] : 'auto';
                                             var bwEl5 = container.querySelector('#wifi-5g-bw'); if(bwEl5.querySelector('option[value="'+bw5+'"]')) bwEl5.value = bw5;
+                                            
+                                            // 🌟 5G 模式反向解析
+                                            var ht5 = (dev5g.htmode||'').toLowerCase(), hm5 = (dev5g.hwmode||'').toLowerCase(), md5 = 'auto';
+                                            if(ht5.indexOf('eht') !== -1) md5 = '11be'; else if(ht5.indexOf('he') !== -1) md5 = '11ax'; else if(ht5.indexOf('vht') !== -1) md5 = '11ac'; else if(ht5.indexOf('ht') !== -1) md5 = '11a';
+                                            var mEl5 = container.querySelector('#wifi-5g-mode'); if(mEl5.querySelector('option[value="'+md5+'"]')) mEl5.value = md5;
                                         }
                                     }
                                     smartToggle.dispatchEvent(new Event('change'));
