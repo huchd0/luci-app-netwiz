@@ -1,6 +1,6 @@
 # NetWiz (luci-app-netwiz) 🚀
 
-**NetWiz**网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换，智能防错校验，智能WiFi满血释放、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，极致的无感体验，大屏小屏体验行云流水、观感丝滑。
+**NetWiz**网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换，智能防错校验，智能WiFi满血释放（没wifi时智能隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，极致的无感体验，大屏小屏体验行云流水、观感丝滑。
 
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-23.05_|_25.x+-blue.svg) ![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-Supported-orange.svg) ![License](https://img.shields.io/badge/License-GPL--3.0-green.svg) ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 
