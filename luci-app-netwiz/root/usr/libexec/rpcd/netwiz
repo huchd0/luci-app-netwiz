@@ -25,7 +25,7 @@ case "$1" in
                 if [ -f /etc/config/wireless ] && grep -q "wifi-device" /etc/config/wireless; then
                     has_wifi="true"
                 elif [ -n "$(ls -A /sys/class/net/wlan* 2>/dev/null)" ] || [ -n "$(ls -A /sys/class/net/ra* 2>/dev/null)" ] || [ -n "$(ls -A /sys/class/net/wl* 2>/dev/null)" ] || [ -n "$(ls -A /sys/class/net/ath* 2>/dev/null)" ]; then
-                    wifi config 
+                    wifi config > /etc/config/wireless 2>/dev/null
                     [ -f /etc/config/wireless ] && has_wifi="true"
                 fi
                 echo "{\"has_wifi\":$has_wifi}"
@@ -305,13 +305,12 @@ case "$1" in
                     uci commit wireless
                     log "========== Wi-Fi 写入逻辑执行完毕，准备重启网络 =========="
                     echo '{"result":0}'
-
-                    ( exec >/dev/null 2>&1 </dev/null; sleep 2; wifi up; wifi reload ) &
+                    ( exec >/dev/null 2>&1 </dev/null; sleep 4; wifi up; wifi reload ) &
                     exit 0
                 fi
                 
                 echo '{"result":0}'
-                ( exec >/dev/null 2>&1 </dev/null; sleep 3; /etc/init.d/network restart; /etc/init.d/dnsmasq restart; /etc/init.d/uhttpd restart ) &
+                ( exec >/dev/null 2>&1 </dev/null; sleep 4; /etc/init.d/network restart; /etc/init.d/dnsmasq restart; /etc/init.d/uhttpd restart ) &
                 exit 0
                 ;;
         esac
