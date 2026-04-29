@@ -21,6 +21,10 @@ It is designed to be highly user-friendly for novices setting up secondary route
 
 **1**、  [Use the one-click command for quick installation.](#install)
 
+```bash
+wget -qO- https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh | sh
+```
+
 **2**、Go to the  [Releases](../../releases)  page to download the precompiled .apk or .ipk package, then upload and install it via the router’s web interface.
 
 ### 🌟 Key Features
