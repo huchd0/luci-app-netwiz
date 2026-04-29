@@ -1017,17 +1017,20 @@ return view.extend({
             }
         });
 
-        smartToggle.addEventListener('change', function() {
+        smartToggle.addEventListener('change', function(e) {
             var isSmart = this.checked;
             var smartUi = container.querySelector('#wifi-smart-ui');
             var splitUi = container.querySelector('#wifi-split-ui');
             
             if (isSmart) {
-                // 进入多频合一
+                // 切换为多频合一
                 smartUi.style.display = 'block';
                 splitUi.style.display = 'none';
 
-                // 1. 内存备份：在被合并覆盖前，保存用户已有的 2.4G 和 5G 独立账号密码
+                // 防止系统自动触发时覆盖数据
+                if (!e.isTrusted) return;
+
+                // 备份现有的独立账号密码
                 window._backupSplit = {
                     s2: container.querySelector('#wifi-2g-ssid').value,
                     k2: container.querySelector('#wifi-2g-key').value,
@@ -1037,30 +1040,33 @@ return view.extend({
                     e5: container.querySelector('#wifi-5g-enc').value
                 };
 
-                // 2. 智能提取：寻找当前处于“开启”状态的频段（优先 5G）作为基底
+                // 获取已开启频段的信息优先5G
                 var en2 = container.querySelector('#wifi-2g-en').checked;
                 var en5 = container.querySelector('#wifi-5g-en').checked;
-                var pickBand = (en5 || !en2) ? '5g' : '2g'; // 只要 5G 开启就优先取 5G
+                var pickBand = (en5 || !en2) ? '5g' : '2g'; 
                 
                 var pickSsid = container.querySelector('#wifi-' + pickBand + '-ssid').value;
                 var pickKey = container.querySelector('#wifi-' + pickBand + '-key').value;
                 var pickEnc = container.querySelector('#wifi-' + pickBand + '-enc').value;
                 
-                // 3. 剥离后缀，完美回填：比如取到了 "mywifi_5G"，剥离后变成 "mywifi" 填入合一界面
+                // 去除后缀并回填数据
                 var smartSsidEl = container.querySelector('#wifi-smart-ssid');
                 if (pickSsid && !smartSsidEl.dataset.initialized) {
                     smartSsidEl.value = cleanSsidSuffix(pickSsid);
                     container.querySelector('#wifi-smart-key').value = pickKey;
                     container.querySelector('#wifi-smart-enc').value = pickEnc;
-                    smartSsidEl.dataset.initialized = 'true'; // 防止后续随意覆盖在合一界面的手动修改
+                    smartSsidEl.dataset.initialized = 'true'; 
                 }
 
             } else {
-                // 拆分为独立频段
+                // 切换为独立频段
                 smartUi.style.display = 'none';
                 splitUi.style.display = 'block';
 
-                // 4. 在内存中找到了之前分开的账号，直接原样恢复！
+                // 防止系统加载时覆盖底层数据
+                if (!e.isTrusted) return;
+
+                // 恢复之前备份的独立账号密码
                 if (window._backupSplit && (window._backupSplit.s2 || window._backupSplit.s5)) {
                     container.querySelector('#wifi-2g-ssid').value = window._backupSplit.s2;
                     container.querySelector('#wifi-2g-key').value = window._backupSplit.k2;
@@ -1070,12 +1076,11 @@ return view.extend({
                     container.querySelector('#wifi-5g-key').value = window._backupSplit.k5;
                     container.querySelector('#wifi-5g-enc').value = window._backupSplit.e5;
                 } else {
-                    // 没找到历史记录，就拿当前的合一名称自动生成（彻底规避重复后缀）
+                    // 无备份时自动生成独立名称
                     var baseSsid = container.querySelector('#wifi-smart-ssid').value;
                     var baseKey = container.querySelector('#wifi-smart-key').value;
                     var baseEnc = container.querySelector('#wifi-smart-enc').value;
                     
-                    // 不产生叠词后缀
                     container.querySelector('#wifi-2g-ssid').value = smartConvertSsid(baseSsid, '2g');
                     container.querySelector('#wifi-2g-key').value = baseKey;
                     container.querySelector('#wifi-2g-enc').value = baseEnc;
