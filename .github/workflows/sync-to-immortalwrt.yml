@@ -31,7 +31,7 @@ jobs:
           git fetch upstream master
           
           BRANCH_NAME="add-luci-app-netwiz"
-          # 【核弹级操作】直接基于官方最新的纯净 master 创建分支，彻底抛弃您的所有历史包袱！
+          # 基于官方最新的纯净 master 创建分支
           git checkout -B $BRANCH_NAME upstream/master
           
           echo "🧹 清理目标文件夹..."
