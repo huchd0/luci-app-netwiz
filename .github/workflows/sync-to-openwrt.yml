@@ -1,0 +1,63 @@
+name: 🔄 手动同步到 OpenWrt 官方库
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 检出核心代码 (luci-app-netwiz)
+        uses: actions/checkout@v4
+        with:
+          path: source-repo
+
+      - name: 2. 检出目标仓库 (您的 Fork)
+        uses: actions/checkout@v4
+        with:
+          repository: huchd0/luci  # 您的 fork 仓库地址
+          token: ${{ secrets.SYNC_TOKEN }}
+          path: dest-repo
+          fetch-depth: 0 # 必须拉取历史记录以便执行分支重置
+
+      - name: 3. 同步 OpenWrt 官方纯净分支并提交
+        run: |
+          cd dest-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          echo "🔄 正在连接 OpenWrt 官方仓库获取最纯净的底层代码..."
+          # 🌟 核心修改：这里换成了 OpenWrt 官方的 luci 仓库
+          git remote add upstream https://github.com/openwrt/luci.git
+          git fetch upstream master
+          
+          # 🌟 建议将分支名改一下，方便您在 GitHub 上向 OpenWrt 提 PR 时进行区分
+          BRANCH_NAME="add-luci-app-netwiz-openwrt"
+          
+          # 基于 OpenWrt 官方最新的纯净 master 创建分支
+          git checkout -B $BRANCH_NAME upstream/master
+          
+          echo "🧹 清理目标文件夹..."
+          rm -rf applications/luci-app-netwiz/*
+          mkdir -p applications/luci-app-netwiz/
+          
+          echo "📦 复制核心仓库代码..."
+          rsync -av --exclude='.git/' --exclude='.github/' ../source-repo/luci-app-netwiz/ applications/luci-app-netwiz/
+          
+          # Makefile 版本号并注入前端
+          echo "🏷️ 正在提取 Makefile 版本号..."
+          PKG_VER=$(grep -E '^PKG_VERSION:=' applications/luci-app-netwiz/Makefile | cut -d '=' -f 2 | tr -d ' ')
+          echo "获取到版本号: v$PKG_VER，开始注入前端..."
+          sed -i "s/{{APP_VERSION}}/v$PKG_VER/g" applications/luci-app-netwiz/htdocs/luci-static/resources/view/netwiz.js
+          git add applications/luci-app-netwiz/
+          
+          if git diff --cached --quiet; then
+            echo "✅ 代码完全一致，不需要重复同步。"
+          else
+            # 标准提交格式
+            git commit -m "luci-app-netwiz: add new application"
+            
+            # 推送到您的 fork 仓库，覆盖旧数据
+            git push -f origin $BRANCH_NAME
+            echo "🚀 成功推送到 Fork 仓库的 $BRANCH_NAME 分支！"
+          fi
