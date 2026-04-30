@@ -534,7 +534,7 @@ return view.extend({
             '              <label class="nw-switch"><input type="checkbox" id="wisp-toggle"><span class="nw-slider"></span></label>',
             '           </div>',
             '           <div style="font-size: 13px; color: #64748b; margin-bottom: 15px;">{{DESC_WISP}}</div>',
-            '           <div id="wisp-ui-panel" style="place-items: center; display:none; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">',
+            '           <div id="wisp-ui-panel" style="display:none; flex-direction:column; align-items:center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">',
             '              <button id="btn-wisp-scan" class="cbi-button cbi-button-apply" style="width:100%; background:#0f172a !important;">{{BTN_SCAN}}</button>',
             '              <div id="wisp-selected-info" style="display:none;">',
             '                 <div class="nw-value"><label class="nw-value-title">{{TXT_TARGET_SSID}}</label><div class="nw-value-field"><input type="text" id="wisp-target-ssid" readonly style="background:#e2e8f0 !important; color:#475569 !important;"></div></div>',
@@ -1258,7 +1258,7 @@ return view.extend({
         
         if (wispToggle) {
             wispToggle.addEventListener('change', function(e) {
-                wispUiPanel.style.display = this.checked ? 'block' : 'none';
+                wispUiPanel.style.display = this.checked ? 'flex' : 'none';
                 
                 // 只有人类用鼠标真实点击，且打开开关时才触发重置
                 if (e && e.isTrusted && this.checked) {
