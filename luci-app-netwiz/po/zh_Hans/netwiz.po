@@ -26,7 +26,7 @@ msgid "LAN Settings"
 msgstr "局域网设置"
 
 msgid "Change device LAN IP, or switch to Bypass Router mode."
-msgstr "修改设备的局域网 IP，或切换至旁路由模式。"
+msgstr "修改设备的局域网 IP，或切换至旁路由/AP有线中继模式。"
 
 msgid "Reading underlying config..."
 msgstr "正在读取底层配置..."
@@ -77,10 +77,10 @@ msgid "Safe Mode (Recommended ON)"
 msgstr "安全模式 (建议开启，防失联)"
 
 msgid "Enable Bypass Mode"
-msgstr "启用旁路由模式"
+msgstr "启用旁路由/AP有线中继模式"
 
 msgid "<b style=\"font-size: 16px;\">Bypass Mode Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
-msgstr "<b style=\"font-size: 16px;\">旁路由模式已启用：</b><br>1. DHCP 服务将被禁用，<b style=\"color: #059669;\">下级设备需手动指定 IP 或由上级路由分配。</b><br>2. 网关【必须】填写为上级路由器的 IP。<br>3. 若修改了局域网 IP，请确保您的设备也处于同网段，以免<b style=\"color: #059669;\">失去连接</b>。"
+msgstr "<b style=\"font-size: 16px;\">旁路由/AP有线中继模式已启用：</b><br>1. DHCP 服务将被禁用，<b style=\"color: #059669;\">下级设备需手动指定 IP 或由上级路由分配。</b><br>2. 网关【必须】填写为上级路由器的 IP。<br>3. 若修改了局域网 IP，请确保您的设备也处于同网段，以免<b style=\"color: #059669;\">失去连接</b>。"
 
 msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #dc2626;\">losing access</b>."
 msgstr "<b style=\"font-size: 16px;\">主路由模式已启用：</b><br>1. DHCP 服务已开启，本设备将向下级分配 IP。<br>2. 作为主路由时，网关通常留空即可。<br>3. 若修改了局域网 IP，请确保您的设备也处于同网段，以免<b style=\"color: #dc2626;\">失去连接</b>。"
@@ -92,7 +92,7 @@ msgid "LAN Gateway"
 msgstr "局域网网关"
 
 msgid "Blank for Main, required for Bypass"
-msgstr "主路由留空，旁路由必填"
+msgstr "主路由留空，旁路由/AP有线中继必填"
 
 msgid "Back"
 msgstr "上一步"
@@ -122,7 +122,7 @@ msgid "Apply Settings"
 msgstr "确认并应用"
 
 msgid "Bypass Mode"
-msgstr "旁路由模式"
+msgstr "旁路由/AP有线中继模式"
 
 msgid "Main Router (PPPoE)"
 msgstr "主路由 (PPPoE 拨号)"
@@ -233,13 +233,13 @@ msgid "Logic Error"
 msgstr "逻辑错误"
 
 msgid "Bypass mode requires an upstream gateway IP."
-msgstr "旁路由模式下，网关为必填项。"
+msgstr "旁路由/AP有线中继模式下，网关为必填项。"
 
 msgid "WAN Static IP MUST NOT be the same as the gateway!"
 msgstr "WAN 静态 IP 绝对不能和网关一模一样！"
 
 msgid "The Bypass Device IP MUST NOT be the same as the Gateway!"
-msgstr "旁路由的设备 IP 绝对不能和上级网关一模一样！"
+msgstr "旁路由/AP有线中继的设备 IP 绝对不能和上级网关一模一样！"
 
 msgid "No Changes Needed"
 msgstr "未发生更改"
@@ -275,7 +275,7 @@ msgid "e.g., if gateway is {gw}, the IP must be {ip}.x"
 msgstr "例如：如果网关是 {gw}，则 IP 必须是 {ip}.x"
 
 msgid "The Bypass Device IP must be in the same subnet as the Gateway!"
-msgstr "旁路由的设备 IP 必须与上级网关处于同一网段！"
+msgstr "旁路由/AP有线中继的设备 IP 必须与上级网关处于同一网段！"
 
 msgid "LAN IP cannot be the same as the existing WAN IP ({ip})!"
 msgstr "局域网 IP 不能与当前外网 IP ({ip}) 相同！"
@@ -362,7 +362,7 @@ msgid "Modifying LAN IP"
 msgstr "正在修改局域网 IP"
 
 msgid "Switching to Bypass Mode"
-msgstr "正在切换至旁路由模式"
+msgstr "正在切换至旁路由/AP有线中继模式"
 
 msgid "Switching WAN to DHCP"
 msgstr "正在切换 WAN 口为 DHCP (自动获取)"
