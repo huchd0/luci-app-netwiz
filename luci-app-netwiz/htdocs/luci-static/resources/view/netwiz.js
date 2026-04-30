@@ -967,7 +967,16 @@ return view.extend({
                                 ss: container.querySelector('#wifi-smart-ssid').value,
                                 ks: container.querySelector('#wifi-smart-key').value,
                                 ecs: container.querySelector('#wifi-smart-enc').value,
-                                hs: container.querySelector('#wifi-smart-hidden').checked
+                                hs: container.querySelector('#wifi-smart-hidden').checked,
+                                r2: container.querySelector('#wifi-2g-roaming') ? container.querySelector('#wifi-2g-roaming').checked : false,
+                                r5: container.querySelector('#wifi-5g-roaming') ? container.querySelector('#wifi-5g-roaming').checked : false,
+                                rs: container.querySelector('#wifi-smart-roaming') ? container.querySelector('#wifi-smart-roaming').checked : false,
+                                wt: container.querySelector('#wisp-toggle') ? container.querySelector('#wisp-toggle').checked : false,
+                                ws: container.querySelector('#wisp-target-ssid') ? container.querySelector('#wisp-target-ssid').value : '',
+                                wk: container.querySelector('#wisp-target-key') ? container.querySelector('#wisp-target-key').value : '',
+                                we: container.querySelector('#wisp-target-enc') ? container.querySelector('#wisp-target-enc').value : '',
+                                wd: container.querySelector('#wisp-target-device') ? container.querySelector('#wisp-target-device').value : '',
+                                wb: container.querySelector('#wisp-target-bssid') ? container.querySelector('#wisp-target-bssid').value : ''
                             });
                             
                             window._wifiLoaded = true;
@@ -1463,7 +1472,12 @@ return view.extend({
                             r2: container.querySelector('#wifi-2g-roaming') ? container.querySelector('#wifi-2g-roaming').checked : false,
                             r5: container.querySelector('#wifi-5g-roaming') ? container.querySelector('#wifi-5g-roaming').checked : false,
                             rs: container.querySelector('#wifi-smart-roaming') ? container.querySelector('#wifi-smart-roaming').checked : false,
-                            wt: container.querySelector('#wisp-toggle') ? container.querySelector('#wisp-toggle').checked : false
+                            wt: container.querySelector('#wisp-toggle') ? container.querySelector('#wisp-toggle').checked : false,
+                            ws: container.querySelector('#wisp-target-ssid') ? container.querySelector('#wisp-target-ssid').value : '',
+                            wk: container.querySelector('#wisp-target-key') ? container.querySelector('#wisp-target-key').value : '',
+                            we: container.querySelector('#wisp-target-enc') ? container.querySelector('#wisp-target-enc').value : '',
+                            wd: container.querySelector('#wisp-target-device') ? container.querySelector('#wisp-target-device').value : '',
+                            wb: container.querySelector('#wisp-target-bssid') ? container.querySelector('#wisp-target-bssid').value : ''
                         });
 
                         var checkWanIp = (selectedMode === 'router' && rType === 'static') ? targetIp : currentWanIp;
@@ -1483,10 +1497,9 @@ return view.extend({
                         if (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) isNoMod = true;
                         if (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp') isNoMod = true;
                         if (selectedMode === 'pppoe' && container.querySelector('#pppoe-user').value === safeUciGet('network', 'wan', 'username', '') && container.querySelector('#pppoe-pass').value === safeUciGet('network', 'wan', 'password', '')) isNoMod = true;
-                        // 如果开启了 WISP 中继，跳过拦截！
+                        // 严谨拦截：只要新旧快照完全一致，直接弹窗拦截
                         if (selectedMode === 'wifi' && window._origWifiState && currentWifiState === window._origWifiState) {
-                            var wTog = container.querySelector('#wisp-toggle');
-                            if (!wTog || !wTog.checked) isNoMod = true; 
+                            isNoMod = true; 
                         }
 
                         if (isNoMod) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
