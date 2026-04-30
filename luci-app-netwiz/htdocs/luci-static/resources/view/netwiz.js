@@ -681,10 +681,8 @@ return view.extend({
                         var wispUi = container.querySelector('#wisp-ui-panel');
                         
                         if (wispUi) {
-                            // 👇 核心修改：无论底层是否开了中继，只要刚进页面，一律隐藏这块灰色面板！保持极简！
                             wispUi.style.display = 'none';
                             
-                            // 👇 如果底层有数据，默默把它填进隐藏的输入框里，这样直接点保存也不会丢配置
                             if (wispIface) {
                                 var ssidInput = container.querySelector('#wisp-target-ssid');
                                 if (ssidInput) ssidInput.value = wispIface.ssid || '';
@@ -1008,9 +1006,8 @@ return view.extend({
                             var sName = i.ssid;
                             var kTxt = i.key || "<span style='color:#ef4444;'>" + T['TXT_NO_PASS'] + "</span>";
                             
-                            // 暴力判定：只要是 sta 模式，就是中继！
+                            // 只要是 sta 模式，就是中继！
                             if (i.mode === 'sta') {
-                                // 中继模式：绿字标题，绝对不显示密码括号！
                                 var tLbl = "<b style='color:#10b981;padding: 8px 16px;background: #fff;border-radius: 10px;'>" + T['TXT_WISP_ON'] + "</b>";
                                 wifiLines.push("<div style='display:flex; align-items:center; justify-content:center; gap:8px;'><span><span style='font-size:15.5px; opacity:0.9; font-weight: 600;'>" + tLbl + ":</span> <span class='nw-hl' style='font-size:16.5px; letter-spacing:0.5px; margin-left:4px;'>" + sName + "</span></span></div>");
                             } else {
@@ -1260,10 +1257,10 @@ return view.extend({
             wispToggle.addEventListener('change', function(e) {
                 wispUiPanel.style.display = this.checked ? 'flex' : 'none';
                 
-                // 只有人类用鼠标真实点击，且打开开关时才触发重置
+                // 鼠标真实点击，且打开开关时才触发重置
                 if (e && e.isTrusted && this.checked) {
                     
-                    // 👇==== 暴力恢复扫描按钮 ====👇
+                    // ==== 恢复扫描按钮 ====
                     var btnScanLive = container.querySelector('#btn-wisp-scan');
                     if (btnScanLive) {
                         btnScanLive.style.display = 'block';
@@ -1315,7 +1312,7 @@ return view.extend({
                                     // 1. 填入 SSID
                                     container.querySelector('#wisp-target-ssid').value = net.ssid || '';
                                     
-                                    // 2. 极其安全的加密类型解析
+                                    // 2. 加密类型解析
                                     var encVal = 'none';
                                     if (net.encryption) {
                                         var desc = typeof net.encryption === 'string' ? net.encryption : (net.encryption.description || '');
@@ -1349,7 +1346,7 @@ return view.extend({
                                             // 全选框内的旧内容
                                             pwdInput.select(); 
                                         }
-                                    }, 300); // 延时改为 300 毫秒，确保动画和 CSS 完全渲染完
+                                    }, 300); // 延300 毫秒，确保动画和 CSS 完全渲染
                                     
                                 } catch(err) {
                                     console.error("选取 Wi-Fi 时发生错误:", err);
