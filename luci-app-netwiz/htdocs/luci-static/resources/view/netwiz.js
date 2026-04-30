@@ -1247,6 +1247,46 @@ return view.extend({
                 if(!container.querySelector('#wifi-5g-key').value) container.querySelector('#wifi-5g-key').value = container.querySelector('#wifi-2g-key').value;
             }
         });
+        // ===== 漫游与加密方式智能联动 =====
+        // 1. 智能合一面板联动
+        var smartRoamingToggle = container.querySelector('#wifi-smart-roaming');
+        if (smartRoamingToggle) {
+            smartRoamingToggle.addEventListener('change', function(e) {
+                if (e && e.isTrusted && this.checked) {
+                    var encSelect = container.querySelector('#wifi-smart-enc');
+                    if (encSelect && encSelect.value !== 'psk2+sae') {
+                        encSelect.value = 'psk2+sae';
+                    }
+                }
+            });
+        }
+
+        // 2. 2.4G 独立面板联动
+        var r2gToggle = container.querySelector('#wifi-2g-roaming');
+        if (r2gToggle) {
+            r2gToggle.addEventListener('change', function(e) {
+                if (e && e.isTrusted && this.checked) {
+                    var encSelect = container.querySelector('#wifi-2g-enc');
+                    if (encSelect && encSelect.value !== 'psk2+sae') {
+                        encSelect.value = 'psk2+sae';
+                    }
+                }
+            });
+        }
+
+        // 3. 5G 独立面板联动
+        var r5gToggle = container.querySelector('#wifi-5g-roaming');
+        if (r5gToggle) {
+            r5gToggle.addEventListener('change', function(e) {
+                if (e && e.isTrusted && this.checked) {
+                    var encSelect = container.querySelector('#wifi-5g-enc');
+                    if (encSelect && encSelect.value !== 'psk2+sae') {
+                        encSelect.value = 'psk2+sae';
+                    }
+                }
+            });
+        }
+        // ==================================
         // WISP 交互与扫描逻辑
         var wispToggle = container.querySelector('#wisp-toggle');
         var wispUiPanel = container.querySelector('#wisp-ui-panel');
