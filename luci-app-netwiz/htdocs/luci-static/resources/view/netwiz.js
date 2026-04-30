@@ -183,6 +183,10 @@ var T = {
     'MODAL_WISP_TITLE': _('Select Upstream Network'),
     'WISP_PWD_PROMPT': _('Password for upstream:'),
     'TXT_WISP_ON': _('WISP Enabled'),
+    // 扫描与错误提示词条
+    'TXT_SCANNING': _('⏳ Scanning...'),
+    'TXT_NO_NETWORKS': _('No networks found.'),
+    'TXT_SCAN_FAILED': _('Scan failed. Driver might be busy.')
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1198,7 +1202,7 @@ return view.extend({
 
             scanBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                scanBtn.innerText = '⏳ Scanning...';
+                scanBtn.innerText = T['TXT_SCANNING'];
                 scanBtn.disabled = true;
                 
                 // 单芯片用 radio0，多芯片若 5G 有开則优先用 radio1 异频中继)
@@ -1208,15 +1212,15 @@ return view.extend({
                 callIwinfoScan(scanDevice).then(function(res) {
                     scanBtn.innerText = T['BTN_SCAN'];
                     scanBtn.disabled = false;
-                    
+
                     var ul = container.querySelector('#wisp-scan-list');
                     ul.innerHTML = '';
                     var list = res || [];
                     // 排序信号
                     list.sort(function(a, b) { return (b.signal || -100) - (a.signal || -100); });
-                    
+
                     if (list.length === 0) {
-                        ul.innerHTML = '<li style="padding:20px; text-align:center; color:#64748b;">No networks found.</li>';
+                        ul.innerHTML = '<li style="padding:20px; text-align:center; color:#64748b;">' + T['TXT_NO_NETWORKS'] + '</li>';
                     } else {
                         var uniqueSsids = {};
                         list.forEach(function(net) {
@@ -1272,9 +1276,9 @@ return view.extend({
                     }
                     wispModal.style.display = 'flex';
                 }).catch(function(err) {
-                    scanBtn.innerText = T['BTN_SCAN'];
-                    scanBtn.disabled = false;
-                    alert("Scan failed. Driver might be busy.");
+                scanBtn.innerText = T['BTN_SCAN'];
+                scanBtn.disabled = false;
+                    alert(T['TXT_SCAN_FAILED']);
                 });
             });
         }
