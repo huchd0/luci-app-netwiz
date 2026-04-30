@@ -1,4 +1,3 @@
-cat << 'EOF' > /usr/libexec/rpcd/netwiz
 #!/bin/sh
 # Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
 # Licensed under the GNU General Public License v3.0
@@ -377,9 +376,3 @@ case "$1" in
         ;;
 esac
 exit 1
-EOF
-
-# 赋予执行权限并重启 RPC 服务
-chmod 755 /usr/libexec/rpcd/netwiz
-/etc/init.d/rpcd restart
-echo "✅ 满血精简注释版后端部署完毕！重复的 WISP 逻辑已清理。"
