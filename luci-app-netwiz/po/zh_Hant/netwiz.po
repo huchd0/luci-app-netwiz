@@ -25,8 +25,8 @@ msgstr "在本設備上直接使用寬頻帳號和密碼進行撥號。"
 msgid "LAN Settings"
 msgstr "區域網路設定"
 
-msgid "Change device LAN IP, or switch to Bypass Router mode."
-msgstr "修改設備的區域網路 IP，或切換至旁路由（有線AP中繼）模式。"
+msgid "Change device LAN IP, or switch to AP Wired Relay mode."
+msgstr "修改設備的區域網路 IP，或切換至旁路由（AP有線中繼）模式。"
 
 msgid "Reading underlying config..."
 msgstr "正在讀取底層設定..."
@@ -76,11 +76,11 @@ msgstr "設定區域網路 (LAN)"
 msgid "Safe Mode (Recommended ON)"
 msgstr "安全模式 (建議開啟，防失聯)"
 
-msgid "Enable Bypass Mode"
-msgstr "啟用旁路由（有線AP中繼）模式"
+msgid "Enable AP Wired Relay"
+msgstr "啟用旁路由（AP有線中繼）模式"
 
-msgid "<b style=\"font-size: 16px;\">Bypass Mode Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
-msgstr "<b style=\"font-size: 16px;\">旁路由（有線AP中繼）模式已啟用：</b><br>1. DHCP 服務將被停用，<b style=\"color: #059669;\">下級設備需手動指定 IP 或由上級路由分配。</b><br>2. 閘道器【必須】填寫為上級路由器的 IP。<br>3. 若修改了區域網路 IP，請確保您的設備也處於同網段，以免<b style=\"color: #059669;\">失去連線</b>。"
+msgid "<b style=\"font-size: 16px;\">AP Wired Relay Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">旁路由（AP有線中繼）模式已啟用：</b><br>1. DHCP 服務將被停用，<b style=\"color: #059669;\">下級設備需手動指定 IP 或由上級路由分配。</b><br>2. 閘道器【必須】填寫為上級路由器的 IP。<br>3. 若修改了區域網路 IP，請確保您的設備也處於同網段，以免<b style=\"color: #059669;\">失去連線</b>。"
 
 msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #dc2626;\">losing access</b>."
 msgstr "<b style=\"font-size: 16px;\">主路由模式已啟用：</b><br>1. DHCP 服務已開啟，本設備將向下級分配 IP。<br>2. 作為主路由時，閘道器通常留空即可。<br>3. 若修改了區域網路 IP，請確保您的設備也處於同網段，以免<b style=\"color: #dc2626;\">失去連線</b>。"
@@ -91,8 +91,8 @@ msgstr "設備區域網路 IP"
 msgid "LAN Gateway"
 msgstr "區域網路閘道器"
 
-msgid "Blank for Main, required for Bypass"
-msgstr "主路由留空，旁路由（有線AP中繼）必填"
+msgid "Blank for Main, required for AP Wired Relay"
+msgstr "主路由留空，旁路由（AP有線中繼）必填"
 
 msgid "Back"
 msgstr "上一步"
@@ -121,8 +121,8 @@ msgstr "大約 15 秒後，頁面將自動重新整理或跳轉。"
 msgid "Apply Settings"
 msgstr "確認並套用"
 
-msgid "Bypass Mode"
-msgstr "旁路由（有線AP中繼）模式"
+msgid "AP Wired Relay"
+msgstr "旁路由（AP有線中繼）模式"
 
 msgid "Main Router (PPPoE)"
 msgstr "主路由 (PPPoE 撥號)"
@@ -232,14 +232,14 @@ msgstr "閘道器 IP 格式不正確，請檢查！"
 msgid "Logic Error"
 msgstr "邏輯錯誤"
 
-msgid "Bypass mode requires an upstream gateway IP."
-msgstr "旁路由（有線AP中繼）模式下，閘道器為必填項。"
+msgid "AP Wired Relay requires an upstream gateway IP."
+msgstr "旁路由（AP有線中繼）模式下，閘道器為必填項。"
 
 msgid "WAN Static IP MUST NOT be the same as the gateway!"
 msgstr "WAN 靜態 IP 絕對不能和閘道器一模一樣！"
 
-msgid "The Bypass Device IP MUST NOT be the same as the Gateway!"
-msgstr "旁路由（有線AP中繼）的設備 IP 絕對不能和上級閘道器一模一樣！"
+msgid "The AP Wired Relay Device IP MUST NOT be the same as the Gateway!"
+msgstr "旁路由（AP有線中繼）的設備 IP 絕對不能和上級閘道器一模一樣！"
 
 msgid "No Changes Needed"
 msgstr "未發生更改"
@@ -274,8 +274,8 @@ msgstr "WAN 靜態 IP 必須與閘道器處於同一網段！"
 msgid "e.g., if gateway is {gw}, the IP must be {ip}.x"
 msgstr "例如：如果閘道器是 {gw}，則 IP 必須是 {ip}.x"
 
-msgid "The Bypass Device IP must be in the same subnet as the Gateway!"
-msgstr "旁路由（有線AP中繼）的設備 IP 必須與上級閘道器處於同一網段！"
+msgid "The AP Wired Relay Device IP must be in the same subnet as the Gateway!"
+msgstr "旁路由（AP有線中繼）的設備 IP 必須與上級閘道器處於同一網段！"
 
 msgid "LAN IP cannot be the same as the existing WAN IP ({ip})!"
 msgstr "區域網路 IP 不能與目前外網 IP ({ip}) 相同！"
@@ -361,8 +361,8 @@ msgstr "連線新 IP 超時，已自動還原設定，正在重新連線..."
 msgid "Modifying LAN IP"
 msgstr "正在修改區域網路 IP"
 
-msgid "Switching to Bypass Mode"
-msgstr "正在切換至旁路由（有線AP中繼）模式"
+msgid "Switching to AP Wired Relay"
+msgstr "正在切換至旁路由（AP有線中繼）模式"
 
 msgid "Switching WAN to DHCP"
 msgstr "正在切換 WAN 埠為 DHCP (自動取得)"
@@ -557,7 +557,7 @@ msgid "802.11k/v/r Fast Roaming"
 msgstr "802.11k/v/r 無縫漫遊"
 
 msgid "Enable seamless roaming between routers with one click (Prerequisite: Same SSID, password, and LAN). Note: May cause connection issues with older smart home (IoT) devices."
-msgstr "一鍵開啟路由器間的無縫切換（基本前提：WiFi帳號、密碼一樣 + 同一區域網路）。注意：可能導致老舊的智慧家庭（IoT）設備無法連線。"
+msgstr "一鍵開啟路由器間的無縫切換（基本前提：帳號、密碼一樣 + 同一區域網路）。注意：可能導致老舊的智慧家庭（IoT）設備無法連線。"
 
 msgid "⚠️ Manual Configuration Warning"
 msgstr "⚠️ 手動設定警告"
