@@ -47,7 +47,6 @@ var T = {
     'M_INC_WIFI': _('SSID cannot be empty.'),
     'M_PWD_SHORT': _('Wi-Fi password must be at least 8 characters.'),
     'ACT_WIFI': _('Applying Wi-Fi Settings'),
-    'M_LEGACY_WARN': _('Smart Connect cannot be enabled because 802.11b (Legacy Mode) is active. Disable it in 2.4G settings first.'),
     'M_MODE_WARN_TIT': _('⚠️ Severe Warning'),
     'M_MODE_WARN_MSG': _('Forcibly modifying the wireless physical mode may cause the hardware driver to crash or the Wi-Fi to disappear permanently if the chip does not support it! It is highly recommended to keep it on [Auto].<br><br>Are you absolutely sure you want to change this?'),
     'LOADING_CONFIG': _('Reading underlying config...'),
@@ -111,8 +110,6 @@ var T = {
     'TXT_GETTING': _('Getting...'),
     'TXT_NOT_GOT': _('Not acquired'),
     'TXT_NOT_SET': _('Not set'),
-    'ERR_RD_SYS': _('System read error, anti-freeze triggered'),
-    'ERR_CRASH': _('Underlying crash intercepted, please force refresh'),
     'M_INC_TIT': _('Incomplete info'),
     'M_INC_IP': _('Device IP cannot be empty.'),
     'M_INC_WAN': _('Static IP and Gateway cannot be empty.'),
@@ -137,19 +134,13 @@ var T = {
     'M_SUB_ERR_WAN1': _('The WAN Static IP must be in the same subnet as the Gateway!'),
     'M_SUB_ERR_WAN2': _('e.g., if gateway is {gw}, the IP must be {ip}.x'),
     'M_SUB_ERR_BYP': _('The AP Wired Relay Device IP must be in the same subnet as the Gateway!'),
-    'M_CFLT_LAN_IP': _('LAN IP cannot be the same as the existing WAN IP ({ip})!'),
-    'M_CFLT_LAN_SUB': _('LAN cannot be in the same subnet as WAN ({ip})!'),
     'M_WARN_TIT': _('Config Warning'),
     'M_WARN_MSG': _('You selected [Main Router Mode] but filled in the [Gateway].<br><br><b>For a standard main router, the gateway must be blank.</b> Entering a gateway may cause the device to fail at distributing network, leading to a total outage!<br><br>Are you sure you want to do this?'),
     'M_WARN_BTN': _('Force Apply'),
     'M_SYS_ERR': _('System Exception'),
     'M_SYS_MSG': _('Cannot read underlying config for validation, please refresh.'),
-    'M_APP_TIT': _('Applying Config'),
     'M_APP_MSG': _('Writing request, please wait...'),
     'M_RST_TIT': _('Applying Configuration'),
-    'M_FAIL_TIT': _('❌ Write Failed'),
-    'M_FAIL_MSG': _('Underlying call exception, please try logging in again.'),
-    'M_FAIL_CODE': _('Error code: {code}'),
     'M_CLOSE': _('Close'),
     'M_ACCT': _('Account'),
     'M_PWD': _('Password'),
@@ -166,13 +157,10 @@ var T = {
     'MSG_KNOCKING': _('Connecting to new IP... Config will auto-rollback upon timeout.'),
     'MSG_WAIT_NET': _('Waiting for network service to restart... Elapsed: {sec}s'),
     'MSG_WAIT_OLD': _('Waiting for router to safely restore... Elapsed: {sec}s'),
-    'MSG_PREP_ENV': _('Preparing environment...'),
     'MSG_TIMER': _('Rollback countdown: <b style="color:#f59e0b;">{sec}</b> / {total} s'),
-    'MSG_REDIRECTING': _('Network connected! Automatically redirecting...'),
     'MSG_MANUAL_VISIT': _('If IP changed, please update PC IP. Auto-redirecting when connected...'),
     'MSG_ABANDONING': _('Waiting for router to abort changes and restore network...'),
     'TXT_WIFI_STATUS': _('Wi-Fi Status'),
-    'TXT_SMART_ACCT': _('Smart Connect'),
     'TXT_5G_ACCT': _('5G Wi-Fi Account'),
     'TXT_2G_ACCT': _('2.4G Wi-Fi Account'),
     'TXT_NO_PASS': _('No Password'),
@@ -1704,13 +1692,13 @@ return view.extend({
                         
                         step2.style.display = 'none'; step3.style.display = 'block';
                     } catch (err) {
-                        openModal({ title: 'System Error', msg: 'Data processing failed: ' + err, okText: 'Close' });
+                        openModal({ title: T['M_SYS_ERR'], msg: 'Data processing failed: ' + err, okText: T['M_CLOSE'] });
                     }
                 }).catch(function(e) {
-                    openModal({ title: 'System Error', msg: 'Failed to read router config.', okText: 'Close' });
+                    openModal({ title: T['M_SYS_ERR'], msg: T['M_SYS_MSG'], okText: T['M_CLOSE'] });
                 });
             } catch (err) {
-                openModal({ title: 'System Error', msg: 'Validation failed: ' + err, okText: 'Close' });
+                openModal({ title: T['M_SYS_ERR'], msg: 'Validation failed: ' + err, okText: T['M_CLOSE'] });
             }
         });
 
@@ -1865,7 +1853,7 @@ return view.extend({
                 };
                 callNetSetup(mode, a1, a2, a3, a4, a5, a6).then(function() { succ(); }).catch(function() { succ(); });
             } catch (err) {
-                openModal({ title: 'System Error', msg: 'Application failed: ' + err, okText: 'Close' });
+                openModal({ title: T['M_SYS_ERR'], msg: 'Application failed: ' + err, okText: T['M_CLOSE'] });
             }
         });
     }
