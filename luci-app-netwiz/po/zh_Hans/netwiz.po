@@ -2,7 +2,7 @@ msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
 msgid "Network Wizard"
-msgstr "网络向导"
+msgstr "网络设置"
 
 msgid "Netwiz NETWORK SETUP"
 msgstr "Netwiz 网络设置向导"
@@ -25,17 +25,17 @@ msgstr "在本设备上直接使用宽带账号和密码进行拨号。"
 msgid "LAN Settings"
 msgstr "局域网设置"
 
-msgid "Change device LAN IP, or switch to Bypass Router mode."
-msgstr "修改设备的局域网 IP，或切换至旁路由（AP有线中继）模式。"
+msgid "Change device LAN IP, or switch to AP Wired Relay mode."
+msgstr "修改设备局域网 IP，或切换至旁路由（AP有线中继）模式。"
 
 msgid "Reading underlying config..."
 msgstr "正在读取底层配置..."
 
 msgid "Back to Home"
-msgstr "返回主页"
+msgstr "返回首页"
 
 msgid "Configure WAN"
-msgstr "配置外网 (WAN)"
+msgstr "设置外网 (WAN)"
 
 msgid "Connection Type"
 msgstr "连接方式"
@@ -71,16 +71,16 @@ msgid "Enter PPPoE password"
 msgstr "请输入宽带密码"
 
 msgid "Configure LAN"
-msgstr "配置局域网 (LAN)"
+msgstr "设置局域网 (LAN)"
 
 msgid "Safe Mode (Recommended ON)"
 msgstr "安全模式 (建议开启，防失联)"
 
-msgid "Enable Bypass Mode"
+msgid "Enable AP Wired Relay"
 msgstr "启用旁路由（AP有线中继）模式"
 
-msgid "<b style=\"font-size: 16px;\">Bypass Mode Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
-msgstr "<b style=\"font-size: 16px;\">旁路由（AP有线中继）模式已启用：</b><br>1. DHCP 服务将被禁用，<b style=\"color: #059669;\">下级设备需手动指定 IP 或由上级路由分配。</b><br>2. 网关【必须】填写为上级路由器的 IP。<br>3. 若修改了局域网 IP，请确保您的设备也处于同网段，以免<b style=\"color: #059669;\">失去连接</b>。"
+msgid "<b style=\"font-size: 16px;\">AP Wired Relay Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">旁路由（AP有线中继）模式已启用：</b><br>1. DHCP 服务将被停用，<b style=\"color: #059669;\">下级设备需手动指定 IP 或由上级路由分配。</b><br>2. 网关【必须】填写为上级路由器的 IP。<br>3. 若修改了局域网 IP，请确保您的设备也处于同网段，以免<b style=\"color: #059669;\">失去连接</b>。"
 
 msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #dc2626;\">losing access</b>."
 msgstr "<b style=\"font-size: 16px;\">主路由模式已启用：</b><br>1. DHCP 服务已开启，本设备将向下级分配 IP。<br>2. 作为主路由时，网关通常留空即可。<br>3. 若修改了局域网 IP，请确保您的设备也处于同网段，以免<b style=\"color: #dc2626;\">失去连接</b>。"
@@ -91,7 +91,7 @@ msgstr "设备局域网 IP"
 msgid "LAN Gateway"
 msgstr "局域网网关"
 
-msgid "Blank for Main, required for Bypass"
+msgid "Blank for Main, required for AP Wired Relay"
 msgstr "主路由留空，旁路由（AP有线中继）必填"
 
 msgid "Back"
@@ -121,7 +121,7 @@ msgstr "大约 15 秒后，页面将自动刷新或跳转。"
 msgid "Apply Settings"
 msgstr "确认并应用"
 
-msgid "Bypass Mode"
+msgid "AP Wired Relay"
 msgstr "旁路由（AP有线中继）模式"
 
 msgid "Main Router (PPPoE)"
@@ -146,7 +146,7 @@ msgid "Public IP:"
 msgstr "公网 IP："
 
 msgid "Remote GW:"
-msgstr "远端网关："
+msgstr "远程网关："
 
 msgid "LAN IP:"
 msgstr "局域网 IP："
@@ -155,7 +155,7 @@ msgid "Status:"
 msgstr "状态："
 
 msgid "Waiting for remote response"
-msgstr "等待远端响应..."
+msgstr "等待远程响应..."
 
 msgid "WAN IP:"
 msgstr "外网 IP："
@@ -170,7 +170,7 @@ msgid "Enabled"
 msgstr "已开启"
 
 msgid "Disabled"
-msgstr "已禁用"
+msgstr "已停用"
 
 msgid "Dial Success"
 msgstr "拨号成功"
@@ -232,13 +232,13 @@ msgstr "网关 IP 格式不正确，请检查！"
 msgid "Logic Error"
 msgstr "逻辑错误"
 
-msgid "Bypass mode requires an upstream gateway IP."
+msgid "AP Wired Relay requires an upstream gateway IP."
 msgstr "旁路由（AP有线中继）模式下，网关为必填项。"
 
 msgid "WAN Static IP MUST NOT be the same as the gateway!"
 msgstr "WAN 静态 IP 绝对不能和网关一模一样！"
 
-msgid "The Bypass Device IP MUST NOT be the same as the Gateway!"
+msgid "The AP Wired Relay Device IP MUST NOT be the same as the Gateway!"
 msgstr "旁路由（AP有线中继）的设备 IP 绝对不能和上级网关一模一样！"
 
 msgid "No Changes Needed"
@@ -248,7 +248,7 @@ msgid "Your settings match the current router config exactly."
 msgstr "您的设置与底层配置完全一致，无需重复下发。"
 
 msgid "Exit to Home"
-msgstr "返回主页"
+msgstr "返回首页"
 
 msgid "Conflict Blocked"
 msgstr "配置冲突拦截"
@@ -260,7 +260,7 @@ msgid "The WAN port cannot be in the same subnet as the LAN ({ip})!"
 msgstr "WAN 口不能与局域网 ({ip}) 处于同一网段！"
 
 msgid "This causes a routing loop."
-msgstr "这会导致严重的路由环路。"
+msgstr "这会导致严重的路由死循环。"
 
 msgid "Suggestion: Your upstream network uses the same IP subnet. Please go to [LAN Settings] first and change your Device LAN IP (e.g. to 192.168.10.1) to prevent network crash."
 msgstr "建议：您的上级网络使用了相同的 IP 网段。请先前往【局域网设置】，修改本设备的局域网 IP（例如改为 192.168.10.1）以防止网络瘫痪。"
@@ -274,7 +274,7 @@ msgstr "WAN 静态 IP 必须与网关处于同一网段！"
 msgid "e.g., if gateway is {gw}, the IP must be {ip}.x"
 msgstr "例如：如果网关是 {gw}，则 IP 必须是 {ip}.x"
 
-msgid "The Bypass Device IP must be in the same subnet as the Gateway!"
+msgid "The AP Wired Relay Device IP must be in the same subnet as the Gateway!"
 msgstr "旁路由（AP有线中继）的设备 IP 必须与上级网关处于同一网段！"
 
 msgid "LAN IP cannot be the same as the existing WAN IP ({ip})!"
@@ -350,18 +350,18 @@ msgid "Auto-assigned by upstream router"
 msgstr "由上级路由自动分配"
 
 msgid "<b style=\"color:#ef4444;\">Please note:</b> If you do not successfully log in to the new IP within 2 minutes, the system will automatically restore the original settings."
-msgstr "<b style=\"color:#ef4444;\">防失联保护：</b>若您未能在 2 分钟内使用新 IP 打开路由器的任意网页，系统将自动回退至修改前的状态。"
+msgstr "<b style=\"color:#ef4444;\">防失联保护：</b>若您未能在 2 分钟内使用新 IP 访问路由器的任意网页，系统将自动回退至修改前的状态。"
 
 msgid "Target:"
 msgstr "目标："
 
 msgid "Connection to new IP timed out, automatically rolled back configuration, reconnecting..."
-msgstr "连接新 IP 超时，已自动回退配置，正在重新连接..."
+msgstr "连接新 IP 超时，已自动还原配置，正在重新连接..."
 
 msgid "Modifying LAN IP"
 msgstr "正在修改局域网 IP"
 
-msgid "Switching to Bypass Mode"
+msgid "Switching to AP Wired Relay"
 msgstr "正在切换至旁路由（AP有线中继）模式"
 
 msgid "Switching WAN to DHCP"
@@ -383,7 +383,7 @@ msgid "Waiting for network service to restart... Elapsed: {sec}s"
 msgstr "正在等待网络服务重启... 已耗时：{sec}秒"
 
 msgid "Waiting for router to safely restore... Elapsed: {sec}s"
-msgstr "正在等待路由器安全恢复... 已用时间：{sec}秒"
+msgstr "正在等待旧 IP 恢复... 已耗时：{sec}秒"
 
 msgid "Preparing environment..."
 msgstr "正在准备环境..."
@@ -401,10 +401,10 @@ msgid "If enabled, the system will auto-revert if you lose connection within 120
 msgstr "开启后，若修改 IP 导致失联，系统将在 120 秒后自动回退恢复。"
 
 msgid "Safe mode disabled. Applying immediately without rollback protection..."
-msgstr "已关闭防失联保护，配置已经生效。"
+msgstr "已关闭防失联保护，配置立刻生效。"
 
 msgid "If IP changed, please update PC IP. Auto-redirecting when connected..."
-msgstr "若 IP 修改引发失联，把设备 IP 改为同网段即可正常访问路由器，网络连通后将自动跳转..."
+msgstr "若 IP 修改引发失联，将设备 IP 改为同网段即可正常访问路由器，网络连通后将自动跳转…"
 
 msgid "Waiting for router to abort changes and restore network..."
 msgstr "正在等待路由器放弃修改并恢复网络..."
@@ -413,10 +413,10 @@ msgid "Wi-Fi Settings"
 msgstr "Wi-Fi 设置"
 
 msgid "Configure wireless network, SSID, and password."
-msgstr "配置无线网络名称、密码及加密方式。"
+msgstr "设置无线网络名称、密码及加密方式。"
 
 msgid "Configure Wi-Fi"
-msgstr "配置 Wi-Fi"
+msgstr "设置 Wi-Fi"
 
 msgid "Smart Connect (All Bands)"
 msgstr "多频合一 (智能漫游)"
@@ -443,7 +443,7 @@ msgid "Enable 802.11b (Legacy Mode)"
 msgstr "启用 802.11b (旧版兼容模式)"
 
 msgid "Only enable if very old IoT devices cannot connect."
-msgstr "仅在极旧的智能家居/物联网设备无法连接时才建议开启。"
+msgstr "仅在极旧的智能家电/物联网设备无法连接时才建议开启。"
 
 msgid "No Password (Open)"
 msgstr "无密码 (开放)"
@@ -473,7 +473,7 @@ msgid "Applying Wi-Fi Settings"
 msgstr "正在应用 Wi-Fi 设置"
 
 msgid "Smart Connect cannot be enabled because 802.11b (Legacy Mode) is active. Disable it in 2.4G settings first."
-msgstr "因已开启 802.11b 兼容模式，无法启用多频合一。请先在 2.4G 设置中将其关闭。"
+msgstr "因已开启 802.11b 旧版兼容模式，无法启用多频合一。请先在 2.4G 设置中将其关闭。"
 
 msgid "Advanced Settings"
 msgstr "高级设置"
@@ -485,10 +485,10 @@ msgid "Hide Wi-Fi Name (SSID)"
 msgstr "隐藏 Wi-Fi 名称"
 
 msgid "Channel"
-msgstr "信道"
+msgstr "信道 (Channel)"
 
 msgid "Channel Width"
-msgstr "通道宽度 (频宽)"
+msgstr "频宽 (Channel Width)"
 
 msgid "Auto"
 msgstr "自动"
@@ -512,10 +512,10 @@ msgid "Smart Connect"
 msgstr "多频合一"
 
 msgid "5G Wi-Fi Account"
-msgstr "5G Wi-Fi 帐号"
+msgstr "5G Wi-Fi 账号"
 
 msgid "2.4G Wi-Fi Account"
-msgstr "2.4G Wi-Fi 帐号"
+msgstr "2.4G Wi-Fi 账号"
 
 msgid "No Password"
 msgstr "无密码"
@@ -557,10 +557,10 @@ msgid "802.11k/v/r Fast Roaming"
 msgstr "802.11k/v/r 无缝漫游"
 
 msgid "Enable seamless roaming between routers with one click (Prerequisite: Same SSID, password, and LAN). Note: May cause connection issues with older smart home (IoT) devices."
-msgstr "一键开启路由器间的无缝切换（基本前提：WiF帐号、密码一样 + 同一局域网）。注意：可能导致老旧的智能家居（IoT）设备无法连接。"
+msgstr "一键开启路由器间的无缝切换（基本前提：WiFi账号、密码一样 + 同一局域网）。注意：可能导致老旧的智能家居（IoT）设备无法连接。"
 
 msgid "⚠️ Manual Configuration Warning"
 msgstr "⚠️ 手动配置警告"
 
 msgid "Underlying parameter mismatch detected, which may cause roaming failures. Please toggle this switch off and on again, then save to apply the standard seamless roaming profile."
-msgstr "检测到底层参数与预设不一致，可能会导致漫游失败。建议将开关关闭后重新开启，保存后加入我们无缝漫游“朋友圈”。"
+msgstr "检测到底层参数与预设不一致，可能会导致漫游失败。建议将开关关闭后重新开启，保存后即可加入我们无缝漫游的“朋友圈”。"
