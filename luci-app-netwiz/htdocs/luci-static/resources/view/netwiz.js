@@ -446,7 +446,7 @@ return view.extend({
             
             // --- 2.4G 面板 ---
             '           <div id="wifi-2g-form">',
-            '              <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}} (2.4G)</label><div class="nw-value-field"><input type="text" id="wifi-2g-ssid"></div></div>',
+            '              <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}} (2.4G{{M_ACCT}})</label><div class="nw-value-field"><input type="text" id="wifi-2g-ssid"></div></div>',
             '              <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}} (2.4G)</label><div class="nw-value-field"><input type="text" id="wifi-2g-key"></div></div>',
             '              <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0 0 0; border-top: 1px solid #f1f5f9; margin-top: 15px;">',
             '                 <div style="flex: 1; padding-right: 15px; min-width: 0;">',
@@ -488,7 +488,7 @@ return view.extend({
 
             // --- 5G 面板 ---
             '           <div id="wifi-5g-form" style="display:none;">',
-            '              <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}} (5G)</label><div class="nw-value-field"><input type="text" id="wifi-5g-ssid"></div></div>',
+            '              <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}} (5G{{M_ACCT}})</label><div class="nw-value-field"><input type="text" id="wifi-5g-ssid"></div></div>',
             '              <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}} (5G)</label><div class="nw-value-field"><input type="text" id="wifi-5g-key"></div></div>',
             '              <div class="nw-adv-btn">▼ {{LBL_ADVANCED}}</div>',
             '              <div class="nw-adv-panel" style="display:none;">',
