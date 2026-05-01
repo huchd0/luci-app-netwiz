@@ -529,8 +529,8 @@ msgstr "接收上級 Wi-Fi 信號，並廣播您自己的專屬網絡。"
 msgid "WISP Enabled"
 msgstr "已開啟無線中繼"
 
-msgid "🔄 Scan Nearby Wi-Fi"
-msgstr "🔄 掃描附近 Wi-Fi"
+msgid "Scan Nearby Wi-Fi"
+msgstr "掃描附近 Wi-Fi"
 
 msgid "Select Upstream Network"
 msgstr "選擇上級網絡"
