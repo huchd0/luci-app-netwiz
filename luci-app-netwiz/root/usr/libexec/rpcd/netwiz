@@ -14,6 +14,17 @@ log() {
     fi
 }
 
+# 智能重启依赖网络的高级应用
+restart_depend_apps() {
+    log ">>> 正在检测并唤醒高级网络应用..."
+    if [ -f "/etc/init.d/openclash" ] && /etc/init.d/openclash enabled 2>/dev/null; then log "唤醒 OpenClash"; /etc/init.d/openclash restart >/dev/null 2>&1 & fi
+    if [ -f "/etc/init.d/passwall" ] && /etc/init.d/passwall enabled 2>/dev/null; then log "唤醒 PassWall"; /etc/init.d/passwall restart >/dev/null 2>&1 & fi
+    if [ -f "/etc/init.d/shadowsocksr" ] && /etc/init.d/shadowsocksr enabled 2>/dev/null; then log "唤醒 ShadowsocksR Plus+"; /etc/init.d/shadowsocksr restart >/dev/null 2>&1 & fi
+    if [ -f "/etc/init.d/ddns" ] && /etc/init.d/ddns enabled 2>/dev/null; then log "唤醒 DDNS"; /etc/init.d/ddns restart >/dev/null 2>&1 & fi
+    if [ -f "/etc/init.d/miniupnpd" ] && /etc/init.d/miniupnpd enabled 2>/dev/null; then log "唤醒 UPnP 服务"; /etc/init.d/miniupnpd restart >/dev/null 2>&1 & fi
+}
+# 结束
+
 case "$1" in
     list)
         echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "confirm": {}, "check_wifi": {} }'
@@ -42,7 +53,7 @@ case "$1" in
                 ;;
             set_network)
                 set +e
-                
+
                 input=$(cat)
                 mode=$(echo "$input" | jsonfilter -e '@.mode')
                 arg1=$(echo "$input" | jsonfilter -e '@.arg1')
@@ -71,7 +82,7 @@ case "$1" in
                     uci delete network.lan.dns 2>/dev/null || true
                     uci set dhcp.lan.ignore='0'
                 }
-                
+
                 CURRENT_LAN_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
 
                 # 局域网修改与防失联机制
@@ -128,19 +139,19 @@ case "$1" in
                 elif [ "$mode" = "wifi" ]; then
                     payload="$arg1"
                     echo '{"result":0}'
-                    
+
                     # 放入后台执行 避免前端卡死
                     (
                         exec >/tmp/netwiz_debug.log 2>&1 </dev/null
-                        set -x  
+                        set -x
                         log ">>> [步骤 1/5] 无线配置子进程启动，开始解析前端 Payload"
                         smart=$(echo "$payload" | jsonfilter -e '@.smart' || echo "false")
                         log "识别到智能模式状态: $smart"
-                        
+
                         list_2g=""
                         list_5g=""
                         dev_list=$(uci show wireless 2>/dev/null | grep '=wifi-device' | cut -d'.' -f2 | cut -d'=' -f1 || true)
-                        
+
                         if [ -z "$dev_list" ]; then
                             log "未找到无线网卡 终止操作"
                             exit 1
@@ -154,7 +165,7 @@ case "$1" in
                             is_5g=0
                             current_channel=$(uci -q get wireless.$dev.channel || echo "0")
                             current_ht=$(uci -q get wireless.$dev.htmode | tr 'A-Z' 'a-z' || echo "")
-                            
+
                             if [ "$band" = "5g" ] || [ "$band" = "6g" ]; then is_5g=1
                             elif [ "$band" = "2g" ]; then is_5g=0
                             elif [ "$current_channel" != "0" ] && [ "$current_channel" != "auto" ] && [ "$current_channel" -ge 36 ]; then is_5g=1
@@ -191,7 +202,7 @@ case "$1" in
                             local ui_prefix="$2"
                             local iface_name="$3"
                             local intended_band="$4"
-                            
+
                             local p_en=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.enabled" || echo "0")
                             local p_ssid=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.ssid" || echo "")
                             local p_key=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.key" || echo "")
@@ -200,7 +211,9 @@ case "$1" in
                             local p_mode=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.mode" || echo "auto")
                             local p_chan=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.channel" || echo "auto")
                             local p_bw=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.bandwidth" || echo "auto")
-                            
+                            # 正确提取前端传来的 roaming 状态
+                            local p_roam=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.roaming" || echo "0")
+
                             uci set wireless.$iface_name=wifi-iface
                             uci set wireless.$iface_name.device="$dev"
                             uci set wireless.$iface_name.network="lan"
@@ -223,8 +236,8 @@ case "$1" in
                             if echo "$p_enc" | grep -q "sae"; then uci set wireless.$iface_name.ieee80211w='1'
                             else uci delete wireless.$iface_name.ieee80211w 2>/dev/null || true; fi
 
-                            # 802.11k/v/r 漫游配置
-                            if [ "$p_enc" != "none" ] && [ -n "$p_enc" ]; then
+                            # 根据前端 p_roam 开关来决定是否写入漫游协议
+                            if [ "$p_roam" = "1" ] && [ "$p_enc" != "none" ] && [ -n "$p_enc" ]; then
                                 uci set wireless.$iface_name.ieee80211r='1'
                                 uci set wireless.$iface_name.ieee80211k='1'
                                 uci set wireless.$iface_name.ieee80211v='1'
@@ -306,7 +319,7 @@ case "$1" in
                                 done
                             fi
                         fi
-                        
+
                         # 中继配置解析与挂载
                         log ">>> [步骤 4/5] 检查并处理 WISP 无线中继配置..."
                         wisp_en=$(echo "$payload" | jsonfilter -e "@.wisp.enabled" || echo "0")
@@ -317,21 +330,21 @@ case "$1" in
                             wisp_dev=$(echo "$payload" | jsonfilter -e "@.wisp.device" || echo "radio0")
                             wisp_bssid=$(echo "$payload" | jsonfilter -e "@.wisp.bssid" || echo "")
                             log "WISP 开启：正在将网卡 $wisp_dev 桥接至上级网络 [$wisp_ssid]"
-                            
+
                             uci delete wireless.$wisp_dev.disabled 2>/dev/null || true
                             uci set wireless.$wisp_dev.channel='auto'
-                            
+
                             uci set network.wwan=interface
                             uci set network.wwan.proto='dhcp'
                             uci set network.wwan.metric='20'
-                            
+
                             uci set wireless.wisp_sta=wifi-iface
                             uci set wireless.wisp_sta.device="$wisp_dev"
                             uci set wireless.wisp_sta.network="wwan"
                             uci set wireless.wisp_sta.mode="sta"
                             uci set wireless.wisp_sta.ssid="$wisp_ssid"
                             uci set wireless.wisp_sta.key="$wisp_key"
-                            
+
                             # 适配加密格式
                             if [ "$wisp_enc" = "none" ] && [ -n "$wisp_key" ]; then
                                 wisp_enc="psk2"
@@ -339,9 +352,9 @@ case "$1" in
                                 wisp_enc="sae-mixed"
                             fi
                             uci set wireless.wisp_sta.encryption="$wisp_enc"
-                            
+
                             [ -n "$wisp_bssid" ] && uci set wireless.wisp_sta.bssid="$wisp_bssid"
-                            
+
                             # 把中继接口放进防火墙外网区域
                             wan_zone=$(uci show firewall | grep "\.name='wan'" | cut -d'.' -f2 | head -n1 || echo "")
                             if [ -n "$wan_zone" ]; then
@@ -356,23 +369,36 @@ case "$1" in
                             uci delete wireless.wisp_sta 2>/dev/null || true
                             uci delete network.wwan 2>/dev/null || true
                         fi
-                        
+
                         log ">>> [步骤 5/5] 所有配置已就绪，正在执行系统 Commit 并重启网络服务..."
                         uci commit wireless
                         uci commit network
                         log "无线数据写入完毕 准备重启网络"
-                        
+
                         sleep 3
                         /etc/init.d/network restart
+
+                        # 唤醒调用1
+                        restart_depend_apps
+
                         log "✅ 无线配置流程全部安全执行完毕！"
                         exit 0
                     ) &
-                    
+
                     exit 0
                 fi
-                
+
                 echo '{"result":0}'
-                ( exec >/dev/null 2>&1 </dev/null; sleep 3; /etc/init.d/network restart; /etc/init.d/dnsmasq restart; /etc/init.d/uhttpd restart ) &
+                    (
+                    exec >/dev/null 2>&1 </dev/null
+                    sleep 3
+                    /etc/init.d/network restart
+                    /etc/init.d/dnsmasq restart
+                    /etc/init.d/uhttpd restart
+
+                    # 唤醒调用2
+                    restart_depend_apps
+                    ) &
                 exit 0
                 ;;
         esac
