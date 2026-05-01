@@ -1,9 +1,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
-msgid "Network Wizard"
-msgstr "网络设置"
-
 msgid "Netwiz NETWORK SETUP"
 msgstr "Netwiz 网络设置向导"
 
@@ -199,12 +196,6 @@ msgstr "未获取"
 msgid "Not set"
 msgstr "未设置"
 
-msgid "System read error, anti-freeze triggered"
-msgstr "系统读取错误，已触发防卡死机制"
-
-msgid "Underlying crash intercepted, please force refresh"
-msgstr "已拦截到底层崩溃，请强制刷新页面"
-
 msgid "Incomplete info"
 msgstr "信息不完整"
 
@@ -277,12 +268,6 @@ msgstr "例如：如果网关是 {gw}，则 IP 必须是 {ip}.x"
 msgid "The AP Wired Relay Device IP must be in the same subnet as the Gateway!"
 msgstr "旁路由（AP有线中继）的设备 IP 必须与上级网关处于同一网段！"
 
-msgid "LAN IP cannot be the same as the existing WAN IP ({ip})!"
-msgstr "局域网 IP 不能与当前外网 IP ({ip}) 相同！"
-
-msgid "LAN cannot be in the same subnet as WAN ({ip})!"
-msgstr "局域网不能与外网 ({ip}) 处于同一网段！"
-
 msgid "Config Warning"
 msgstr "高危操作警告"
 
@@ -298,38 +283,8 @@ msgstr "系统异常"
 msgid "Cannot read underlying config for validation, please refresh."
 msgstr "无法读取底层配置进行防呆校验，请刷新页面重试。"
 
-msgid "Applying Config"
-msgstr "正在下发配置"
-
-msgid "Writing request, please wait..."
-msgstr "正在向底层写入请求，请耐心等待..."
-
-msgid "Config Applied"
-msgstr "配置下发成功"
-
-msgid "Since the IP has changed to {ip},"
-msgstr "由于 IP 已更改为 {ip}，"
-
-msgid "the system will attempt to redirect to the new address in 15 seconds."
-msgstr "系统将在 15 秒后尝试重定向至新地址。"
-
-msgid "Note: You will need to log in again."
-msgstr "注意：您需要重新登录。"
-
 msgid "Applying Configuration"
 msgstr "正在应用配置"
-
-msgid "Underlying network is resetting, please wait...<br><br><span style=\"font-size: 14px; color: #555;\">(If it does not automatically return in 15s, manually refresh)</span>"
-msgstr "底层网络服务正在重启，请稍候...<br><br><span style=\"font-size: 14px; color: #555;\">(若 15 秒后未自动返回，请手动刷新网页)</span>"
-
-msgid "❌ Write Failed"
-msgstr "❌ 写入失败"
-
-msgid "Underlying call exception, please try logging in again."
-msgstr "底层调用异常，请尝试重新登录。"
-
-msgid "Error code: {code}"
-msgstr "错误代码：{code}"
 
 msgid "Close"
 msgstr "关闭"
@@ -349,14 +304,8 @@ msgstr "IP 与网关"
 msgid "Auto-assigned by upstream router"
 msgstr "由上级路由自动分配"
 
-msgid "<b style=\"color:#ef4444;\">Please note:</b> If you do not successfully log in to the new IP within 2 minutes, the system will automatically restore the original settings."
-msgstr "<b style=\"color:#ef4444;\">防失联保护：</b>若您未能在 2 分钟内使用新 IP 访问路由器的任意网页，系统将自动回退至修改前的状态。"
-
 msgid "Target:"
 msgstr "目标："
-
-msgid "Connection to new IP timed out, automatically rolled back configuration, reconnecting..."
-msgstr "连接新 IP 超时，已自动还原配置，正在重新连接..."
 
 msgid "Modifying LAN IP"
 msgstr "正在修改局域网 IP"
@@ -385,17 +334,8 @@ msgstr "正在等待网络服务重启... 已耗时：{sec}秒"
 msgid "Waiting for router to safely restore... Elapsed: {sec}s"
 msgstr "正在等待旧 IP 恢复... 已耗时：{sec}秒"
 
-msgid "Preparing environment..."
-msgstr "正在准备环境..."
-
 msgid "Rollback countdown: <b style=\"color:#f59e0b;\">{sec}</b> / {total} s"
 msgstr "防失联倒计时：<b style=\"color:#f59e0b;\">{sec}</b> / {total} 秒"
-
-msgid "✅ Handshake successful"
-msgstr "✅ 侦察握手成功"
-
-msgid "Network connected! Automatically redirecting..."
-msgstr "网络已连通！正在为您自动跳转..."
 
 msgid "If enabled, the system will auto-revert if you lose connection within 120s."
 msgstr "开启后，若修改 IP 导致失联，系统将在 120 秒后自动回退恢复。"
@@ -472,9 +412,6 @@ msgstr "Wi-Fi 密码长度必须至少为 8 个字符。"
 msgid "Applying Wi-Fi Settings"
 msgstr "正在应用 Wi-Fi 设置"
 
-msgid "Smart Connect cannot be enabled because 802.11b (Legacy Mode) is active. Disable it in 2.4G settings first."
-msgstr "因已开启 802.11b 旧版兼容模式，无法启用多频合一。请先在 2.4G 设置中将其关闭。"
-
 msgid "Advanced Settings"
 msgstr "高级设置"
 
@@ -507,9 +444,6 @@ msgstr "启用 IPv6 (DHCPv6)"
 
 msgid "Wi-Fi Status"
 msgstr "Wi-Fi 状态"
-
-msgid "Smart Connect"
-msgstr "多频合一"
 
 msgid "5G Wi-Fi Account"
 msgstr "5G Wi-Fi 账号"
