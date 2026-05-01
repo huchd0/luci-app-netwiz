@@ -298,9 +298,6 @@ msgstr "帳號"
 msgid "Password"
 msgstr "密碼"
 
-msgid "Hidden"
-msgstr "已隱藏"
-
 msgid "IP & Gateway"
 msgstr "IP 與閘道器"
 
