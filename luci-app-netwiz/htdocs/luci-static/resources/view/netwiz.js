@@ -533,7 +533,7 @@ return view.extend({
             '              <button id="btn-wisp-scan" class="cbi-button cbi-button-apply" style="width:100%; background:#0f172a !important;">{{BTN_SCAN}}</button>',
             '              <div id="wisp-selected-info" style="display:none;">',
             '                 <div class="nw-value"><label class="nw-value-title">{{TXT_TARGET_SSID}}</label><div class="nw-value-field"><input type="text" id="wisp-target-ssid" readonly style="background:#e2e8f0 !important; color:#475569 !important;"></div></div>',
-            '                 <div class="nw-value"><label class="nw-value-title">{{WISP_PWD_PROMPT}}</label><div class="nw-value-field"><input type="password" id="wisp-target-key" placeholder="{{PH_WISP_PWD}}"></div></div>',
+            '                 <div class="nw-value"><label class="nw-value-title">{{WISP_PWD_PROMPT}}</label><div class="nw-value-field"><input type="text" id="wisp-target-key" placeholder="{{PH_WISP_PWD}}"></div></div>',
             '                 <input type="hidden" id="wisp-target-enc" value="psk2">',
             '                 <input type="hidden" id="wisp-target-device" value="radio0">',
             '                 <input type="hidden" id="wisp-target-bssid" value=""></input>',
@@ -1424,27 +1424,47 @@ return view.extend({
                                 if (e) { e.preventDefault(); e.stopPropagation(); }
                                 
                                 try {
-                                    // 1. 填入 SSID 和参数
+                                    // 1. 填入 SSID
                                     container.querySelector('#wisp-target-ssid').value = net.ssid || '';
-                                    var encVal = 'none';
+                                    
+                                    var encVal = 'none'; // 默认无密码
                                     if (net.encryption) {
-                                        var desc = typeof net.encryption === 'string' ? net.encryption : (net.encryption.description || '');
+                                        // 容错处理：获取完整的描述字符串
+                                        var desc = typeof net.encryption === 'string' ? net.encryption : (net.encryption.description || JSON.stringify(net.encryption));
                                         desc = desc.toLowerCase();
-                                        if (desc.indexOf('wpa3') !== -1 || desc.indexOf('sae') !== -1) encVal = 'sae-mixed';
-                                        else if (desc.indexOf('wpa') !== -1 || desc.indexOf('psk') !== -1 || desc.indexOf('mixed') !== -1) encVal = 'psk2';
+                                        
+                                        // 强制判定为有密码！
+                                        var isExplicitNone = (net.encryption.enabled === false || desc === 'none' || desc === '{"enabled":false}');
+                                        
+                                        if (!isExplicitNone) {
+                                            if (desc.indexOf('wpa3') !== -1 || desc.indexOf('sae') !== -1) {
+                                                encVal = 'sae-mixed';
+                                            } else {
+                                                encVal = 'psk2'; // 绝大多数带密码的网络直接走 WPA2
+                                            }
+                                        }
                                     }
                                     container.querySelector('#wisp-target-enc').value = encVal;
                                     container.querySelector('#wisp-target-device').value = scanDevice; 
                                     container.querySelector('#wisp-target-bssid').value = net.bssid || '';
                                     
-                                    // 2. 隐藏弹窗，显示密码框区域
-                                    wispModal.style.display = 'none'; 
+                                    // 3. 界面切换：隐藏弹窗，显示密码面板
                                     container.querySelector('#wisp-selected-info').style.display = 'block';
+                                    wispModal.style.display = 'none'; 
+                                    
                                     var btnScanLive = container.querySelector('#btn-wisp-scan');
                                     if (btnScanLive) btnScanLive.style.display = 'none';
                                     
+                                    // 4. 精准对焦！
+                                    var pwdInput = container.querySelector('#wisp-target-key');
+                                    if (pwdInput && encVal !== 'none') {
+                                        setTimeout(function() {
+                                            pwdInput.focus();
+                                            pwdInput.select();
+                                        }, 150); // 留出 150ms 让弹窗消失的动画跑完
+                                    }
                                 } catch(err) {
-                                    console.error("选取 Wi-Fi 時發生錯誤:", err);
+                                    console.error("选取 Wi-Fi 时发生错误:", err);
                                 }
                             };
                             
