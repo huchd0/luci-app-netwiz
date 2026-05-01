@@ -949,10 +949,25 @@ return view.extend({
                                 }
                             }
                             
-                            //  ===== 漫游底层状态嗅探与警告 ===== 
-                            function syncRoamUI(ifaceList, devName, encId, togId, warnId) {
-                                var iface = ifaceList.find(function(i) { return i.device === devName && i.mode === 'ap' && i.disabled !== '1'; });
-                                if (!iface) iface = ifaceList.find(function(i) { return i.device === devName && i.mode === 'ap'; });
+                            // ===== 漫游底层状态嗅探与数据警告 =====
+                            function syncRoamUI(ifaceList, devName, targetBand, encId, togId, warnId) {
+                                var iface = null;
+                                
+                                if (window._isSingleChip) {
+                                    // 单芯片模式下，通过后端创建的专属接口名 (wifinet_2g / wifinet_5g) 定位
+                                    iface = ifaceList.find(function(i) { return i.device === devName && i.mode === 'ap' && (i['.name'].indexOf(targetBand) !== -1); });
+                                    
+                                    // 容错：如果用户还没用我们插件配过网，只能按活跃状态盲猜
+                                    if (!iface) {
+                                        var apIfaces = ifaceList.filter(function(i) { return i.device === devName && i.mode === 'ap'; });
+                                        iface = (targetBand === '2g') ? apIfaces[0] : (apIfaces[1] || apIfaces[0]);
+                                    }
+                                } else {
+                                    // 多芯片模式：独占网卡，直接找激活的接口
+                                    iface = ifaceList.find(function(i) { return i.device === devName && i.mode === 'ap' && i.disabled !== '1'; });
+                                    if (!iface) iface = ifaceList.find(function(i) { return i.device === devName && i.mode === 'ap'; });
+                                }
+
                                 if (!iface) return;
                                 
                                 var tog = container.querySelector(togId);
@@ -963,27 +978,28 @@ return view.extend({
                                 var rOn = (iface.ieee80211r === '1');
                                 tog.checked = rOn; // 真实还原底层开关状态
                                 
-                                // 判断是否非标：开启了，但域不对，或者没开本地生成，或者加密不对
+                                // 判断是否非标
                                 var encVal = encEl ? encEl.value : (iface.encryption || 'psk2');
                                 var isDirty = rOn && (iface.mobility_domain !== 'e4d1' || iface.ft_psk_generate_local !== '1' || (encVal !== 'psk2+sae' && encVal !== 'sae-mixed'));
                                 
                                 if (isDirty) {
-                                    tog.classList.add('is-dirty'); // 开关变成灰色
-                                    if (warn) warn.style.display = 'block'; // 弹出警告文字
+                                    tog.classList.add('is-dirty'); 
+                                    if (warn) warn.style.display = 'block'; 
                                 }
                             }
 
                             if (window._isSingleChip && wDevs[0]) {
-                                syncRoamUI(wIfaces, wDevs[0]['.name'], '#wifi-2g-enc', '#wifi-2g-roaming', '#roam-warn-2g');
-                                syncRoamUI(wIfaces, wDevs[0]['.name'], '#wifi-5g-enc', '#wifi-5g-roaming', '#roam-warn-5g');
+                                // 传入具体的频段标识 '2g' 和 '5g'
+                                syncRoamUI(wIfaces, wDevs[0]['.name'], '2g', '#wifi-2g-enc', '#wifi-2g-roaming', '#roam-warn-2g');
+                                syncRoamUI(wIfaces, wDevs[0]['.name'], '5g', '#wifi-5g-enc', '#wifi-5g-roaming', '#roam-warn-5g');
                             } else {
-                                if (dev2g) syncRoamUI(wIfaces, dev2g['.name'], '#wifi-2g-enc', '#wifi-2g-roaming', '#roam-warn-2g');
+                                if (dev2g) syncRoamUI(wIfaces, dev2g['.name'], '2g', '#wifi-2g-enc', '#wifi-2g-roaming', '#roam-warn-2g');
                                 if (dev5g) {
-                                    syncRoamUI(wIfaces, dev5g['.name'], '#wifi-5g-enc', '#wifi-5g-roaming', '#roam-warn-5g');
-                                    syncRoamUI(wIfaces, dev5g['.name'], '#wifi-smart-enc', '#wifi-smart-roaming', '#roam-warn-smart');
+                                    syncRoamUI(wIfaces, dev5g['.name'], '5g', '#wifi-5g-enc', '#wifi-5g-roaming', '#roam-warn-5g');
+                                    syncRoamUI(wIfaces, dev5g['.name'], 'smart', '#wifi-smart-enc', '#wifi-smart-roaming', '#roam-warn-smart');
                                 }
                             }
-                            //  ======================================== 
+                            // ========================================
 
                             window._origWifiState = JSON.stringify({
                                 sT: container.querySelector('#wifi-smart-toggle').checked,
