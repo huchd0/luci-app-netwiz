@@ -950,7 +950,7 @@ return view.extend({
                                         iface = (targetBand === '2g') ? apIfaces[0] : (apIfaces[1] || apIfaces[0]);
                                     }
                                 } else {
-                                    // 多芯片模式：独占网卡，直接找激活的接口
+                                    // 多芯片模式：独占网卡，直接找激活的接口，并且必须严格限制 mode === 'ap'，避开 WISP 的 sta 接口！
                                     iface = ifaceList.find(function(i) { return i.device === devName && i.mode === 'ap' && i.disabled !== '1'; });
                                     if (!iface) iface = ifaceList.find(function(i) { return i.device === devName && i.mode === 'ap'; });
                                 }
@@ -967,7 +967,8 @@ return view.extend({
                                 
                                 // 判断是否非标
                                 var encVal = encEl ? encEl.value : (iface.encryption || 'psk2');
-                                var isDirty = rOn && (iface.mobility_domain !== 'e4d1' || iface.ft_psk_generate_local !== '1' || (encVal !== 'psk2+sae' && encVal !== 'sae-mixed'));
+                                // 只有当开启了漫游，但 mobility_domain 不是我们插件设定的值，或者加密方式不支持时，才报红警！
+                                var isDirty = rOn && (iface.mobility_domain !== 'e4d1' || (encVal !== 'psk2+sae' && encVal !== 'sae-mixed'));
                                 
                                 if (isDirty) {
                                     tog.classList.add('is-dirty'); 
