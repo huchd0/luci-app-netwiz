@@ -59,10 +59,18 @@ case "$1" in
                 exit 0
                 ;;
             confirm)
-                # 将 WAN 备份文件也加入防失联确认后的销毁名单
-                if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ] || [ -f /etc/config/network.netwiz_bak ] || [ -f /etc/config/network.netwiz_wan_bak ]; then
-                    rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak /etc/config/network.netwiz_wan_bak
-                    log "前端已连接 拆除防失联回滚装置及清理冗余备份"
+                # 检查是否存在任何类型的备份或临时记录
+                if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ] || \
+                   [ -f /etc/config/network.netwiz_bak ] || [ -f /etc/config/network.netwiz_wan_bak ]; then
+                    
+                    # 连通性确认成功：一键清理所有 LAN 备份、WAN 探测备份以及回滚计时器
+                    rm -f /tmp/netwiz_rollback_time \
+                          /tmp/netwiz_target_ip \
+                          /etc/config/network.netwiz_bak \
+                          /etc/config/dhcp.netwiz_bak \
+                          /etc/config/network.netwiz_wan_bak
+                    
+                    log "前端已连接：拆除防失联回滚装置并清空所有探测备份"
                 fi
                 echo '{"result":0}'
                 exit 0
@@ -71,7 +79,7 @@ case "$1" in
                 set +e
                 
                 log "接收到前端下发的新配置，删除所有历史备份记录"
-                rm -f /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak /etc/config/network.netwiz_wan_bak
+                rm -f /etc/config/network.netwiz_wan_bak /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
                 # ====================================================================
 
                 input=$(cat)
