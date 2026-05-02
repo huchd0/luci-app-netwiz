@@ -510,3 +510,6 @@ msgstr "點擊修復"
 
 msgid "Click to Settings"
 msgstr "點擊直達設定"
+
+msgid "Smart detection of WAN port access (unplug the cable for 10 seconds and then reconnect to enable the automatic protocol detection engine)."
+msgstr "智慧切換WAN 口上網方式（拔除網線間隔十秒再接入WAN 口，自動檢測上網方式切換機制開啟）"
