@@ -112,7 +112,7 @@ while true; do
                 if [ -f /etc/config/network.netwiz_bak ]; then
                     log "正在从闪存中恢复原始配置..."
                     cat /etc/config/network.netwiz_bak > /etc/config/network
-                    cat /etc/config/dhcp.netwiz_bak > /etc/config/dhcp
+                    [ -f /etc/config/dhcp.netwiz_bak ] && cat /etc/config/dhcp.netwiz_bak > /etc/config/dhcp
                     
                     (
                         exec >/dev/null 2>&1 </dev/null
