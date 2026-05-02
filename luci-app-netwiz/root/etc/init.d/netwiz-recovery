@@ -4,34 +4,62 @@
 # START=15 确保在 network 服务前执行
 START=15
 
-# 低频灾难恢复日志必须保存在闪存中，确保重启不丢失
 RECOVERY_LOG="/etc/netwiz_recovery.log"
+AUTODETECT_SCRIPT="/usr/libexec/netwiz-autodetect.sh"
 
 boot() {
-    # 检查闪存中的备份文件
+    # 处理由于 LAN 口 / 全局设置向导导致的异常断电
     if [ -f /etc/config/network.netwiz_bak ]; then
-        # 写入系统底层日志
-        logger -t Netwiz "Power loss detected during network setup! Forcefully recovering..."
+        logger -t Netwiz "Power loss detected during LAN/Global setup! Forcefully recovering..."
         
-        # 写入持久化专属日志
         echo "=========================================================" >> "$RECOVERY_LOG"
-        echo "⚠️ [BOOT-RECOVERY] $(date '+%F %T') 检测到异常断电，正从闪存强制回退..." >> "$RECOVERY_LOG"
+        echo "⚠️ [BOOT-RECOVERY] $(date '+%F %T') 检测到 LAN/全局 配置异常断电，正从闪存强制回退..." >> "$RECOVERY_LOG"
         
-        # 恢复网络配置
         cat /etc/config/network.netwiz_bak > /etc/config/network
-        cat /etc/config/dhcp.netwiz_bak > /etc/config/dhcp
+        [ -f /etc/config/dhcp.netwiz_bak ] && cat /etc/config/dhcp.netwiz_bak > /etc/config/dhcp
         
-        # 清理残留
         rm -f /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
         rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip
         
-        echo "⚠️ [BOOT-RECOVERY] 异常断电回退完成！网络已安全恢复。" >> "$RECOVERY_LOG"
+        echo "✅ [BOOT-RECOVERY] LAN/全局 异常回退完成！" >> "$RECOVERY_LOG"
         echo "=========================================================" >> "$RECOVERY_LOG"
+    fi
+
+    # 处理由于 WAN 口自动探测导致的异常断电
+    if [ -f /etc/config/network.netwiz_wan_bak ]; then
+        logger -t Netwiz "Power loss detected during WAN autodetect! Forcefully recovering..."
         
-        # 简单的日志体积控制，保留最后 100 行即可（毕竟极少发生）
-        if [ $(wc -l < "$RECOVERY_LOG" 2>/dev/null || echo 0) -gt 150 ]; then
-            tail -n 100 "$RECOVERY_LOG" > "$RECOVERY_LOG.tmp"
-            mv "$RECOVERY_LOG.tmp" "$RECOVERY_LOG"
+        echo "=========================================================" >> "$RECOVERY_LOG"
+        echo "⚠️ [BOOT-RECOVERY] $(date '+%F %T') 检测到 WAN 探测过程异常断电，强制回退..." >> "$RECOVERY_LOG"
+        
+        cat /etc/config/network.netwiz_wan_bak > /etc/config/network
+        rm -f /etc/config/network.netwiz_wan_bak
+        
+        echo "✅ [BOOT-RECOVERY] WAN 探测回退完成！" >> "$RECOVERY_LOG"
+        
+        # 只有因为 WAN 探测断电，才需要在后台重新拉起探测探针
+        if [ -x "$AUTODETECT_SCRIPT" ]; then
+            echo "🔄 [BOOT-RECOVERY] 已埋设后台探针，等待网卡就绪后触发检测..." >> "$RECOVERY_LOG"
+            # 使用子 shell 放入后台执行，完全不阻塞系统的后续启动
+            (
+                WAN_DEV=$(uci -q get network.wan.device || uci -q get network.wan.ifname || echo "eth0")
+                # 轮询等待最多 60 秒 (30 次 * 2 秒)
+                for i in $(seq 1 30); do
+                    if ubus call network.device status "{\"name\":\"$WAN_DEV\"}" 2>/dev/null | grep -q '"carrier": true'; then
+                        sleep 3 # 给内核几秒钟梳理路由表
+                        "$AUTODETECT_SCRIPT"
+                        exit 0
+                    fi
+                    sleep 2
+                done
+            ) &
         fi
+        echo "=========================================================" >> "$RECOVERY_LOG"
+    fi
+
+    # 日志体积控制，保留最后 100 行即可
+    if [ $(wc -l < "$RECOVERY_LOG" 2>/dev/null || echo 0) -gt 150 ]; then
+        tail -n 100 "$RECOVERY_LOG" > "$RECOVERY_LOG.tmp"
+        mv "$RECOVERY_LOG.tmp" "$RECOVERY_LOG"
     fi
 }
