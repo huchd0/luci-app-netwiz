@@ -285,26 +285,43 @@ case "$1" in
 
                             if [ "$p_en" = "1" ] || [ "$smart" = "true" ]; then
                                 if [ "$p_chan" != "auto" ] && [ -n "$p_chan" ]; then uci set wireless.$dev.channel="$p_chan"; else uci set wireless.$dev.channel='auto'; fi
-                                uci delete wireless.$dev.hwmode 2>/dev/null || true
+                                
+                                # ===== 显式写入硬件模式 (hwmode)，解决空白及不激活 Bug =====
                                 uci set wireless.$dev.band="$intended_band"
+                                if [ "$intended_band" = "5g" ]; then
+                                    uci set wireless.$dev.hwmode="11a"
+                                else
+                                    if [ "$p_mode" = "11b" ]; then
+                                        uci set wireless.$dev.hwmode="11b"
+                                    else
+                                        uci set wireless.$dev.hwmode="11g"
+                                    fi
+                                fi
 
                                 local current_ht=$(uci -q get wireless.$dev.htmode || echo "")
                                 local final_bw="40"
                                 if [ "$intended_band" = "5g" ]; then final_bw="80"; fi
                                 if [ "$p_bw" != "auto" ] && [ -n "$p_bw" ]; then final_bw="$p_bw"; fi
 
-                                if [ "$p_mode" != "auto" ] && [ -n "$p_mode" ]; then
-                                    if [ "$p_mode" = "11be" ]; then uci set wireless.$dev.htmode="EHT${final_bw}"
-                                    elif [ "$p_mode" = "11ax" ]; then uci set wireless.$dev.htmode="HE${final_bw}"
-                                    elif [ "$p_mode" = "11ac" ]; then uci set wireless.$dev.htmode="VHT${final_bw}"
-                                    elif [ "$p_mode" = "11n" ] || [ "$p_mode" = "11g" ]; then uci set wireless.$dev.htmode="HT${final_bw}"
-                                    else uci set wireless.$dev.htmode="HT20"; fi
+                                # =====  htmode ，防止旧协议参数冲突 =====
+                                if [ "$p_mode" = "11b" ]; then
+                                    # 纯 11b 模式下不能有 htmode 参数，否则底层驱动会报错冲突
+                                    uci delete wireless.$dev.htmode 2>/dev/null || true
                                 else
-                                    if echo "$current_ht" | grep -qEi "eht|he"; then
-                                        local prefix=$(echo "$current_ht" | grep -oEi "eht|he" | tr 'a-z' 'A-Z')
-                                        uci set wireless.$dev.htmode="${prefix}${final_bw}"
+                                    if [ "$p_mode" != "auto" ] && [ -n "$p_mode" ]; then
+                                        if [ "$p_mode" = "11be" ]; then uci set wireless.$dev.htmode="EHT${final_bw}"
+                                        elif [ "$p_mode" = "11ax" ]; then uci set wireless.$dev.htmode="HE${final_bw}"
+                                        elif [ "$p_mode" = "11ac" ]; then uci set wireless.$dev.htmode="VHT${final_bw}"
+                                        elif [ "$p_mode" = "11n" ] || [ "$p_mode" = "11g" ]; then uci set wireless.$dev.htmode="HT${final_bw}"
+                                        else uci set wireless.$dev.htmode="HT20"; fi
                                     else
-                                        uci set wireless.$dev.htmode="HE${final_bw}"
+                                        # auto 模式下保留原生协议头
+                                        if echo "$current_ht" | grep -qEi "eht|he|vht|ht"; then
+                                            local prefix=$(echo "$current_ht" | grep -oEi "eht|he|vht|ht" | tr 'a-z' 'A-Z')
+                                            uci set wireless.$dev.htmode="${prefix}${final_bw}"
+                                        else
+                                            uci set wireless.$dev.htmode="HE${final_bw}"
+                                        fi
                                     fi
                                 fi
                             fi
