@@ -59,15 +59,20 @@ case "$1" in
                 exit 0
                 ;;
             confirm)
-                if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ] || [ -f /etc/config/network.netwiz_bak ]; then
-                    rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
-                    log "前端已连接 拆除防失联回滚装置"
+                # 将 WAN 备份文件也加入防失联确认后的销毁名单
+                if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ] || [ -f /etc/config/network.netwiz_bak ] || [ -f /etc/config/network.netwiz_wan_bak ]; then
+                    rm -f /tmp/netwiz_rollback_time /tmp/netwiz_target_ip /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak /etc/config/network.netwiz_wan_bak
+                    log "前端已连接 拆除防失联回滚装置及清理冗余备份"
                 fi
                 echo '{"result":0}'
                 exit 0
                 ;;
             set_network)
                 set +e
+                
+                log "接收到前端下发的新配置，删除所有历史备份记录"
+                rm -f /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak /etc/config/network.netwiz_wan_bak
+                # ====================================================================
 
                 input=$(cat)
                 mode=$(echo "$input" | jsonfilter -e '@.mode')
@@ -226,7 +231,6 @@ case "$1" in
                             local p_mode=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.mode" || echo "auto")
                             local p_chan=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.channel" || echo "auto")
                             local p_bw=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.bandwidth" || echo "auto")
-                            # 正确提取前端传来的 roaming 状态
                             local p_roam=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.roaming" || echo "0")
 
                             uci set wireless.$iface_name=wifi-iface
@@ -251,7 +255,6 @@ case "$1" in
                             if echo "$p_enc" | grep -q "sae"; then uci set wireless.$iface_name.ieee80211w='1'
                             else uci delete wireless.$iface_name.ieee80211w 2>/dev/null || true; fi
 
-                            # 根据前端 p_roam 开关来决定是否写入漫游协议
                             if [ "$p_roam" = "1" ] && [ "$p_enc" != "none" ] && [ -n "$p_enc" ]; then
                                 uci set wireless.$iface_name.ieee80211r='1'
                                 uci set wireless.$iface_name.ieee80211k='1'
@@ -391,7 +394,6 @@ case "$1" in
                             if [ -n "$wan_zone" ]; then
                                 old_nets=$(uci -q get firewall.$wan_zone.network || echo "")
                                 if echo "$old_nets" | grep -q "wwan"; then
-                                    # 移除 wwan 并清理多余空格
                                     new_nets=$(echo "$old_nets" | sed 's/\bwwan\b//g' | xargs)
                                     uci set firewall.$wan_zone.network="$new_nets"
                                     uci commit firewall
