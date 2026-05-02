@@ -393,7 +393,7 @@ return view.extend({
             '        <div class="nw-step-title">{{TITLE_PPPOE}}</div>',
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_USER}}</label><div class="nw-value-field"><input type="text" id="pppoe-user" placeholder="{{PH_USER}}"></div></div>',
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_PASS}}</label><div class="nw-value-field"><input type="text" id="pppoe-pass" placeholder="{{PH_PASS}}"></div></div>',
-            '        <div style="margin-top: 15px; padding: 10px; background: rgba(59,130,246,0.1); border-radius: 8px; font-size: 14px; color: #475569;">{{MSG_WAN_AUTODETECT}}</div>',
+            '        <div style="margin-top: 15px; padding: 10px; background: rgba(59,130,246,0.1); border-radius: 8px; font-size: 14px; color: #ff0000;">{{MSG_WAN_AUTODETECT}}</div>',
             '      </div>',
             '      <div id="fields-wifi" style="display: none;">',
             '        <div class="nw-step-title">{{TITLE_WIFI}}</div>',
