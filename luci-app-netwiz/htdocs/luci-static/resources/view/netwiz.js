@@ -1626,7 +1626,7 @@ return view.extend({
                             
                             var li = document.createElement('li');
                             li.style.cssText = 'padding:15px 20px; border-bottom:1px solid #f1f5f9; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:background 0.2s;';
-                            li.innerHTML = '<span style="font-weight:600; color:#334155;">' + net.ssid + '</span><span style="font-size:12px; color:#94a3b8; background:#f1f5f9; padding:2px 8px; border-radius:10px;">' + net.signal + ' dBm</span>';
+                            li.innerHTML = '<span style="font-weight:600; color:#334155; word-break:break-all; white-space:normal; margin-right:10px; flex:1;">' + net.ssid + '</span><span style="font-size:12px; color:#94a3b8; background:#f1f5f9; padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0;">' + net.signal + ' dBm</span>';
                             
                             li.onmouseover = function() { this.style.background = '#f8fafc'; };
                             li.onmouseout = function() { this.style.background = 'transparent'; };
