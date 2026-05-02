@@ -286,7 +286,21 @@ case "$1" in
                             if [ "$p_en" = "1" ] || [ "$smart" = "true" ]; then
                                 if [ "$p_chan" != "auto" ] && [ -n "$p_chan" ]; then uci set wireless.$dev.channel="$p_chan"; else uci set wireless.$dev.channel='auto'; fi
                                 
-                                # ===== 显式写入硬件模式 (hwmode) =====
+                                # ===== 加入这段漫游的核心写入逻辑 =====
+                                if [ "$p_roaming" = "1" ]; then
+                                    uci set wireless.$iface_name.ieee80211r='1'
+                                    uci set wireless.$iface_name.mobility_domain='e4d1'
+                                    uci set wireless.$iface_name.ft_over_ds='1'
+                                    uci set wireless.$iface_name.ft_psk_generate_local='1'
+                                else
+                                    uci delete wireless.$iface_name.ieee80211r 2>/dev/null || true
+                                    uci delete wireless.$iface_name.mobility_domain 2>/dev/null || true
+                                    uci delete wireless.$iface_name.ft_over_ds 2>/dev/null || true
+                                    uci delete wireless.$iface_name.ft_psk_generate_local 2>/dev/null || true
+                                fi
+                                # ====================================
+
+                                # ===== 显式写入硬件模式 (hwmode)，解决空白及不激活 Bug =====
                                 uci set wireless.$dev.band="$intended_band"
                                 if [ "$intended_band" = "5g" ]; then
                                     uci set wireless.$dev.hwmode="11a"
