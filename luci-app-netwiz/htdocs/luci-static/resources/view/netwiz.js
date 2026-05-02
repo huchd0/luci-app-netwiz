@@ -1794,17 +1794,34 @@ return view.extend({
                         
                         var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; align-items:flex-start; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1); gap: 10px;'><span style='opacity:0.8; white-space:nowrap; flex-shrink:0;'>" + p[i][0] + "</span><span style='font-family:monospace; word-break:break-all; text-align:right;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
                         
-                        // === Diff 高亮渲染助手函数 ===
+                        // === Diff 高亮渲染带新旧对比助手函数  ===
                         var mkDiff = function(label, newVal, oldVal) {
-                            var isChanged = (String(newVal) !== String(oldVal));
-                            var dimStyle = "opacity: 0.45; filter: grayscale(100%);";
-                            var highlightBadge = "<span style='margin-left: 8px; font-size: 12px; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: bold; vertical-align: middle; box-shadow: 0 2px 4px rgba(16,185,129,0.3); animation: pulse 2s infinite;'>新修改</span>";
+                            var sNew = String(newVal).trim();
+                            var sOld = String(oldVal).trim();
                             
-                            // 返回一个数组：[处理后的 Label, 处理后的 Value]
+                            // 容错处理：如果旧值根本不存在，显示为“未设置”
+                            if (!oldVal || sOld === 'undefined' || sOld === '') {
+                                sOld = "<span style='font-style:italic;'>未设置</span>";
+                            }
+                            
+                            var isChanged = (sNew !== sOld);
+                            var dimStyle = "opacity: 0.45; filter: grayscale(100%);";
+                            var highlightBadge = "<span style='margin-left: 8px; font-size: 11px; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: bold; vertical-align: middle; box-shadow: 0 2px 4px rgba(16,185,129,0.3); animation: pulse 2s infinite;'>新修改</span>";
+                            
                             if (isChanged) {
-                                return [label, newVal + highlightBadge];
+                                // 划掉的旧值变灰，向下箭头显示新值
+                                var diffHtml = "<div style='display:flex; flex-direction:column; align-items:flex-end; gap:3px; margin-top:2px;'>" +
+                                                 // 旧值：加删除线
+                                                 "<div style='font-size:14.5px; text-decoration:line-through; filter:grayscale(90%) opacity(60%);'>" + sOld + "</div>" +
+                                                 // 新值：带一个绿色的下弯箭头 ↳ (U+21B3)
+                                                 "<div style='display:flex; align-items:center;'>" +
+                                                   "<span style='color:#10b981; font-weight:bold; margin-right:6px; font-size:16px; line-height:1;'>↳</span>" +
+                                                   sNew + highlightBadge +
+                                                 "</div>" +
+                                               "</div>";
+                                return [label, diffHtml];
                             } else {
-                                return ["<span style='" + dimStyle + "'>" + label + "</span>", "<span style='" + dimStyle + "'>" + newVal + "</span>"];
+                                return ["<span style='" + dimStyle + "'>" + label + "</span>", "<span style='" + dimStyle + "'>" + sNew + "</span>"];
                             }
                         };
                         // =============================
