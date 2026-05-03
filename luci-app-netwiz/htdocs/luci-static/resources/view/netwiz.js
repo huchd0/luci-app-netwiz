@@ -1324,6 +1324,66 @@ return view.extend({
         var en2g = container.querySelector('#wifi-2g-en');
         var en5g = container.querySelector('#wifi-5g-en');
 
+        // ===== 动态刷新漫游状态徽章 =====
+        var updateRoamBadge = function(togId) {
+            var tog = container.querySelector(togId);
+            if (!tog) return;
+            var keyId = togId.replace('-roaming', '-key'); 
+            var pwdInput = container.querySelector(keyId);
+            var pwdRow = pwdInput ? pwdInput.closest('.nw-value') : null;
+
+            if (pwdRow) {
+                var statRow = pwdRow.nextElementSibling;
+                // 如果没有框，就创建一个
+                if (!statRow || !statRow.classList.contains('nw-roam-status-row')) {
+                    statRow = document.createElement('div');
+                    statRow.className = 'nw-roam-status-row';
+                    statRow.style.cssText = 'margin-top: 5px; margin-bottom: 15px; ';
+                    pwdRow.parentNode.insertBefore(statRow, pwdRow.nextSibling);
+                }
+
+                if (tog.checked) {
+                    var isDirty = tog.classList.contains('is-dirty');
+                    if (isDirty) {
+                        statRow.innerHTML = "<span title='" + (T['DESC_ROAM_DIRTY']||'') + "' style='display:inline-flex; align-items:center; justify-content:center; background:rgba(16, 185, 129, 0.15); color:#10b981; border: 1px solid #10b981; font-size:14px; padding:6px 10px; border-radius:8px; font-family:sans-serif; cursor:pointer; font-weight:bold; white-space:nowrap; transition:all 0.25s ease; margin:0 auto;'>" + (T['TXT_ROAMING_ON']||'已开通漫游') + "<b style='display:inline-flex; align-items:center; justify-content:center; background:#ef4444; color:#ffffff; width:18px; height:18px; border-radius:50%; font-size:14px; font-family:Arial,sans-serif; font-weight:900; margin-left:6px; line-height:1;'>!</b> <span style='font-size:14px; font-weight:bold; color:#ef4444; margin-left:5px; text-decoration:underline;'>" + (T['TXT_CLICK_FIX']||'点击修复') + "</span></span>";
+                    } else {
+                        statRow.innerHTML = "<span style='display:inline-flex; align-items:center; justify-content:center; background:rgba(16, 185, 129, 0.15); color:#10b981; border: 1px solid #10b981; font-size:14px; padding:6px 16px; border-radius:8px; font-family:sans-serif; font-weight:bold; white-space:nowrap; cursor:pointer; transition:all 0.25s ease; margin:0 auto;'>" + (T['TXT_ROAMING_ON']||'已开通漫游') + "</span>";
+                    }
+
+                    var badgeSpan = statRow.querySelector('span');
+                    badgeSpan.onmouseover = function() { this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 4px 12px rgba(16,185,129,0.25)'; };
+                    badgeSpan.onmouseout = function() { this.style.transform = 'none'; this.style.boxShadow = 'none'; };
+                    
+                    badgeSpan.onclick = function(e) {
+                        e.stopPropagation();
+                        if (isDirty) alert(T['DESC_ROAM_DIRTY']);
+                        var advPanel = tog.closest('.nw-adv-panel');
+                        var advBtn = advPanel ? advPanel.previousElementSibling : null;
+                        if (advPanel && advPanel.style.display === 'none' && advBtn) advBtn.click();
+                        setTimeout(function() {
+                            tog.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            var targetRow = tog.closest('div'); 
+                            if (targetRow) {
+                                var oldBg = targetRow.style.backgroundColor || 'transparent';
+                                targetRow.style.transition = 'background-color 0.4s ease';
+                                targetRow.style.backgroundColor = 'rgba(16, 185, 129, 0.25)';
+                                targetRow.style.borderRadius = '8px';
+                                setTimeout(function() {
+                                    targetRow.style.backgroundColor = oldBg;
+                                    setTimeout(function() { targetRow.style.transition = ''; }, 400);
+                                }, 800); 
+                            }
+                        }, 80); 
+                    };
+                    statRow.style.display = 'block'; // 显示徽章
+                } else {
+                    statRow.innerHTML = "";
+                    statRow.style.display = 'none'; // 彻底隐藏徽章
+                }
+            }
+        };
+        // ==========================================
+
         // ===== 密码与加密方式智能联动 =====
         var syncEncryption = function(keyInputId, encSelectId) {
             var keyEl = container.querySelector(keyInputId);
@@ -1531,6 +1591,7 @@ return view.extend({
                     var encSelect = container.querySelector('#wifi-smart-enc');
                     if (encSelect && encSelect.value !== 'psk2+sae') encSelect.value = 'psk2+sae';
                 }
+                updateRoamBadge('#wifi-smart-roaming');
             });
         }
 
@@ -1549,6 +1610,7 @@ return view.extend({
                     var encSelect = container.querySelector('#wifi-2g-enc');
                     if (encSelect && encSelect.value !== 'psk2+sae') encSelect.value = 'psk2+sae';
                 }
+                updateRoamBadge('#wifi-2g-roaming');
             });
         }
 
@@ -1567,6 +1629,7 @@ return view.extend({
                     var encSelect = container.querySelector('#wifi-5g-enc');
                     if (encSelect && encSelect.value !== 'psk2+sae') encSelect.value = 'psk2+sae';
                 }
+                updateRoamBadge('#wifi-5g-roaming');
             });
         }
         // ==================================
@@ -1803,40 +1866,40 @@ return view.extend({
 
                         if (isNoMod) { openModal({title: T['M_NO_MOD_TIT'], msg: T['M_NO_MOD_MSG'], okText: T['M_EXIT'], onOk: returnToStep1 }); return; }
                         
-                        var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; align-items:flex-start; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1); gap: 10px;'><span style='opacity:0.8; white-space:nowrap; flex-shrink:0;'>" + p[i][0] + "</span><span style='font-family:monospace; word-break:break-all; text-align:right;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
-                        
-                        // === Diff 高亮渲染带新旧对比助手函数  ===
+                        var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; align-items:flex-start; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); gap:10px;'><span style='opacity:0.8; flex-shrink:0; max-width:45%; word-break:break-word; line-height:1.4;'>" + p[i][0] + "</span><span style='font-family:monospace; word-break:break-word; text-align:right; flex:1; min-width:0;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
+
+                        // === Diff 高亮渲染带新旧对比助手函数 (移动端优化版) ===
                         var mkDiff = function(label, newVal, oldVal) {
                             var sNew = String(newVal).trim();
                             var sOld = (oldVal !== undefined && oldVal !== null) ? String(oldVal).trim() : '';
                             
-                            // 切换模式导致旧值为空，显示“新配置”
                             var isActuallyNew = (sOld === '' || sOld === 'undefined');
                             var isChanged = (sNew !== sOld) && !isActuallyNew;
                             
-                            // 接收 txt 参数，同时加上了 nowrap 防止文字被挤换行
+                            // div 独立成行
                             var highlightBadge = function(txt) {
-                                return "<span style='margin-left: 8px; font-size: 11px; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: bold; vertical-align: middle; box-shadow: 0 2px 4px rgba(16,185,129,0.3); animation: pulse 2s infinite; white-space: nowrap;'>" + txt + "</span>";
+                                return "<div style='margin-top: 4px;'><span style='font-size: 11px; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: bold; box-shadow: 0 2px 4px rgba(16,185,129,0.3); animation: pulse 2s infinite; white-space: nowrap;'>" + txt + "</span></div>";
                             };
 
                             if (isActuallyNew) {
-                                // 完全新配置（比如第一次设置合一），调用字典 TXT_NEW_MOD
-                                var newHtml = "<div style='display:flex; align-items:center; justify-content:flex-end;'>" +
-                                                sNew + highlightBadge(T['TXT_NEW_MOD']) +
+                                // 文字在上，徽章在下
+                                var newHtml = "<div style='display:flex; flex-direction:column; align-items:flex-end; justify-content:center;'>" +
+                                                "<div>" + sNew + "</div>" +
+                                                highlightBadge(T['TXT_NEW_MOD'] || '新配置') +
                                               "</div>";
                                 return [label, newHtml];
                             } else if (isChanged) {
-                                // 修改了旧配置，调用字典 TXT_MODIFIED
-                                var diffHtml = "<div style='display:flex; flex-direction:column; align-items:flex-end; gap:3px; margin-top:2px;'>" +
+                                // 旧值 -> 新值(带箭头) -> 徽章独立在一行
+                                var diffHtml = "<div style='display:flex; flex-direction:column; align-items:flex-end; gap:2px; margin-top:2px;'>" +
                                                  "<div style='font-size:13px; text-decoration:line-through; opacity: 0.5;'>" + sOld + "</div>" +
-                                                 "<div style='display:flex; align-items:center;'>" +
-                                                   "<span style='color:#10b981; font-weight:bold; margin-right:6px; font-size:16px; line-height:1;'>↳</span>" +
-                                                   sNew + highlightBadge(T['TXT_MODIFIED']) +
+                                                 "<div style='display:flex; align-items:flex-start; justify-content:flex-end; text-align:right;'>" +
+                                                   "<span style='color:#10b981; font-weight:bold; margin-right:6px; font-size:16px; line-height:1.2;'>↳</span>" +
+                                                   "<div>" + sNew + "</div>" +
                                                  "</div>" +
+                                                 highlightBadge(T['TXT_MODIFIED'] || '已修改') +
                                                "</div>";
                                 return [label, diffHtml];
                             } else {
-                                // 没变化，使用半透明优化版
                                 var dimStyle = "opacity: 0.7; color: rgba(255, 255, 255, 0.85);";
                                 return ["<span style='" + dimStyle + "'>" + label + "</span>", "<span style='" + dimStyle + "'>" + sNew + "</span>"];
                             }
