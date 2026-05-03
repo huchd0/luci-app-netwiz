@@ -79,11 +79,11 @@ msgstr "安全模式 (建議開啟，防失聯)"
 msgid "Enable AP Wired Relay"
 msgstr "啟用旁路由（AP有線中繼）模式"
 
-msgid "<b style=\"font-size: 16px;\">AP Wired Relay Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
-msgstr "<b style=\"font-size: 16px;\">AP 有線中繼模式已開啟：</b><br>1. DHCP 將被禁用。<b style=\"color: #059669;\">設備必須使用靜態 IP 或由上級路由分配 IP。</b><br>2. 網關必須填寫為上級路由器的 IP 地址。<br>3. 若修改了區域網 IP，請確保設備與新 IP 處於同一網段，以免<b style=\"color: #059669;\">防失聯回滾觸發</b>。"
+msgid "<b style=\"font-size: 16px;\">AP Wired Relay Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">AP 有線中繼模式已開啟：</b><br>1. DHCP 將被禁用。<b style=\"color: #059669;\">設備必須使用靜態 IP 或由上級路由分配 IP。</b><br>2. 若修改了區域網 IP，請確保設備與新 IP 處於同一網段，以免<b style=\"color: #059669;\">防失聯回滾觸發</b>。"
 
-msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #ef4444;\">losing access</b>."
-msgstr "<b style=\"font-size: 16px;\">主路由模式已開啟：</b><br>1. DHCP 服務將開啟，由本設備負責分配區域網 IP。<br>2. 網關通常留空即可。<br>3. 若修改了區域網 IP，請確保設備與新 IP 處於同一網段，以免<b style=\"color: #ef4444;\">防失聯回滾觸發</b>。"
+msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #ef4444;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">主路由模式已開啟：</b><br>1. DHCP 服務將開啟，由本設備負責分配區域網 IP。<br>2. 若修改了區域網 IP，請確保設備與新 IP 處於同一網段，以免<b style=\"color: #ef4444;\">防失聯回滾觸發</b>。"
 
 msgid "Device LAN IP"
 msgstr "設備區域網路 IP"
