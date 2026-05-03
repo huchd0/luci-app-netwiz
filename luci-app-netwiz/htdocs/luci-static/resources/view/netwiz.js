@@ -187,6 +187,8 @@ var T = {
     'MSG_WAN_AUTODETECT': _('WAN Blind-Switch: Unplug the WAN cable for 10 seconds and reconnect to auto-detect and switch the connection type (takes about 2 mins).'),
     'TXT_NEW_MOD': _('New Config'),
     'TXT_MODIFIED': _('Modified'),
+    'M_OPEN_WARN_TIT': _('Security Warning'),
+    'M_OPEN_WARN_MSG': _('You are setting up an Open Wi-Fi network without a password. Anyone nearby will be able to connect and access your network.<br><br>Are you sure you want to continue?'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1419,19 +1421,23 @@ return view.extend({
         };
         // ==========================================
 
-        // ===== 密码与加密方式智能联动 =====
+        // ===== 密码与加密方式双向联动 =====
         var syncEncryption = function(keyInputId, encSelectId) {
             var keyEl = container.querySelector(keyInputId);
             var encEl = container.querySelector(encSelectId);
             if (keyEl && encEl) {
+                // 1. 密码框输入 -> 影响下拉框 (原有逻辑)
                 keyEl.addEventListener('input', function() {
-                    // 如果输入了密码，且当前是无密码状态，自动切换到推荐加密 (psk2+sae)
                     if (this.value.length > 0 && encEl.value === 'none') {
                         encEl.value = 'psk2+sae'; 
-                    } 
-                    // 如果清空了密码，且当前不是无密码状态，自动切换回无密码 (none)
-                    else if (this.value.length === 0 && encEl.value !== 'none') {
+                    } else if (this.value.length === 0 && encEl.value !== 'none') {
                         encEl.value = 'none'; 
+                    }
+                });
+                // 2. 下拉框选择 -> 影响密码框 (新增防呆逻辑)
+                encEl.addEventListener('change', function() {
+                    if (this.value === 'none') {
+                        keyEl.value = ''; // 如果手动选了无密码，强行清空密码框，防止数据残留
                     }
                 });
             }
@@ -2060,8 +2066,38 @@ return view.extend({
                         
                         if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; setTimeout(function(){ smoothScrollToTop(650); }, 20); } }); return; }
                         
+                        // ===== Wi-Fi 无密码拦截 =====
+                        var hasOpenWifi = false;
+                        if (selectedMode === 'wifi') {
+                            var checkSmart = container.querySelector('#wifi-smart-toggle').checked && !window._isSingleChip;
+                            if (checkSmart) {
+                                if (container.querySelector('#wifi-smart-en').checked && container.querySelector('#wifi-smart-enc').value === 'none') hasOpenWifi = true;
+                            } else {
+                                if (container.querySelector('#wifi-2g-en').checked && container.querySelector('#wifi-2g-enc').value === 'none') hasOpenWifi = true;
+                                if (container.querySelector('#wifi-5g-en').checked && container.querySelector('#wifi-5g-enc').value === 'none') hasOpenWifi = true;
+                            }
+                        }
+
+                        if (hasOpenWifi) {
+                            openModal({ 
+                                title: T['M_OPEN_WARN_TIT'] || '⚠️ 无密码警告', 
+                                msg: T['M_OPEN_WARN_MSG'] || '您正在设置无密码的开放 Wi-Fi，附近任何人都可以随意连接并访问您的网络。<br><br>确定要继续吗？', 
+                                cancelText: T['BTN_EDIT'], 
+                                okText: T['M_WARN_BTN'], 
+                                isDanger: true, 
+                                onOk: function() { 
+                                    container.querySelector('#nw-global-modal').style.display = 'none'; 
+                                    step2.style.display = 'none'; 
+                                    step3.style.display = 'block'; 
+                                    setTimeout(function(){ smoothScrollToTop(650); }, 20); 
+                                } 
+                            }); 
+                            return; 
+                        }
+                        // ======================================
+
                         step2.style.display = 'none'; step3.style.display = 'block';
-                        setTimeout(function(){ smoothScrollToTop(650); }, 20); 
+                        setTimeout(function(){ smoothScrollToTop(650); }, 20);
                     } catch (err) {
                         openModal({ title: T['M_SYS_ERR'], msg: 'Data processing failed: ' + err, okText: T['M_CLOSE'] });
                     }
