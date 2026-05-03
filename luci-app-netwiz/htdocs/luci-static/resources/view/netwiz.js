@@ -614,6 +614,41 @@ return view.extend({
         var selectedMode = '';
         window._isSingleChip = false;
 
+        // ===== 自定义动画滚动 =====
+        var smoothScrollToTop = function(duration) {
+            // 兼容 Argon、Bootstrap 等各种 OpenWrt
+            var scroller = document.querySelector('#maincontent') || document.querySelector('.main-right') || document.scrollingElement || document.documentElement;
+            var start = scroller.scrollTop;
+            if (start === 0 && window.pageYOffset > 0) { scroller = window; start = window.pageYOffset; }
+            if (start <= 0) return; // 已经在顶部就不滚了
+
+            var startTime = null;
+            // 缓动曲线：先加速后减速 (Ease-In-Out)
+            var easeInOutQuad = function (t, b, c, d) {
+                t /= d/2;
+                if (t < 1) return c/2*t*t + b;
+                t--;
+                return -c/2 * (t*(t-2) - 1) + b;
+            };
+
+            var animateScroll = function(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var progress = timestamp - startTime;
+                var nextStep = easeInOutQuad(progress, start, -start, duration);
+                
+                if (scroller === window) window.scrollTo(0, nextStep);
+                else scroller.scrollTop = nextStep;
+
+                if (progress < duration) window.requestAnimationFrame(animateScroll);
+                else {
+                    if (scroller === window) window.scrollTo(0, 0);
+                    else scroller.scrollTop = 0;
+                }
+            };
+            window.requestAnimationFrame(animateScroll);
+        };
+        // ========================================================
+
         // ===== 提取当前状态快照 =====
         function getWifiSnapshot() {
             var sT = container.querySelector('#wifi-smart-toggle').checked;
@@ -1755,16 +1790,13 @@ return view.extend({
         }
        // 結束
 
-        // 统一的页面切换+置顶函数
+        // 页面切换+置顶函数
         var switchStep = function(hideEl, showEl) {
             hideEl.style.display = 'none'; 
             showEl.style.display = 'block';
-            // 延迟 50ms 等待 DOM 渲染完，进入顶部
             setTimeout(function() {
-                var header = document.querySelector('.nw-header');
-                if (header) { header.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-                else { window.scrollTo(0, 0); }
-            }, 50);
+                smoothScrollToTop(650); // 毫秒自定义动画
+            }, 20); // 给浏览器留20ms的重绘时间
         };
 
         container.querySelectorAll('.nw-card').forEach(function (card) { card.addEventListener('click', function () { 
@@ -2018,11 +2050,10 @@ return view.extend({
                             ]);
                         }
                         
-                        if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; setTimeout(function(){ var h = document.querySelector('.nw-header'); if(h) h.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 50); } }); return; }
+                        if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; setTimeout(function(){ smoothScrollToTop(450); }, 20); } }); return; }
                         
                         step2.style.display = 'none'; step3.style.display = 'block';
-                        // 使用延时锚点置顶
-                        setTimeout(function(){ var h = document.querySelector('.nw-header'); if(h) h.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 50);
+                        setTimeout(function(){ smoothScrollToTop(450); }, 20); 
                     } catch (err) {
                         openModal({ title: T['M_SYS_ERR'], msg: 'Data processing failed: ' + err, okText: T['M_CLOSE'] });
                     }
