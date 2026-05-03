@@ -552,3 +552,12 @@ msgstr "✨ 重新打开向导"
 
 msgid "Skip Wi-Fi Setup (Keep current)"
 msgstr "暂不配置 Wi-Fi (保持现状)"
+
+msgid "Not configured (Keep current)"
+msgstr "暂不配置 (保持当前状态)"
+
+msgid "Not set"
+msgstr "未设置"
+
+msgid "No Password (Open)"
+msgstr "无密码 (Open)"
