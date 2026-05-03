@@ -92,7 +92,7 @@ msgid "LAN Gateway"
 msgstr "局域网网关"
 
 msgid "Blank for Main, required for AP Wired Relay"
-msgstr "主路由留空，旁路由（AP有线中继）必填"
+msgstr "主路由留空，旁路由(有线中继)必填"
 
 msgid "Back"
 msgstr "上一步"
