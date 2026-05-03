@@ -519,3 +519,9 @@ msgstr "新建"
 
 msgid "Modified"
 msgstr "新修改"
+
+msgid "Security Warning"
+msgstr "⚠️ 无密码安全警告"
+
+msgid "You are setting up an Open Wi-Fi network without a password. Anyone nearby will be able to connect and access your network.<br><br>Are you sure you want to continue?"
+msgstr "您正在设置无密码的开放 Wi-Fi，附近任何人都可以随意连接并访问您的局域网设备。<br><br>您确定要继续吗？"
