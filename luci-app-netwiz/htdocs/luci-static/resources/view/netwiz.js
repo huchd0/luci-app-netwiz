@@ -1929,7 +1929,7 @@ return view.extend({
                                 // 文字在上，徽章在下
                                 var newHtml = "<div style='display:flex; flex-direction:column; align-items:flex-end; justify-content:center;'>" +
                                                 "<div>" + sNew + "</div>" +
-                                                highlightBadge(T['TXT_NEW_MOD'] || '新配置') +
+                                                highlightBadge(T['TXT_NEW_MOD'] || 'NEW') +
                                               "</div>";
                                 return [label, newHtml];
                             } else if (isChanged) {
@@ -1940,7 +1940,7 @@ return view.extend({
                                                    "<span style='color:#10b981; font-weight:bold; margin-right:6px; font-size:16px; line-height:1.2;'>↳</span>" +
                                                    "<div>" + sNew + "</div>" +
                                                  "</div>" +
-                                                 highlightBadge(T['TXT_MODIFIED'] || '已修改') +
+                                                 highlightBadge(T['TXT_MODIFIED'] || 'OK') +
                                                "</div>";
                                 return [label, diffHtml];
                             } else {
