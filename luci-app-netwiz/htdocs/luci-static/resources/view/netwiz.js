@@ -2050,10 +2050,10 @@ return view.extend({
                             ]);
                         }
                         
-                        if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; setTimeout(function(){ smoothScrollToTop(450); }, 20); } }); return; }
+                        if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; setTimeout(function(){ smoothScrollToTop(650); }, 20); } }); return; }
                         
                         step2.style.display = 'none'; step3.style.display = 'block';
-                        setTimeout(function(){ smoothScrollToTop(450); }, 20); 
+                        setTimeout(function(){ smoothScrollToTop(650); }, 20); 
                     } catch (err) {
                         openModal({ title: T['M_SYS_ERR'], msg: 'Data processing failed: ' + err, okText: T['M_CLOSE'] });
                     }
