@@ -184,7 +184,7 @@ var T = {
     'TXT_ROAMING_ON': _('Roaming Enabled'),
     'TXT_CLICK_FIX': _('Click to Fix'),
     'TXT_CLICK_GOTO': _('Click to Settings'),
-    'MSG_WAN_AUTODETECT': _('WAN Blind-Switch: Unplug the WAN cable for 10 seconds and reconnect to auto-detect and switch the connection type.'),
+    'MSG_WAN_AUTODETECT': _('WAN Blind-Switch: Unplug the WAN cable for 10 seconds and reconnect to auto-detect and switch the connection type (takes about 2 mins).'),
     'TXT_NEW_MOD': _('New'),
     'TXT_MODIFIED': _('Modified'),
 };
