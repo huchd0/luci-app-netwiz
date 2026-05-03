@@ -79,11 +79,11 @@ msgstr "安全模式 (建议开启，防失联)"
 msgid "Enable AP Wired Relay"
 msgstr "启用旁路由（AP有线中继）模式"
 
-msgid "<b style=\"font-size: 16px;\">AP Wired Relay Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b><br>2. Gateway MUST be the upstream router IP.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
-msgstr "<b style=\"font-size: 16px;\">AP 有线中继模式已开启：</b><br>1. DHCP 将被禁用。<b style=\"color: #059669;\">设备必须使用静态 IP 或由上级路由分配 IP。</b><br>2. 网关必须填写为上级路由器的 IP 地址。<br>3. 若修改了局域网 IP，请确保设备与新 IP 处于同一网段，以免<b style=\"color: #059669;\">防失联回滚触发</b>。"
+msgid "<b style=\"font-size: 16px;\">AP Wired Relay Enabled:</b><br>1. DHCP will be disabled. <b style=\"color: #059669;\">Devices must use static IPs or get IPs from upstream.</b>2. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #059669;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">AP 有线中继模式已开启：</b><br>1. DHCP 将被禁用。<b style=\"color: #059669;\">设备必须使用静态 IP 或由上级路由分配 IP。</b>2. 若修改了局域网 IP，请确保设备与新 IP 处于同一网段，以免<b style=\"color: #059669;\">防失联回滚触发</b>。"
 
-msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.<br>2. Gateway is usually left blank.<br>3. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #ef4444;\">losing access</b>."
-msgstr "<b style=\"font-size: 16px;\">主路由模式已开启：</b><br>1. DHCP 服务将开启，由本设备负责分配局域网 IP。<br>2. 网关通常留空即可。<br>3. 若修改了局域网 IP，请确保设备与新 IP 处于同一网段，以免<b style=\"color: #ef4444;\">防失联回滚触发</b>。"
+msgid "<b style=\"font-size: 16px;\">Main Router Mode Enabled:</b><br>1. DHCP will be enabled. This device assigns IPs.2. If LAN IP changes, ensure your client is in the same subnet to avoid <b style=\"color: #ef4444;\">losing access</b>."
+msgstr "<b style=\"font-size: 16px;\">主路由模式已开启：</b><br>1. DHCP 服务将开启，由本设备负责分配局域网 IP。2. 若修改了局域网 IP，请确保设备与新 IP 处于同一网段，以免<b style=\"color: #ef4444;\">防失联回滚触发</b>。"
 
 msgid "Device LAN IP"
 msgstr "设备局域网 IP"
