@@ -189,6 +189,19 @@ var T = {
     'TXT_MODIFIED': _('Modified'),
     'M_OPEN_WARN_TIT': _('Security Warning'),
     'M_OPEN_WARN_MSG': _('You are setting up an Open Wi-Fi network without a password. Anyone nearby will be able to connect and access your network.<br><br>Are you sure you want to continue?'),
+// ===== 向导专用词条 =====
+    'WIZ_TITLE': _('✨ Quick Setup Wizard'),
+    'WIZ_WAN': _('Step 1: Internet Setup'),
+    'WIZ_WIFI': _('Step 2: Wi-Fi Setup'),
+    'WIZ_WIFI_DESC': _('Set your wireless network name and password.'),
+    'WIZ_CONFIRM': _('Step 3: Confirm & Apply'),
+    'WIZ_SKIP': _('Skip Wizard'),
+    'WIZ_HIDE': _("Don't show this again"),
+    'WIZ_REOPEN': _('✨ Reopen Wizard'),
+    'WIZ_SKIP_WIFI': _('Skip Wi-Fi Setup (Keep current)'),
+    'TXT_NOT_CONFIGURED': _('Not configured (Keep current)'),
+    'TXT_UNSET': _('Not set'),
+    'TXT_NO_PWD_OPEN': _('No Password (Open)'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -216,18 +229,42 @@ return view.extend({
 
         var htmlTemplate = [
             '<style>',
+            '/* ====== Netwiz Elegant UI Styles ====== */',
+            '/* --- 1. Base & Layout --- */',
+            ' header { margin: -5px -5px 0;) }',
             '#maincontent, .main-right { overflow-y: scroll !important; scrollbar-gutter: stable !important; }',
-            '.nw-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 101vh; padding-bottom: 10vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }',
-            '.nw-header { text-align: center; margin-bottom: 40px; background-color: #5e72e4; padding: 25px; border-radius: 16px; position: relative; width: 100%; max-width: 750px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(94, 114, 228, 0.15); z-index: 20; }',
+            '#netwiz-container { display: block !important; width: 100% !important; padding: 0 !important; margin: 0 auto !important; box-sizing: border-box !important; }',
+            '.nw-wrapper { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; width: 100% !important; max-width: 900px !important; margin: 0 auto !important; min-height: 101vh; padding-bottom: 10vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box !important; }',
+            '.nw-header { display: block !important; width: 100% !important; max-width: 750px !important; margin: 0 auto 40px auto !important; text-align: center; background-color: #5e72e4; padding: 25px; border-radius: 16px; position: relative; box-sizing: border-box; box-shadow: 0 10px 25px rgba(94, 114, 228, 0.15); z-index: 20; }',
+            '.nw-step { width: 100% !important; max-width: 800px !important; text-align: center; animation: slideUp 0.4s ease-out; margin: 0 auto !important; }',
+            '.nw-form-area, .nw-confirm-board { position: relative; max-width: 460px; margin: 0 auto; text-align: left; padding: 40px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.88); box-shadow: 0 10px 30px rgba(0,0,0,0.06); box-sizing: border-box; display: block !important; }',
+
+            '/* --- 2. Shared Flex Rows --- */',
+            '.nw-setting-row, .nw-setting-row-alt, .nw-switch-row-padded, .nw-adv-setting-row, .nw-roam-row, .nw-roam-row-alt, .nw-split-header-row, .nw-legacy-row, .nw-wisp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }',
+            '.nw-setting-row { padding: 15px 0; border-bottom: 1px solid #f1f5f9; }',
+            '.nw-setting-row-alt { padding: 0 0 15px 0; border-bottom: 1px solid #f1f5f9; }',
+            '.nw-switch-row-padded { padding: 10px 0 15px 0; border-bottom: 1px dashed #e2e8f0; }',
+            '.nw-adv-setting-row { padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; animation: fadeIn 1s ease; }',
+            '.nw-roam-row { padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; }',
+            '.nw-roam-row-alt { padding: 15px 0 5px 0; border-top: 1px dashed #cbd5e1; margin-top: 10px; margin-bottom: 0; }',
+            '.nw-split-header-row { padding: 0 0 15px 0; border-bottom: 1px dashed #e2e8f0; }',
+            '.nw-legacy-row { padding: 15px 0 0 0; border-top: 1px solid #f1f5f9; margin-top: 15px; }',
+            '.nw-wisp-header { margin-bottom: 5px; }',
+
+            '/* --- 3. Header & Typography --- */',
             '.nw-main-title { font-size: 35px; font-weight: 600; margin-bottom: 10px; color: #ffffff; letter-spacing: 2px; }',
+            '.nw-header p { color: #ffffff; font-size: 16px; opacity: 0.9; margin: 10px; letter-spacing: 1px; }',
             '.nw-title-wrap { position: relative; display: inline-block; cursor: pointer; }',
-            '.nw-version-tag { position: absolute; top: 50%; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.1); color: #f8fafc; font-size: 14px; font-weight: 600; padding: 5px 12px; border-radius: 6px; opacity: 0; pointer-events: none; transition: all 0.25s ease; font-family: monospace; z-index: 50; box-shadow: 0 4px 15px rgba(0,0,0,0.15); white-space: nowrap; border: 1px solid rgba(255,255,255,0.1); }',
-            '.nw-title-wrap:hover .nw-version-tag { opacity: 1; top: 145%; }',
+            '.nw-version-tag { position: absolute; top: 0; right: -75px; background: rgba(15, 23, 42, 0.1); color: #f8fafc; font-size: 14px; font-weight: 600; padding: 5px 12px; border-radius: 6px; opacity: 0; pointer-events: none; transition: all 0.25s ease; font-family: monospace; z-index: 50; box-shadow: 0 4px 15px rgba(0,0,0,0.15); white-space: nowrap; border: 1px solid rgba(255,255,255,0.1); }',
+            '.nw-title-wrap:hover .nw-version-tag { opacity: 1; top: 0; }',
             '.nw-version-dot { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9); display: block; }',
-            '.nw-header p { color: #ffffff; font-size: 16px; opacity: 0.9; margin: 0; letter-spacing: 1px; }',
-            '.nw-step { width: 100%; max-width: 800px; text-align: center; animation: slideUp 0.4s ease-out; }',
-            '@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }',
-            
+            '.nw-step-title { text-align: center; margin-bottom: 30px; color: #111; font-weight: 600; font-size: 20px; }',
+            '.nw-setting-row-label, .nw-wisp-title { font-weight: 600; font-size: 16px; }',
+            '.nw-setting-row-label { color: #222; }',
+            '.nw-wisp-title { color: #059669; }',
+            '.nw-desc-title { font-weight: 600; color: #222; font-size: 15px; word-break: break-word; line-height: 1.3; }',
+
+            '/* --- 4. Cards & Badges --- */',
             '.nw-card-group { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin-top: 20px; width: 100%; box-sizing: border-box; }',
             '.nw-card { flex: 1; min-width: 170px; max-width: 220px; padding: 35px 20px; border-radius: 16px; cursor: pointer; backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.03); box-shadow: 0px 0px 15px 2px #b7b7b7; transition: all 0.25s ease; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }',
             '.nw-card:hover { transform: translateY(-5px); }',
@@ -235,32 +272,33 @@ return view.extend({
             '.nw-card[data-mode="wifi"] { background: rgba(245, 54, 92, 0.85); }', 
             '.nw-card[data-mode="router"] { background: rgba(80, 0, 183, 0.85); }',
             '.nw-card[data-mode="lan"] { background: rgba(245, 158, 11, 0.85); }',
-            
+            '.nw-card-title { font-size: 19px; margin: 0 0 10px 0; color: #ffffff; font-weight: 600; line-height: 1.2; }',
+            '.nw-card span { font-size: 14.5px; color: #ffffff; line-height: 1.5; opacity: 0.9; }',
             '.nw-badge { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }',
             '.nw-badge svg { width: 26px; height: 26px; }',
             '.nw-badge-pppoe { background: #fef3c7; color: #059669; }',
             '.nw-badge-wifi { background: #f3e8ff; color: #0284c7; }', 
             '.nw-badge-dhcp { background: #e0f2fe; color: #9333ea; }',
             '.nw-badge-bypass { background: #d1fae5; color: #d97706; }',
-            
-            '.nw-card-title { font-size: 19px; margin: 0 0 10px 0; color: #ffffff; font-weight: 600; line-height: 1.2; }',
-            '.nw-card span { font-size: 14.5px; color: #ffffff; line-height: 1.5; opacity: 0.9; }',
-            '.nw-form-area, .nw-confirm-board { position: relative; max-width: 460px; margin: 0 auto; text-align: left; padding: 40px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.88); box-shadow: 0 10px 30px rgba(0,0,0,0.06); }',
-            '.nw-top-back { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10; }',
-            '.nw-top-back:hover { background: #e2e8f0; color: #0f172a; transform: translateX(-3px); box-shadow: 2px 2px 8px rgba(0,0,0,0.05); }',
-            '.nw-top-back svg { width: 20px; height: 20px; }',
-            '.nw-step-title { text-align: center; margin-bottom: 30px; color: #111; font-weight: 600; font-size: 20px; }',
-            '.nw-form-area .nw-value { border: none !important; padding-bottom: 12px !important; display: flex !important; flex-direction: column !important; width: 100% !important; margin: 0 !important; background: transparent !important; }',
-            '.nw-form-area .nw-value-title { text-align: left !important; font-weight: 600 !important; color: #334155 !important; font-size: 14.5px !important; margin: 0 0 10px 4px !important; line-height: 1.2 !important; display: block !important; padding: 0 !important; width: auto !important; float: none !important; }',
-            '.nw-form-area .nw-value-field { width: 100% !important; margin: 0 !important; padding: 0 !important; display: block !important; float: none !important; }',
-            '.nw-form-area input[type="text"], .nw-form-area input[type="password"], .nw-form-area select, .nw-form-area textarea { appearance: none !important; width: 100% !important; box-sizing: border-box !important; padding: 14px 16px !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; font-size: 15px !important; outline: none !important; background: #f8fafc !important; color: #0f172a !important; height: auto !important; min-height: 48px !important; line-height: 1.5 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02) !important; margin: 0 !important; transition: all 0.2s ease !important; display: block !important; font-family: inherit; resize: none; word-break: break-all; }',
-            '.nw-form-area input::placeholder, .nw-form-area textarea::placeholder { color: #94a3b8 !important; opacity: 1 !important; }',
-            '.nw-actions { margin-top: 35px; display: flex; justify-content: center; gap: 15px; }',
-            '.nw-actions button { appearance: none !important; border-radius: 8px !important; padding: 12px 28px !important; font-weight: 600 !important; font-size: 15px !important; cursor: pointer !important; border: none !important; min-width: 120px !important; outline: none !important; height: auto !important; line-height: normal !important; margin: 0 !important; transition: all 0.25s ease !important; }',
-            '.nw-actions .cbi-button-apply { background: #10b981 !important; color: white !important; }',
-            '.nw-actions .cbi-button-apply:hover { background: #059669 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35) !important; }',
-            '.nw-actions .cbi-button-reset { background: #ef4444!important; color: #fff !important; }',
-            '.nw-actions .cbi-button-reset:hover { background: #ef4444 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(244, 63, 94, 0.35) !important; }',
+
+            '/* --- 5. Forms & Inputs --- */',
+            '.nw-value { border: none !important; padding-bottom: 12px !important; display: flex !important; flex-direction: column !important; width: 100% !important; margin: 0 !important; background: transparent !important; }',
+            '.nw-value-title { text-align: left !important; font-weight: 600 !important; color: #334155 !important; font-size: 14.5px !important; margin: 0 0 10px 4px !important; line-height: 1.2 !important; display: block !important; padding: 0 !important; width: auto !important; float: none !important; }',
+            '.nw-value-field { width: 100% !important; margin: 0 !important; padding: 0 !important; display: block !important; float: none !important; }',
+            '.nw-form-area input[type="text"], .nw-form-area input[type="password"], .nw-form-area select, .nw-form-area textarea, .nw-wiz-modal-box input[type="text"], .nw-wiz-modal-box textarea { appearance: none !important; width: 100% !important; box-sizing: border-box !important; padding: 14px 16px !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; font-size: 15px !important; outline: none !important; background: #f8fafc !important; color: #0f172a !important; height: auto !important; min-height: 48px !important; line-height: 1.5 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02) !important; margin: 0 !important; transition: all 0.2s ease !important; display: block !important; font-family: inherit; resize: none; word-break: break-all; }',
+            '.nw-form-area input::placeholder, .nw-form-area textarea::placeholder, .nw-wiz-modal-box input::placeholder, .nw-wiz-modal-box textarea::placeholder { color: #94a3b8 !important; opacity: 1 !important; }',
+            '.nw-form-area input:focus, .nw-form-area select:focus, .nw-form-area textarea:focus, .nw-wiz-modal-box input:focus, .nw-wiz-modal-box textarea:focus { border-color: #3b82f6 !important; background: #ffffff !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important; }',
+
+            '/* --- 自定义复选框 --- */',
+            '.nw-wiz-cb-wrap { display: inline-flex; align-items: center; cursor: pointer; user-select: none; }',
+            '.nw-wiz-cb-wrap input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }',
+            '.nw-wiz-checkmark { height: 18px; width: 18px; background-color: #fff; border: 2px solid #cbd5e1; border-radius: 4px; margin-right: 10px; position: relative; transition: all 0.2s ease; display: inline-block; flex-shrink: 0; vertical-align: middle; }',
+            '.nw-wiz-cb-wrap:hover input ~ .nw-wiz-checkmark { border-color: #3b82f6; }',
+            '.nw-wiz-cb-wrap input:checked ~ .nw-wiz-checkmark { background-color: #3b82f6; border-color: #3b82f6; }',
+            '.nw-wiz-checkmark:after { content: ""; position: absolute; display: none; left: 4px; top: 0px; width: 5px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }',
+            '.nw-wiz-cb-wrap input:checked ~ .nw-wiz-checkmark:after { display: block; }',
+
+            '/* --- 6. Custom Controls (Radio & Switch) --- */',
             '.nw-radio-group { display: flex; gap: 15px; align-items: stretch; margin: 0; padding: 0; width: 100%; }',
             '.nw-radio-btn { cursor: pointer; position: relative; display: block; flex: 1; margin: 0 !important; padding: 0 !important; }',
             '.nw-radio-btn input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }',
@@ -277,12 +315,34 @@ return view.extend({
             'input:checked + .nw-slider { background-color: #10b981; }',
             'input.is-dirty:checked + .nw-slider { background-color: #ea580c; }',
             'input:checked + .nw-slider:before { transform: translateX(22px); }',
-            '#nw-global-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 999999; display: flex; align-items: center; justify-content: center; }',
-            '#nw-global-modal .nw-modal-box { background: #fff; padding: 40px; border-radius: 16px; text-align: center; max-width: 420px; width: 90%; }',
+
+            '/* --- 7. Buttons & Actions --- */',
+            '.nw-actions { margin-top: 35px; display: flex; justify-content: center; gap: 15px; }',
+            '.nw-actions button, .nw-wiz-btn { appearance: none !important; border-radius: 8px !important; padding: 12px 28px !important; font-weight: 600 !important; font-size: 15px !important; cursor: pointer !important; border: none !important; outline: none !important; height: auto !important; line-height: normal !important; margin: 0 !important; transition: all 0.25s ease !important; }',
+            '.nw-actions button { min-width: 120px !important; }',
+            '.nw-wiz-btn { flex: 1; }',
+            '.nw-actions .cbi-button-apply, .nw-wiz-btn-ok { background: #10b981 !important; color: white !important; }',
+            '.nw-actions .cbi-button-apply:hover, .nw-wiz-btn-ok:hover { background: #059669 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35) !important; }',
+            '.nw-actions .cbi-button-reset { background: #ef4444!important; color: #fff !important; }',
+            '.nw-actions .cbi-button-reset:hover { background: #ef4444 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(244, 63, 94, 0.35) !important; }',
+            '.nw-wiz-btn-cancel { background: #f1f5f9 !important; color: #475569 !important; }',
+            '.nw-wiz-btn-cancel:hover { background: #e2e8f0 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1) !important; }',
+            '.nw-top-back { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10; }',
+            '.nw-top-back:hover { background: #e2e8f0; color: #0f172a; transform: translateX(-3px); box-shadow: 2px 2px 8px rgba(0,0,0,0.05); }',
+            '.nw-top-back svg { width: 20px; height: 20px; }',
+            '.nw-adv-btn { text-align: center; margin: 15px; cursor: pointer; color: #64748b; font-size: 14px; font-weight: bold; user-select: none; transition: color 0.25s ease; }',
+            '.nw-adv-btn:hover { color: #3b82f6; }',
+
+            '/* --- 8. Modals & Overlays --- */',
+            '#nw-global-modal, .nw-wisp-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 999999; display: flex; align-items: center; justify-content: center; }',
+            '#nw-wizard-modal { backdrop-filter: blur(8px); z-index: 1000000; }',
+            '#nw-global-modal .nw-modal-box, .nw-wisp-modal-box, .nw-wiz-modal-box { background: #fff; width: 90%; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }',
+            '#nw-global-modal .nw-modal-box { padding: 40px; text-align: center; max-width: 420px; }',
+            '.nw-wisp-modal-box { max-width: 400px; max-height: 80vh; }',
+            '.nw-wiz-modal-box { max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }',
             '#nw-global-modal h3 { font-size: 22px; color: #fff ;background: rgba(0, 0, 0, 0.65); border-radius: 10px; margin-bottom: 15px; border:none; }',
             '#nw-global-modal p, #nw-global-msg div { font-size: 15px; color: #475569; line-height: 1.6; margin: 0; word-break: break-all; }',
-            '.nw-spinner { width: 50px; height: 50px; border: 4px solid #f1f5f9; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 25px; }',
-            '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }',
+            '.nw-modal-btn-wrap { display: flex; gap: 15px; width: 100%; margin-top: 25px; }',
             '.nw-modal-btn-ok, .nw-modal-btn-cancel, .nw-modal-btn-danger { border: none !important; padding: 12px 30px !important; border-radius: 8px !important; font-size: 15px !important; cursor: pointer !important; flex: 1 !important; transition: all 0.25s ease !important; height: auto !important; margin: 0 !important; }',
             '.nw-modal-btn-ok { background: #3b82f6 !important; color: white !important; }',
             '.nw-modal-btn-ok:hover { background: #2563eb !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.35) !important; }',
@@ -290,18 +350,42 @@ return view.extend({
             '.nw-modal-btn-danger:hover { background: #ef4444 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.35) !important; }',
             '.nw-modal-btn-cancel { background: #f1f5f9 !important; color: #475569 !important; }',
             '.nw-modal-btn-cancel:hover { background: #e2e8f0 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1) !important; }',
+
+            '/* --- 9. Alerts, Notes & Specific Panels --- */',
+            '.nw-warn-bypass, .nw-warn-main { padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid; line-height: 1.7; font-weight: bolder; }',
+            '.nw-warn-bypass { background: #fef2f2; color: #ef4444; border-color: #fecaca; }',
+            '.nw-warn-main { background: #f0fdf4; color: #059669; border-color: #bbf7d0; }',
+            '.nw-adv-panel { background: rgba(241, 245, 249, 0.5); border-radius: 12px; padding: 20px; margin-top: 15px; border: 1px solid #e2e8f0; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); }',
+            '.nw-note-box { background-color: #f8fafc; padding: 15px; font-size: 13.5px; margin-top: 20px; border: 1px solid #e2e8f0; line-height: 1.7; color: #475569; border-radius: 12px; }',
+            '.nw-note-title { font-weight: bold; color: #0f172a; margin-bottom: 8px; font-size: 14.5px; }',
+            '.nw-confirm-mode-text { color: #fff; background: #0055bb; padding: 20px; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); margin-top: 15px; }',
+            '.nw-current-mode-display { margin-top: 45px; background: #5e72e4; padding: 20px 35px; border-radius: 12px; display: inline-block; box-shadow: 0 8px 20px rgba(94, 114, 228, 0.3); text-align: center; min-width: 320px; }',
+            '.nw-wisp-modal-header, .nw-wiz-modal-header { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }',
+            '.nw-wiz-modal-header { background: #5e72e4; border: none; }',
+            '.nw-wisp-modal-title, .nw-wiz-modal-title { margin: 0 20px; font-size: 16px; color: #eee; background: #0f172a; text-align: center; border-radius: 12px; }',
+            '.nw-wiz-modal-title { background: transparent; font-size: 19px; font-weight: 600; margin: 0; padding: 0; letter-spacing: 0.5px; }',
+            '.nw-wisp-ui-panel { flex-direction: column; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }',
+            '.nw-wisp-target-input { background: #e2e8f0 !important; color: #475569 !important; }',
+            '.nw-wifi-tabs { display: flex; gap: 10px; margin-bottom: 15px; }',
+            '.nw-tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; }',
+
+            '/* --- 10. Utilities & Animations --- */',
             '.nw-hl { color: #facc15; font-weight: bold; margin-left: 6px; }',
-            
-            /* 高级设置面板样式 */
-            '.nw-adv-btn { text-align: center; margin-top: 5px; cursor: pointer; color: #64748b; font-size: 14px; font-weight: bold; user-select: none; transition: color 0.25s ease; }',
-            '.nw-adv-btn:hover { color: #3b82f6; }',
-            '.nw-adv-panel { background: rgba(241, 245, 249, 0.5); border-radius: 12px; padding: 20px; margin-top: 15px; border: 1px solid #e2e8f0; animation: fadeIn 0.5s ease; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); }',
+            '.nw-flex-1 { flex: 1; padding-right: 15px; min-width: 0; }',
+            '.nw-flex-shrink-0 { flex-shrink: 0; }',
+            '.nw-scale-switch { transform: scale(0.9); transform-origin: left; }',
+            '.nw-m0 { margin: 0 !important; }',
+            '.nw-pointer { cursor: pointer; }',
+            '.nw-spinner { width: 50px; height: 50px; border: 4px solid #f1f5f9; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 25px; }',
+            '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }',
             '@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }',
             '@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }',
-            
+            '#btn-reopen-wizard:hover { background: rgba(255,255,255,0.25) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }',
+
+            '/* --- 11. Mobile Adaption --- */',
             '@media screen and (max-width: 768px) {',
             '  .nw-wrapper { padding-top: 3vh; padding-bottom: 5vh; }',
-            '  .nw-header { margin: -35px auto 15px !important; padding: 20px 15px !important; width: 100% !important; max-width: 320px !important; box-sizing: border-box !important; border-radius: 12px; }',
+            '  .nw-header { margin: 0px auto 15px !important; padding: 20px 15px !important; width: 100% !important; max-width: 320px !important; box-sizing: border-box !important; border-radius: 12px; }',
             '  .nw-main-title { font-size: 22px; line-height: 1.3; }',
             '  .nw-header p { font-size: 14px; }',
             '  .nw-card-group { flex-direction: column; align-items: center; gap: 15px; margin-top: 0; }',
@@ -310,47 +394,115 @@ return view.extend({
             '  .nw-form-area, .nw-confirm-board { width: 100% !important; max-width: 320px !important; margin: 0 auto !important; padding: 25px 20px !important; box-sizing: border-box !important; }',
             '  .nw-top-back { top: 12px; left: 12px; width: 32px; height: 32px; }',
             '  .nw-step-title { font-size: 18px; margin-top: 15px; margin-bottom: 20px; }',
-            '  #current-mode-display { width: 100% !important; max-width: 320px !important; min-width: 0 !important; margin: 20px auto 0 !important; padding: 15px !important; box-sizing: border-box !important; display: block !important; }',
+            '  .nw-current-mode-display { width: 100% !important; max-width: 320px !important; min-width: 0 !important; margin: 20px auto 0 !important; padding: 15px !important; box-sizing: border-box !important; display: block !important; }',
             '  .nw-actions { width: 100% !important; max-width: 320px !important; margin: 20px auto 0 !important; display: flex !important; flex-direction: row !important; gap: 12px !important; box-sizing: border-box !important; }',
             '  .nw-actions button { flex: 1 !important; padding: 12px 0 !important; font-size: 15px !important; margin: 0 !important; min-width: 0 !important; box-sizing: border-box !important; }',
             '  #nw-global-modal .nw-modal-box { padding: 25px 20px; width: 85%; box-sizing: border-box !important; }',
-            '  #nw-global-btn-wrap { flex-direction: row; gap: 12px; }',
-            '  #nw-global-btn-wrap button { flex: 1; padding: 12px 0 !important; margin: 0 !important; }',
+            '  .nw-wiz-modal-box { width: 95%; max-height: 90vh; }',
+            '  .nw-modal-btn-wrap { flex-direction: row; gap: 12px; }',
+            '  .nw-modal-btn-wrap button { flex: 1; padding: 12px 0 !important; margin: 0 !important; }',
             '  .nw-radio-group { flex-wrap: wrap; gap: 12px; }',
+            '  .nw-form-area input::placeholder, .nw-form-area textarea::placeholder, .nw-wiz-modal-box input::placeholder { font-size: 13px; }',
+            '  .nw-version-tag {display: none; }',
             '}',
             '</style>',
-            '<div class="nw-wrapper">',
+            
             '  <div class="nw-header">',
             '    <div class="nw-title-wrap">',
             '      <div class="nw-main-title">{{TITLE}}</div>',
             '      <div class="nw-version-tag">{{APP_VERSION}} <div class="nw-version-dot" style="display: none;"></div></div>',
             '    </div>',
             '    <p>{{SUBTITLE}}</p>',
+            '    <div id="btn-reopen-wizard" style="margin-top: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); padding: 6px 18px; border-radius: 20px; font-size: 13.5px; font-weight: 500; color: #fff; transition: all 0.25s ease;">{{WIZ_REOPEN}}</div>',
             '  </div>',
             '  <div id="nw-global-modal" style="display:none;">',
             '    <div class="nw-modal-box">',
             '      <div id="nw-global-spinner" class="nw-spinner" style="display:none;"></div>',
             '      <h3 id="nw-global-title"></h3>',
             '      <p id="nw-global-msg"></p>',
-            '      <div id="nw-global-btn-wrap" style="display:flex; gap:15px; width:100%; margin-top:25px;">',
+            '      <div id="nw-global-btn-wrap" class="nw-modal-btn-wrap" style="display:none;">',
             '        <button id="nw-global-btn-cancel" class="nw-modal-btn-cancel" style="display:none;"></button>',
             '        <button id="nw-global-btn-ok" class="nw-modal-btn-ok" style="display:none;"></button>',
             '      </div>',
             '    </div>',
             '  </div>',
             // WISP 扫描结果
-            '  <div id="wisp-scan-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999999; align-items:center; justify-content:center;">',
-            '    <div style="background:#fff; width:90%; max-width:400px; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; max-height:80vh;">',
-            '      <div style="padding:10px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">',
-            '         <h3 style="margin:0 20px; font-size:16px; color:#eee; background: #0f172a; text-align: center; border-radius: 12px;">{{MODAL_WISP_TITLE}}</h3>',
-            '         <span id="wisp-modal-close" style="font-size:24px; cursor:pointer; color:#94a3b8;">&times;</span>',
+            '  <div id="wisp-scan-modal" class="nw-wisp-modal" style="display:none;">',
+            '    <div class="nw-wisp-modal-box">',
+            '      <div class="nw-wisp-modal-header">',
+            '         <h3 class="nw-wisp-modal-title">{{MODAL_WISP_TITLE}}</h3>',
+            '         <span id="wisp-modal-close" class="nw-wisp-modal-close" style="font-size:24px; cursor:pointer; color:#94a3b8;">&times;</span>',
             '      </div>',
             '      <div style="padding:0; overflow-y:auto; flex:1;">',
             '         <ul id="wisp-scan-list" style="list-style:none; padding:0; margin:0;"></ul>',
             '      </div>',
             '    </div>',
             '  </div>',
-            // 結束 
+            
+            // ===== 全新加入：快速向导悬浮层 =====
+            '  <div id="nw-wizard-modal" class="nw-wisp-modal" style="display:none;">',
+            '    <div class="nw-wiz-modal-box">',
+            '      <div class="nw-wiz-modal-header">',
+            '         <h3 class="nw-wiz-modal-title">{{WIZ_TITLE}}</h3>',
+            '         <span id="wiz-modal-close" class="nw-pointer" style="color: #fff; font-size: 26px; opacity: 0.8; line-height: 1;">&times;</span>',
+            '      </div>',
+            '      <div style="padding: 30px 25px 15px; overflow-y: auto;">',
+            '         <!-- Step 1: WAN -->',
+            '         <div id="wiz-step-1-area">',
+            '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_WAN}}</div>',
+            '            <div style="width: 100%; margin-bottom: 15px;">',
+            '              <div class="nw-radio-group">',
+            '                <label class="nw-radio-btn"><input type="radio" name="wiz_wan_type" value="dhcp"> <span class="nw-radio-btn-text">{{OPT_DHCP}}</span></label>',
+            '                <label class="nw-radio-btn"><input type="radio" name="wiz_wan_type" value="pppoe" checked> <span class="nw-radio-btn-text">{{MODE_PPPOE_TITLE}}</span></label>',
+            '              </div>',
+            '            </div>',
+            '            <div id="wiz-pppoe-fields" style="display:block; margin-top: 15px;">',
+            '               <div class="nw-value"><label class="nw-value-title">{{LBL_USER}}</label><div class="nw-value-field"><textarea id="wiz-pppoe-user" placeholder="{{PH_USER}}" rows="2"></textarea></div></div>',
+            '               <div class="nw-value"><label class="nw-value-title">{{LBL_PASS}}</label><div class="nw-value-field"><input type="text" id="wiz-pppoe-pass" placeholder="{{PH_PASS}}"></div></div>',
+            '            </div>',
+            '         </div>',
+            '         <!-- Step 2: Wi-Fi -->',
+            '         <div id="wiz-step-2-area" style="display:none;">',
+            '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_WIFI}}</div>',
+            '            <p style="color: #64748b; font-size: 14.5px; margin: 0 0 20px 0; text-align: center;">{{WIZ_WIFI_DESC}}</p>',
+            '            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">',
+            '               <label class="nw-wiz-cb-wrap" style="font-size: 14.5px; color: #3b82f6; font-weight: bold; margin: 0;">',
+            '                  <input type="checkbox" id="wiz-skip-wifi-checkbox">',
+            '                  <span class="nw-wiz-checkmark"></span>',
+            '                  <span style="line-height: 1;">{{WIZ_SKIP_WIFI}}</span>',
+            '               </label>',
+            '            </div>',
+            '            <div id="wiz-wifi-input-area">',
+            '               <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}}</label><div class="nw-value-field"><input type="text" id="wiz-wifi-ssid" placeholder="My_WiFi"></div></div>',
+            '               <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}}</label><div class="nw-value-field"><input type="text" id="wiz-wifi-key" placeholder="{{M_PWD_SHORT}}"></div></div>',
+            '            </div>',
+            '         </div>',
+            '         <!-- Step 3: Confirm -->',
+            '         <div id="wiz-step-3-area" style="display:none;">',
+            '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_CONFIRM}}</div>',
+            '            <div id="wiz-confirm-text" class="nw-confirm-mode-text" style="margin-top: 0; padding: 20px; background: #0f172a;"></div>',
+            '            <div class="nw-warn-main" style="margin-top: 15px; margin-bottom: 0;">{{NOTE_1}}</div>',
+            '         </div>',
+            '      </div>',
+            '      <div style="padding: 15px 25px 25px; border-top: 1px solid #f1f5f9; background: #f8fafc;">',
+            '         <div class="nw-modal-btn-wrap" style="margin-top: 0;">',
+            '            <button id="wiz-btn-prev" class="nw-wiz-btn nw-wiz-btn-cancel" style="display:none;">{{BTN_BACK}}</button>',
+            '            <button id="wiz-btn-next" class="nw-wiz-btn nw-wiz-btn-ok">{{BTN_NEXT}}</button>',
+            '            <button id="wiz-btn-apply" class="nw-wiz-btn nw-wiz-btn-ok" style="display:none;">{{BTN_APPLY}}</button>',
+            '         </div>',
+            '         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">',
+            '            <label class="nw-wiz-cb-wrap" style="font-size: 13.5px; color: #64748b; font-weight: 500; margin: 0;">',
+            '               <input type="checkbox" id="wiz-hide-checkbox" checked>',
+            '               <span class="nw-wiz-checkmark"></span>',
+            '               <span style="line-height: 1;">{{WIZ_HIDE}}</span>',
+            '            </label>',
+            '            <span id="wiz-btn-skip" style="font-size: 13.5px; color: #94a3b8; cursor: pointer; text-decoration: underline;">{{WIZ_SKIP}}</span>',
+            '         </div>',
+            '      </div>',
+            '    </div>',
+            '  </div>',
+            // ===================================
+            
             '  <div id="step-1" class="nw-step">',
             '    <div class="nw-card-group">',
             
@@ -371,7 +523,7 @@ return view.extend({
             '        <div class="nw-card-title">{{MODE_LAN_TITLE}}</div><span>{{MODE_LAN_DESC}}</span></div>',
             
             '    </div>',
-            '    <div id="current-mode-display" style="margin-top: 45px; background: #5e72e4; padding: 20px 35px; border-radius: 12px; display: inline-block; box-shadow: 0 8px 20px rgba(94, 114, 228, 0.3); text-align: center; min-width: 320px;">',
+            '    <div id="current-mode-display" class="nw-current-mode-display">',
             '       <div id="current-mode-text" style="color: #fff;"><div class="nw-spinner" style="width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;"></div><div style="margin-top:10px; font-size:15px; font-weight:bold; color:#fff;">{{LOADING_CONFIG}}</div></div>',
             '    </div>',
             '  </div>',
@@ -382,90 +534,79 @@ return view.extend({
             '      </div>',
             '      <div id="fields-router" style="display: none;">',
             '        <div class="nw-step-title">{{TITLE_WAN}}</div>',
-            '        <div style="width: 100%; padding-bottom:15px">',
-            '          <div class="nw-value-title" style="margin-bottom: 12px; display: block;">{{LBL_CONN_TYPE}}</div>',
+            '        <div class="nw-radio-group-wrap">',
+            '          <div class="nw-value-title nw-radio-title">{{LBL_CONN_TYPE}}</div>',
             '          <div class="nw-radio-group">',
             '            <label class="nw-radio-btn"><input type="radio" name="router_type" value="dhcp" checked> <span class="nw-radio-btn-text">{{OPT_DHCP}}</span></label>',
             '            <label class="nw-radio-btn"><input type="radio" name="router_type" value="static"> <span class="nw-radio-btn-text">{{OPT_STATIC}}</span></label>',
             '          </div>',
             '        </div>',
-            '        <div id="router-static-fields" style="display: none; margin-top: 5px; border-top: 1px dashed #e5e7eb; padding-top: 10px;">',
+            '        <div id="router-static-fields" class="nw-router-static-fields" style="display: none;">',
             '          <div class="nw-value"><label class="nw-value-title">{{LBL_IP}}</label><div class="nw-value-field"><input type="text" id="router-ip" placeholder="{{PH_IP}}"></div></div>',
             '          <div class="nw-value"><label class="nw-value-title">{{LBL_GW}}</label><div class="nw-value-field"><input type="text" id="router-gw" placeholder="{{PH_GW}}"></div></div>',
             '        </div>',
             '      </div>',
             '      <div id="fields-pppoe" style="display: none;">',
             '        <div class="nw-step-title">{{TITLE_PPPOE}}</div>',
-            // 宽带账号
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_USER}}</label><div class="nw-value-field"><textarea id="pppoe-user" placeholder="{{PH_USER}}" rows="2"></textarea></div></div>',
-            // 宽带密码
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_PASS}}</label><div class="nw-value-field"><input type="text" id="pppoe-pass" placeholder="{{PH_PASS}}"></div></div>',
-            '        <div style="padding: 10px; border-radius: 8px; font-size: 14px; color: #ef4444; font-weight: 600;">{{MSG_WAN_AUTODETECT}}</div>',
+            '        <div class="nw-warn-text">{{MSG_WAN_AUTODETECT}}</div>',
             '      </div>',
             '      <div id="fields-wifi" style="display: none;">',
             '        <div class="nw-step-title">{{TITLE_WIFI}}</div>',
-            '        <div id="wifi-smart-row" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 15px;">',
-            '           <div style="font-weight: 600; color: #222; font-size: 16px;">{{LBL_SMART_CONN}}</div>',
+            '        <div id="wifi-smart-row" class="nw-setting-row">',
+            '           <div class="nw-setting-row-label">{{LBL_SMART_CONN}}</div>',
             '           <label class="nw-switch"><input type="checkbox" id="wifi-smart-toggle"><span class="nw-slider"></span></label>',
             '        </div>',
-            
-            // --- 多频合一面板 ---
             '        <div id="wifi-smart-ui" style="display: none;">',
-            '          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0 15px 0; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">',
-            '             <label class="nw-value-title" style="margin:0 !important;">{{LBL_WIFI_SWITCH}}</label>',
-            '             <label class="nw-switch" style="flex-shrink:0;"><input type="checkbox" id="wifi-smart-en" checked><span class="nw-slider"></span></label>',
+            '          <div class="nw-switch-row-padded">',
+            '             <label class="nw-value-title nw-m0">{{LBL_WIFI_SWITCH}}</label>',
+            '             <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="wifi-smart-en" checked><span class="nw-slider"></span></label>',
             '          </div>',
             '          <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}}</label><div class="nw-value-field"><input type="text" id="wifi-smart-ssid" placeholder="My_WiFi"></div></div>',
             '          <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}}</label><div class="nw-value-field"><input type="text" id="wifi-smart-key" placeholder="min 8 chars"></div></div>',
             '          <div class="nw-adv-btn">▼ {{LBL_ADVANCED}}</div>',
             '          <div class="nw-adv-panel" style="display:none;">',
-            '             <div style="animation: fadeIn 1s ease; display: flex; align-items: center; justify-content: space-between; padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; margin-bottom: 15px;">',
-            '                <label class="nw-value-title" style="margin:0 !important;">{{LBL_HIDE_SSID}}</label>',
-            '                <label class="nw-switch" style="flex-shrink:0;"><input type="checkbox" id="wifi-smart-hidden"><span class="nw-slider"></span></label>',
+            '             <div class="nw-adv-setting-row">',
+            '                <label class="nw-value-title nw-m0">{{LBL_HIDE_SSID}}</label>',
+            '                <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="wifi-smart-hidden"><span class="nw-slider"></span></label>',
             '             </div>',
             '             <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_ENC}}</label><div class="nw-value-field">',
             '               <select id="wifi-smart-enc"><option value="psk2+sae">{{OPT_PSK2SAE}}</option><option value="psk2">{{OPT_PSK2}}</option><option value="sae">{{OPT_SAE}}</option><option value="none">{{OPT_NONE}}</option></select>',
             '             </div></div>',
-            // ==== 漫游开关（默认勾选 checked）====
-            '             <div style="display: flex; align-items: center; justify-content: space-between; padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; margin-bottom: 15px;">',
-            '                <div style="flex: 1; padding-right: 15px;">',
-            '                   <div style="font-weight: 600; color: #334155; font-size: 14.5px;">{{LBL_ROAMING}}</div>',
-            '                   <div style="font-size: 14px; color: #64748b; margin-top: 4px; line-height: 1.4;">{{DESC_ROAMING}}</div>',
-'                               <div id="roam-warn-smart" style="display:none; color:#ea580c; font-size:14px; margin-top:6px; font-weight:bold; line-height:1.4;">{{DESC_ROAM_DIRTY}}</div>',
+            '             <div class="nw-roam-row">',
+            '                <div class="nw-flex-1">',
+            '                   <div class="nw-roam-title">{{LBL_ROAMING}}</div>',
+            '                   <div class="nw-roam-desc">{{DESC_ROAMING}}</div>',
+            '                   <div id="roam-warn-smart" class="nw-roam-warn" style="display:none;">{{DESC_ROAM_DIRTY}}</div>',
             '                </div>',
-            '                <label class="nw-switch" style="flex-shrink:0;"><input type="checkbox" id="wifi-smart-roaming" checked><span class="nw-slider"></span></label>',
+            '                <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="wifi-smart-roaming" checked><span class="nw-slider"></span></label>',
             '             </div>',
-            // ==== 结束 ====
             '          </div>',
             '        </div>',
-
-            // --- 分开独立面板 (包含全局开关、高级设置、物理模式) ---
             '        <div id="wifi-split-ui" style="display: block;">',
-            '           <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0 15px 0; margin-bottom: 15px; border-bottom: 1px dashed #e2e8f0;">',
-            '              <div style="display: flex; align-items: center; gap: 10px;">',
-            '                 <label class="nw-switch" style="flex-shrink:0; transform: scale(0.9); transform-origin: left;"><input type="checkbox" id="wifi-2g-en" checked><span class="nw-slider"></span></label>',
-            '                 <label class="nw-value-title" style="margin:0 !important; cursor: pointer;">{{LBL_WIFI_2G_EN}}</label>',
+            '           <div class="nw-split-header-row" style="display: flex; justify-content: space-around; margin-bottom: 20px;">',
+            '              <div class="nw-split-header-item" style="display: flex; align-items: center; justify-content: center; gap: 0px;">',
+            '                 <label class="nw-switch nw-flex-shrink-0 nw-scale-switch" style="margin: 0;"><input type="checkbox" id="wifi-2g-en" checked><span class="nw-slider"></span></label>',
+            '                 <label class="nw-value-title nw-m0 nw-pointer" style="display: inline-block !important; margin: 0 !important; line-height: 1 !important;">{{LBL_WIFI_2G_EN}}</label>',
             '              </div>',
-            '              <div style="display: flex; align-items: center; gap: 10px;">',
-            '                 <label class="nw-switch" style="flex-shrink:0; transform: scale(0.9); transform-origin: left;"><input type="checkbox" id="wifi-5g-en" checked><span class="nw-slider"></span></label>',
-            '                 <label class="nw-value-title" style="margin:0 !important; cursor: pointer;">{{LBL_WIFI_5G_EN}}</label>',
+            '              <div class="nw-split-header-item" style="display: flex; align-items: center; justify-content: center; gap: 0px;">',
+            '                 <label class="nw-switch nw-flex-shrink-0 nw-scale-switch" style="margin: 0;"><input type="checkbox" id="wifi-5g-en" checked><span class="nw-slider"></span></label>',
+            '                 <label class="nw-value-title nw-m0 nw-pointer" style="display: inline-block !important; margin: 0 !important; line-height: 1 !important;">{{LBL_WIFI_5G_EN}}</label>',
             '              </div>',
             '           </div>',
-            '           <div id="wifi-tab-buttons" style="display:flex; gap:10px; margin-bottom:15px;">',
-            '              <button id="tab-2g" style="flex:1; padding:10px; background:#3b82f6; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">{{TAB_2G}}</button>',
-            '              <button id="tab-5g" style="flex:1; padding:10px; background:#f1f5f9; color:#475569; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">{{TAB_5G}}</button>',
+            '           <div id="wifi-tab-buttons" class="nw-wifi-tabs">',
+            '              <button id="tab-2g" class="nw-tab-btn" style="background:#3b82f6; color:#fff;">{{TAB_2G}}</button>',
+            '              <button id="tab-5g" class="nw-tab-btn" style="background:#f1f5f9; color:#475569;">{{TAB_5G}}</button>',
             '           </div>',
-            
-            // --- 2.4G 面板 ---
             '           <div id="wifi-2g-form">',
             '              <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}} (2.4G{{M_ACCT}})</label><div class="nw-value-field"><input type="text" id="wifi-2g-ssid"></div></div>',
             '              <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}} (2.4G)</label><div class="nw-value-field"><input type="text" id="wifi-2g-key"></div></div>',
-            
             '              <div class="nw-adv-btn">▼ {{LBL_ADVANCED}}</div>',
             '              <div class="nw-adv-panel" style="display:none;">',
-            '                 <div style="animation: fadeIn 1s ease; display: flex; align-items: center; justify-content: space-between; padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; margin-bottom: 15px;">',
-            '                    <label class="nw-value-title" style="margin:0 !important;">{{LBL_HIDE_SSID}}</label>',
-            '                    <label class="nw-switch" style="flex-shrink:0;"><input type="checkbox" id="wifi-2g-hidden"><span class="nw-slider"></span></label>',
+            '                 <div class="nw-adv-setting-row">',
+            '                    <label class="nw-value-title nw-m0">{{LBL_HIDE_SSID}}</label>',
+            '                    <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="wifi-2g-hidden"><span class="nw-slider"></span></label>',
             '                 </div>',
             '                 <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_ENC}}</label><div class="nw-value-field">',
             '                    <select id="wifi-2g-enc"><option value="psk2+sae">{{OPT_PSK2SAE}}</option><option value="psk2">{{OPT_PSK2}}</option><option value="sae">{{OPT_SAE}}</option><option value="none">{{OPT_NONE}}</option></select>',
@@ -479,35 +620,31 @@ return view.extend({
             '                 <div class="nw-value"><label class="nw-value-title">{{LBL_BANDWIDTH}}</label><div class="nw-value-field">',
             '                    <select id="wifi-2g-bw"><option value="auto">{{OPT_AUTO}}</option><option value="20">20 MHz</option><option value="40">40 MHz</option></select>',
             '                 </div></div>',
-            '                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0 0 0; border-top: 1px solid #f1f5f9; margin-top: 15px;">',
-            '                    <div style="flex: 1; padding-right: 15px; min-width: 0;">',
-            '                        <div style="font-weight: 600; color: #222; font-size: 15px; word-break: break-word; line-height: 1.3;">{{LBL_LEGACY_B}}</div>',
-            '                        <div style="font-size: 14px; color: #64748b; margin-top: 4px; word-break: break-word; line-height: 1.4;">{{DESC_LEGACY_B}}</div>',
+            '                 <div class="nw-legacy-row">',
+            '                    <div class="nw-flex-1">',
+            '                        <div class="nw-desc-title">{{LBL_LEGACY_B}}</div>',
+            '                        <div class="nw-legacy-desc">{{DESC_LEGACY_B}}</div>',
             '                    </div>',
-            '                    <label class="nw-switch" style="flex-shrink: 0;"><input type="checkbox" id="legacy-b-toggle"><span class="nw-slider"></span></label>',
+            '                    <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="legacy-b-toggle"><span class="nw-slider"></span></label>',
             '                 </div>',
-            // ==== 2.4G 为了兼容智能家居，默认不带 checked ====
-            '                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0 5px 0; border-top: 1px dashed #cbd5e1; margin-top: 10px;">',
-            '                    <div style="flex: 1; padding-right: 15px;">',
-            '                       <div style="font-weight: 600; color: #334155; font-size: 14.5px;">{{LBL_ROAMING}}</div>',
-            '                       <div style="font-size: 14px; color: #64748b; margin-top: 4px; line-height: 1.4;">{{DESC_ROAMING}}</div>',
-            '                       <div id="roam-warn-2g" style="display:none; color:#ea580c; font-size:14px; margin-top:6px; font-weight:bold; line-height:1.4;">{{DESC_ROAM_DIRTY}}</div>',
+            '                 <div class="nw-roam-row-alt">',
+            '                    <div class="nw-flex-1">',
+            '                       <div class="nw-roam-title">{{LBL_ROAMING}}</div>',
+            '                       <div class="nw-roam-desc">{{DESC_ROAMING}}</div>',
+            '                       <div id="roam-warn-2g" class="nw-roam-warn" style="display:none;">{{DESC_ROAM_DIRTY}}</div>',
             '                    </div>',
-            '                    <label class="nw-switch" style="flex-shrink:0;"><input type="checkbox" id="wifi-2g-roaming"><span class="nw-slider"></span></label>',
+            '                    <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="wifi-2g-roaming"><span class="nw-slider"></span></label>',
             '                 </div>',
-            // ==== 结束 ====
             '              </div>',
             '           </div>',
-
-            // --- 5G 面板 ---
             '           <div id="wifi-5g-form" style="display:none;">',
             '              <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}} (5G{{M_ACCT}})</label><div class="nw-value-field"><input type="text" id="wifi-5g-ssid"></div></div>',
             '              <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}} (5G)</label><div class="nw-value-field"><input type="text" id="wifi-5g-key"></div></div>',
             '              <div class="nw-adv-btn">▼ {{LBL_ADVANCED}}</div>',
             '              <div class="nw-adv-panel" style="display:none;">',
-            '                 <div style="animation: fadeIn 1s ease; display: flex; align-items: center; justify-content: space-between; padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; margin-bottom: 15px;">',
-            '                    <label class="nw-value-title" style="margin:0 !important;">{{LBL_HIDE_SSID}}</label>',
-            '                    <label class="nw-switch" style="flex-shrink:0;"><input type="checkbox" id="wifi-5g-hidden"><span class="nw-slider"></span></label>',
+            '                 <div class="nw-adv-setting-row">',
+            '                    <label class="nw-value-title nw-m0">{{LBL_HIDE_SSID}}</label>',
+            '                    <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="wifi-5g-hidden"><span class="nw-slider"></span></label>',
             '                 </div>',
             '                 <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_ENC}}</label><div class="nw-value-field">',
             '                    <select id="wifi-5g-enc"><option value="psk2+sae">{{OPT_PSK2SAE}}</option><option value="psk2">{{OPT_PSK2}}</option><option value="sae">{{OPT_SAE}}</option><option value="none">{{OPT_NONE}}</option></select>',
@@ -521,63 +658,55 @@ return view.extend({
             '                 <div class="nw-value"><label class="nw-value-title">{{LBL_BANDWIDTH}}</label><div class="nw-value-field">',
             '                    <select id="wifi-5g-bw"><option value="auto">{{OPT_AUTO}}</option><option value="20">20 MHz</option><option value="40">40 MHz</option><option value="80">80 MHz</option><option value="160">160 MHz</option></select>',
             '                 </div></div>',
-            // ==== 5G 给手机跑满速漫游，默认勾选 checked ====
-            '                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0 5px 0; border-top: 1px dashed #cbd5e1; margin-top: 10px;">',
-            '                    <div style="flex: 1; padding-right: 15px;">',
-            '                       <div style="font-weight: 600; color: #334155; font-size: 14.5px;">{{LBL_ROAMING}}</div>',
-            '                       <div style="font-size: 14px; color: #64748b; margin-top: 4px; line-height: 1.4;">{{DESC_ROAMING}}</div>',
-            '                       <div id="roam-warn-5g" style="display:none; color:#ea580c; font-size:14px; margin-top:6px; font-weight:bold; line-height:1.4;">{{DESC_ROAM_DIRTY}}</div>',
+            '                 <div class="nw-roam-row-alt">',
+            '                    <div class="nw-flex-1">',
+            '                       <div class="nw-roam-title">{{LBL_ROAMING}}</div>',
+            '                       <div class="nw-roam-desc">{{DESC_ROAMING}}</div>',
+            '                       <div id="roam-warn-5g" class="nw-roam-warn" style="display:none;">{{DESC_ROAM_DIRTY}}</div>',
             '                    </div>',
-            '                    <label class="nw-switch" style="flex-shrink:0;"><input type="checkbox" id="wifi-5g-roaming" checked><span class="nw-slider"></span></label>',
+            '                    <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="wifi-5g-roaming" checked><span class="nw-slider"></span></label>',
             '                 </div>',
-            // ==== 结束 ====
             '              </div>',
             '           </div>',
             '        </div>',
-            // 中继 (WISP) UI 开关
-            '        <div style="margin-top: 10px; padding-top: 20px; border-top: 2px dashed #cbd5e1;">',
-            '           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">',
-            '              <div style="font-weight: 600; color: #059669; font-size: 16px;">{{LBL_WISP_EN}}</div>',
+            '        <div class="nw-wisp-section">',
+            '           <div class="nw-wisp-header">',
+            '              <div class="nw-wisp-title">{{LBL_WISP_EN}}</div>',
             '              <label class="nw-switch"><input type="checkbox" id="wisp-toggle"><span class="nw-slider"></span></label>',
             '           </div>',
-            '           <div style="font-size: 14px; color: #64748b; margin-bottom: 15px;">{{DESC_WISP}}</div>',
-            '           <div id="wisp-ui-panel" style="display:none; flex-direction:column; align-items:center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">',
-            '              <button id="btn-wisp-scan" class="cbi-button cbi-button-apply" style="width:100%; background:#0f172a !important;">{{BTN_SCAN}}</button>',
-            '              <div id="wisp-selected-info" style="display:none;">',
-            '                 <div class="nw-value"><label class="nw-value-title">{{TXT_TARGET_SSID}}</label><div class="nw-value-field"><input type="text" id="wisp-target-ssid" readonly style="background:#e2e8f0 !important; color:#475569 !important;"></div></div>',
+            '           <div class="nw-wisp-desc">{{DESC_WISP}}</div>',
+            '           <div id="wisp-ui-panel" class="nw-wisp-ui-panel" style="display:none;">',
+            '              <button id="btn-wisp-scan" class="cbi-button cbi-button-apply nw-btn-scan">{{BTN_SCAN}}</button>',
+            '              <div id="wisp-selected-info" style="display:none; width: 100%;">',
+            '                 <div class="nw-value"><label class="nw-value-title">{{TXT_TARGET_SSID}}</label><div class="nw-value-field"><input type="text" id="wisp-target-ssid" readonly class="nw-wisp-target-input"></div></div>',
             '                 <div class="nw-value"><label class="nw-value-title">{{WISP_PWD_PROMPT}}</label><div class="nw-value-field"><input type="text" id="wisp-target-key" placeholder="{{PH_WISP_PWD}}"></div></div>',
             '                 <input type="hidden" id="wisp-target-enc" value="psk2">',
             '                 <input type="hidden" id="wisp-target-device" value="radio0">',
             '                 <input type="hidden" id="wisp-target-bssid" value=""></input>',
-            
             '              </div>',
             '           </div>',
             '        </div>',
-            // 結束 
             '      </div>',
             '      <div id="fields-lan" style="display: none;">',
             '        <div class="nw-step-title">{{TITLE_LAN}}</div>',
-
-            '        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0 15px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 15px;">',
-            '           <div style="font-weight: 600; color: #222; font-size: 16px;">{{LBL_IPV6}}</div>',
+            '        <div class="nw-setting-row-alt">',
+            '           <div class="nw-setting-row-label">{{LBL_IPV6}}</div>',
             '           <label class="nw-switch"><input type="checkbox" id="lan-ipv6-toggle" checked><span class="nw-slider"></span></label>',
             '        </div>',
-
-            '        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 15px;">',
-            '           <div style="font-weight: 600; color: #222; font-size: 16px;">{{LBL_BYPASS}}</div>',
+            '        <div class="nw-setting-row">',
+            '           <div class="nw-setting-row-label">{{LBL_BYPASS}}</div>',
             '           <label class="nw-switch"><input type="checkbox" id="lan-bypass-toggle"><span class="nw-slider"></span></label>',
             '        </div>',
-
-            '        <div id="lan-bypass-warning" style="display:none; background: #fef2f2; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #fecaca; line-height: 1.7; font-weight: bolder;">{{WARN_BYPASS}}</div>',
-            '        <div id="lan-main-warning" style="background: #f0fdf4; color: #059669; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #bbf7d0; line-height: 1.7; font-weight: bolder;">{{WARN_MAIN}}</div>',
+            '        <div id="lan-bypass-warning" class="nw-warn-bypass" style="display:none;">{{WARN_BYPASS}}</div>',
+            '        <div id="lan-main-warning" class="nw-warn-main">{{WARN_MAIN}}</div>',
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_LAN_IP}}</label><div class="nw-value-field"><input type="text" id="lan-ip" placeholder="{{PH_IP}}"></div></div>',
             '        <div class="nw-value"><label class="nw-value-title">{{LBL_LAN_GW}}</label><div class="nw-value-field"><input type="text" id="lan-gw" placeholder="{{PH_LAN_GW}}"></div></div>',
-            '        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 0 0 0; border-top: 1px solid #f1f5f9; margin-top: 15px;">',
-            '           <div style="flex: 1; padding-right: 15px; min-width: 0;">',
-            '               <div style="font-weight: 600; color: #222; font-size: 15px; word-break: break-word; line-height: 1.3;">{{LBL_FORCE_APPLY}}</div>',
+            '        <div class="nw-legacy-row">',
+            '           <div class="nw-flex-1">',
+            '               <div class="nw-desc-title">{{LBL_FORCE_APPLY}}</div>',
             '               <div style="font-size: 14px; color: #64748b; margin-top: 4px; word-break: break-word; line-height: 1.4;">{{DESC_FORCE_APPLY}}</div>',
             '           </div>',
-            '           <label class="nw-switch" style="flex-shrink: 0;"><input type="checkbox" id="lan-safe-toggle" checked><span class="nw-slider"></span></label>',
+            '           <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="lan-safe-toggle" checked><span class="nw-slider"></span></label>',
             '        </div>',
             '      </div>',
             '    </div>',
@@ -589,12 +718,12 @@ return view.extend({
             '         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
             '      </div>',
             '      <div class="nw-step-title">{{TITLE_CONFIRM}}</div>',
-            '      <p style="color:#555; text-align:center;">{{DESC_CONFIRM}}</p>',
-            '      <div id="confirm-mode-text" style="color: #fff; background: #0055bb; padding: 20px; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); margin-top: 15px;"></div>',
-            '      <div style="background-color: #f8fafc; padding: 15px; font-size: 13.5px; margin-top: 20px; border: 1px solid #e2e8f0; line-height: 1.7; color: #475569; border-radius: 12px;">',
-            '        <div style="font-weight: bold; color: #0f172a; margin-bottom: 8px; font-size: 14.5px;">{{NOTE_TITLE}}</div>',
-            '        <div style="display: flex; gap: 8px;"><span style="color:#3b82f6;">•</span> <span>{{NOTE_1}}</span></div>',
-            '        <div style="display: flex; gap: 8px;"><span style="color:#10b981;">•</span> <span>{{NOTE_2}}</span></div>',
+            '      <p class="nw-confirm-desc">{{DESC_CONFIRM}}</p>',
+            '      <div id="confirm-mode-text" class="nw-confirm-mode-text"></div>',
+            '      <div class="nw-note-box">',
+            '        <div class="nw-note-title">{{NOTE_TITLE}}</div>',
+            '        <div class="nw-note-item"><span style="color:#3b82f6;">•</span> <span>{{NOTE_1}}</span></div>',
+            '        <div class="nw-note-item"><span style="color:#10b981;">•</span> <span>{{NOTE_2}}</span></div>',
             '      </div>',
             '    </div>',
             '    <div class="nw-actions"><button id="btn-back-2" class="cbi-button cbi-button-reset">{{BTN_BACK}}</button><button id="btn-apply" class="cbi-button cbi-button-apply">{{BTN_APPLY}}</button></div>',
@@ -615,6 +744,198 @@ return view.extend({
         var confirmText = container.querySelector('#confirm-mode-text'), modeTextEl = container.querySelector('#current-mode-text');
         var selectedMode = '';
         window._isSingleChip = false;
+
+        // ===== 全新引入：快速开机向导流引擎 =====
+        var wizModal = container.querySelector('#nw-wizard-modal');
+        var wArea1 = container.querySelector('#wiz-step-1-area'), wArea2 = container.querySelector('#wiz-step-2-area'), wArea3 = container.querySelector('#wiz-step-3-area');
+        var wBtnPrev = container.querySelector('#wiz-btn-prev'), wBtnNext = container.querySelector('#wiz-btn-next'), wBtnApply = container.querySelector('#wiz-btn-apply');
+        var wizHideCb = container.querySelector('#wiz-hide-checkbox');
+        var currentWizStep = 1;
+
+        // 1. 退出/跳过向导逻辑
+        var closeWizard = function() {
+            if (wizHideCb.checked) localStorage.setItem('netwiz_hide_wizard', 'true');
+            wizModal.style.display = 'none';
+        };
+        container.querySelector('#wiz-modal-close').addEventListener('click', closeWizard);
+        container.querySelector('#wiz-btn-skip').addEventListener('click', closeWizard);
+
+        // 1.5 重新打开向导逻辑 (首页按钮)
+        var btnReopenWiz = container.querySelector('#btn-reopen-wizard');
+        if (btnReopenWiz) {
+            btnReopenWiz.addEventListener('click', function() {
+                // 1. 清除永久隐藏的记忆
+                localStorage.removeItem('netwiz_hide_wizard');
+                
+                // 2. 状态重置归零：回到第一步
+                currentWizStep = 1;
+                wArea1.style.display = 'block';
+                wArea2.style.display = 'none';
+                wArea3.style.display = 'none';
+                wBtnPrev.style.display = 'none';
+                wBtnNext.style.display = 'block';
+                wBtnApply.style.display = 'none';
+                
+                // 3. 复选框状态清洗
+                if (wizHideCb) wizHideCb.checked = true;
+                var skipWifiCb = container.querySelector('#wiz-skip-wifi-checkbox');
+                if (skipWifiCb) {
+                    skipWifiCb.checked = false;
+                    skipWifiCb.dispatchEvent(new Event('change')); // 触发联动，解开 Wi-Fi 密码框的置灰锁定
+                }
+                
+                // 4. 重新召唤向导！
+                wizModal.style.display = 'flex';
+            });
+        }
+
+        // 2. WAN 类型切换监听
+        container.querySelectorAll('input[name="wiz_wan_type"]').forEach(function(r) {
+            r.addEventListener('change', function() { container.querySelector('#wiz-pppoe-fields').style.display = (this.value === 'pppoe') ? 'block' : 'none'; });
+        });
+
+        // 3 监听跳过 Wi-Fi 勾选框
+        var skipWifiCb = container.querySelector('#wiz-skip-wifi-checkbox');
+        var wifiInputArea = container.querySelector('#wiz-wifi-input-area');
+        if (skipWifiCb && wifiInputArea) {
+            skipWifiCb.addEventListener('change', function() {
+                wifiInputArea.style.opacity = this.checked ? '0.3' : '1';
+                wifiInputArea.style.pointerEvents = this.checked ? 'none' : 'auto';
+            });
+        }
+
+        // 4. 下一步逻辑
+        wBtnNext.addEventListener('click', function() {
+            if (currentWizStep === 1) {
+                var wType = container.querySelector('input[name="wiz_wan_type"]:checked').value;
+                if (wType === 'pppoe' && (!container.querySelector('#wiz-pppoe-user').value.trim() || !container.querySelector('#wiz-pppoe-pass').value.trim())) { 
+                    openModal({ title: T['M_INC_TIT'], msg: T['M_INC_PPPOE'], okText: T['M_CLOSE'] }); 
+                    return; 
+                }
+                wArea1.style.display = 'none'; wArea2.style.display = 'block'; wBtnPrev.style.display = 'block'; currentWizStep = 2;
+            } else if (currentWizStep === 2) {
+                var isSkipWifi = skipWifiCb ? skipWifiCb.checked : false;
+                var ssid = container.querySelector('#wiz-wifi-ssid').value.trim();
+                var key = container.querySelector('#wiz-wifi-key').value;
+                
+                var proceedToStep3 = function() {
+                    // 渲染最终确认视图
+                    var wType2 = container.querySelector('input[name="wiz_wan_type"]:checked').value;
+                    var htmlConfirm = "<div style='text-align:left; font-size:15px; color: #fff;'>";
+                    htmlConfirm += "<div style='margin-bottom:10px;'><b style='color:#facc15;'>WAN:</b> " + (wType2 === 'dhcp' ? T['OPT_DHCP'] : T['MODE_PPPOE_TITLE']) + "</div>";
+                    if (isSkipWifi) {
+                        htmlConfirm += "<div style='margin-bottom:10px;'><b style='color:#67e8f9;'>Wi-Fi:</b> <span style='color:#94a3b8; font-style:italic;'>" + T['TXT_NOT_CONFIGURED'] + "</span></div>";
+                    } else {
+                        htmlConfirm += "<div style='margin-bottom:10px;'><b style='color:#67e8f9;'>Wi-Fi:</b> " + (ssid || "<i>" + T['TXT_UNSET'] + "</i>") + "</div>";
+                        htmlConfirm += "<div><b style='color:#a7f3d0;'>"+ T['M_PWD'] +":</b> " + (key || "<i>" + T['TXT_NO_PWD_OPEN'] + "</i>") + "</div>";
+                    }
+                    htmlConfirm += "</div>";
+                    container.querySelector('#wiz-confirm-text').innerHTML = htmlConfirm;
+
+                    wArea2.style.display = 'none'; wArea3.style.display = 'block'; wBtnNext.style.display = 'none'; wBtnApply.style.display = 'block'; currentWizStep = 3;
+                };
+
+                if (!isSkipWifi) {
+                    if (!ssid) { openModal({ title: T['M_INC_TIT'], msg: T['M_INC_WIFI'], okText: T['M_CLOSE'] }); return; }
+                    if (key.length > 0 && key.length < 8) { openModal({ title: T['M_FMT_TIT'], msg: T['M_PWD_SHORT'], okText: T['M_CLOSE'] }); return; }
+                    if (key.length === 0) { 
+                        // 拦截无密码
+                        openModal({
+                            title: T['M_OPEN_WARN_TIT'] || '⚠️ 无密码警告', 
+                            msg: T['M_OPEN_WARN_MSG'] || '您正在设置无密码的开放 Wi-Fi，确定要继续吗？', 
+                            cancelText: T['M_CLOSE'], 
+                            okText: T['BTN_NEXT'] || '继续', 
+                            isDanger: true,
+                            onCancel: function() { container.querySelector('#nw-global-modal').style.display = 'none'; },
+                            onOk: function() { 
+                                container.querySelector('#nw-global-modal').style.display = 'none'; 
+                                proceedToStep3(); 
+                            }
+                        });
+                        return; 
+                    }
+                }
+                proceedToStep3();
+            }
+        });
+
+        // 5. 返回逻辑
+        wBtnPrev.addEventListener('click', function() {
+            if (currentWizStep === 2) { wArea2.style.display = 'none'; wArea1.style.display = 'block'; wBtnPrev.style.display = 'none'; currentWizStep = 1;
+            } else if (currentWizStep === 3) { wArea3.style.display = 'none'; wArea2.style.display = 'block'; wBtnApply.style.display = 'none'; wBtnNext.style.display = 'block'; currentWizStep = 2; }
+        });
+
+        // 6. 一键合并提交 (分流双通道与单通道)
+        wBtnApply.addEventListener('click', function() {
+            var wType = container.querySelector('input[name="wiz_wan_type"]:checked').value;
+            var isSkipWifi = skipWifiCb ? skipWifiCb.checked : false;
+
+            // 读取底层探测到的真实 IPv6 状态，防止被向导静默关闭
+            var ipv6El = container.querySelector('#lan-ipv6-toggle');
+            var keepIpv6 = (ipv6El && ipv6El.checked) ? '1' : '0';
+
+            wizModal.style.display = 'none';
+            localStorage.setItem('netwiz_hide_wizard', 'true'); 
+            openModal({ title: T['WIZ_TITLE'] || '向导配置中', msg: '<div style="color: #64748b; font-size: 16px; font-weight:bold;">' + T['MSG_WRITING'] + '</div>', spin: true });
+
+            var applyPromise;
+
+            if (isSkipWifi) {
+                if (wType === 'pppoe') {
+                    var u = container.querySelector('#wiz-pppoe-user').value.trim();
+                    var p = container.querySelector('#wiz-pppoe-pass').value.trim();
+                    // 传入 keepIpv6
+                    applyPromise = callNetSetup('pppoe', u, p, '', '', '1', keepIpv6);
+                } else {
+                    applyPromise = callNetSetup('wan_dhcp', '', '', '', '', '1', keepIpv6);
+                }
+            } else {
+                var arg1Obj = { wan_type: wType };
+                if (wType === 'pppoe') {
+                    arg1Obj.user = container.querySelector('#wiz-pppoe-user').value.trim();
+                    arg1Obj.pass = container.querySelector('#wiz-pppoe-pass').value.trim();
+                }
+                
+                var ssid = container.querySelector('#wiz-wifi-ssid').value.trim();
+                var key = container.querySelector('#wiz-wifi-key').value;
+                var enc = (key.length === 0) ? 'none' : 'sae-mixed';
+
+                var arg2Obj = {};
+                if (window._isSingleChip) {
+                    arg2Obj = {
+                        smart: "true",
+                        merged: { enabled: "1", ssid: ssid, key: key, encryption: enc, hidden: "0", roaming: "0" }
+                    };
+                } else {
+                    arg2Obj = {
+                        smart: "false",
+                        radio_2g: { enabled: "1", ssid: ssid, key: key, encryption: enc, hidden: "0", roaming: "0", mode: "auto", channel: "auto", bandwidth: "auto" },
+                        radio_5g: { enabled: "1", ssid: ssid, key: key, encryption: enc, hidden: "0", roaming: "1", mode: "auto", channel: "auto", bandwidth: "auto" }
+                    };
+                }
+                var arg2Str = JSON.stringify(arg2Obj);
+                
+                // 传入 keepIpv6
+                applyPromise = callNetSetup('wizard', JSON.stringify(arg1Obj), arg2Str, '', '', '1', keepIpv6);
+            }
+
+            // ... 后面的 .then().catch() 保持不变 ...
+
+            // 统一处理底层的回调与跳转
+            applyPromise.then(function() {
+                var sec = 0, h = window.location.hostname;
+                var checkSameTimer = setInterval(function() { 
+                    sec += 3; 
+                    document.getElementById('nw-global-msg').innerHTML = '<div style="color: #059669; font-size: 16px; font-weight: bold;">' + T['MSG_WAIT_NET'].replace('{sec}', sec) + '</div>'; 
+                    fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000).then(function() { 
+                        clearInterval(checkSameTimer); window.location.reload(); 
+                    }).catch(function() {}); 
+                }, 3000);
+            }).catch(function(err) { 
+                openModal({ title: T['M_SYS_ERR'], msg: 'Wizard failed: ' + err, okText: T['M_CLOSE'] }); 
+            });
+        });
+        // ==========================================
 
         // ===== 自定义动画滚动 =====
         var smoothScrollToTop = function(duration) {
@@ -727,11 +1048,21 @@ return view.extend({
             var hasWifi = (wifiRes === true || (typeof wifiRes === 'object' && wifiRes && wifiRes.has_wifi === true));
             var isUnknownDevice = (modelName.indexOf('generic') !== -1 && modelName.indexOf('unknown') !== -1);
 
+            var wizModal = container.querySelector('#nw-wizard-modal');
+            
+            var btnReopenWiz = container.querySelector('#btn-reopen-wizard');
+
             if (hasWifi && !isUnknownDevice) {
                 var wifiCard = container.querySelector('#card-wifi');
                 if (wifiCard) wifiCard.style.display = 'flex';
-            } else if (isUnknownDevice) {
-                console.warn("[Netwiz] 警告: 设备未激活，已锁定隐藏 Wi-Fi。");
+                
+                if (localStorage.getItem('netwiz_hide_wizard') !== 'true' && wizModal) {
+                    wizModal.style.display = 'flex';
+                }
+            } else {
+                console.warn("[Netwiz] 警告: 未检测到 Wi-Fi 硬件，已彻底隐藏向导相关入口。");
+                if (wizModal) wizModal.style.display = 'none';
+                if (btnReopenWiz) btnReopenWiz.style.display = 'none'; // 彻底隐藏首页的“重新打开向导”按钮
             }
         }).catch(function(err) {});
 
@@ -815,7 +1146,7 @@ return view.extend({
                                     }
                                     console.log("===============================================");
                                     // ==================================
-                            
+
                             var smartToggle = container.querySelector('#wifi-smart-toggle');
                             var legacyToggle = container.querySelector('#legacy-b-toggle');
 
@@ -1768,20 +2099,26 @@ return view.extend({
                                     container.querySelector('#wisp-target-device').value = scanDevice; 
                                     container.querySelector('#wisp-target-bssid').value = net.bssid || '';
                                     
-                                    // 3. 界面切换：隐藏弹窗，显示密码面板
+                                    // 3. 界面切换：显示填写面板，隐藏弹窗
                                     container.querySelector('#wisp-selected-info').style.display = 'block';
                                     wispModal.style.display = 'none'; 
-                                    
-                                    var btnScanLive = container.querySelector('#btn-wisp-scan');
-                                    if (btnScanLive) btnScanLive.style.display = 'none';
-                                    
-                                    // 4. 精准对焦！
+
                                     var pwdInput = container.querySelector('#wisp-target-key');
-                                    if (pwdInput && encVal !== 'none') {
-                                        setTimeout(function() {
-                                            pwdInput.focus();
-                                            pwdInput.select();
-                                        }, 150); // 留出 150ms 让弹窗消失的动画跑完
+                                    var pwdRow = pwdInput ? pwdInput.closest('.nw-value') : null;
+                                    
+                                    if (encVal === 'none') {
+                                        // 如果是开放网络，直接隐藏密码行，并清空历史密码
+                                        if (pwdRow) pwdRow.style.display = 'none';
+                                        if (pwdInput) pwdInput.value = '';
+                                    } else {
+                                        // 如果有加密，显示密码行并自动对焦
+                                        if (pwdRow) pwdRow.style.display = 'flex';
+                                        if (pwdInput) {
+                                            setTimeout(function() {
+                                                pwdInput.focus();
+                                                pwdInput.select();
+                                            }, 150);
+                                        }
                                     }
                                 } catch(err) {
                                     console.error("选取 Wi-Fi 时发生错误:", err);
@@ -1935,7 +2272,7 @@ return view.extend({
                             
                             // div 独立成行
                             var highlightBadge = function(txt) {
-                                return "<div style='margin-top: 4px;'><span style='font-size: 11px; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: bold; box-shadow: 0 2px 4px rgba(16,185,129,0.3); animation: pulse 2s infinite; white-space: nowrap;'>" + txt + "</span></div>";
+                                return "<div style='margin-top: 4px;'><span style='font-size: 14px; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: bold; box-shadow: 0 2px 4px rgba(16,185,129,0.3); animation: pulse 2s infinite; white-space: nowrap;'>" + txt + "</span></div>";
                             };
 
                             if (isActuallyNew) {
