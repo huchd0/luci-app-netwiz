@@ -2049,9 +2049,9 @@ return view.extend({
                                 mkDiff(T['M_PWD'], container.querySelector('#pppoe-pass').value, oldPppoePass)
                             ]);
                         }
-                        
+                         // 隐藏第二步、显示第三步警告框动画延时
                         if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; setTimeout(function(){ smoothScrollToTop(650); }, 20); } }); return; }
-                        
+                        // 正常第三步动画延时
                         step2.style.display = 'none'; step3.style.display = 'block';
                         setTimeout(function(){ smoothScrollToTop(650); }, 20); 
                     } catch (err) {
