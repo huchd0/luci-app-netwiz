@@ -515,7 +515,7 @@ msgid "WAN Blind-Switch: Unplug the WAN cable for 10 seconds and reconnect to au
 msgstr "盲切WAN口上网方式：断开 WAN 网线 10 秒再插回，系统会自动检测并切换上网方式（过程约2分钟）"
 
 msgid "New Config"
-msgstr "新配置"
+msgstr "新建"
 
 msgid "Modified"
-msgstr "已修改"
+msgstr "新修改"
