@@ -525,3 +525,30 @@ msgstr "⚠️ 無密碼安全警告"
 
 msgid "You are setting up an Open Wi-Fi network without a password. Anyone nearby will be able to connect and access your network.<br><br>Are you sure you want to continue?"
 msgstr "您正在設定無密碼的開放 Wi-Fi，附近任何人都可以隨意連線並存取您的區域網路設備。<br><br>您確定要繼續嗎？"
+
+msgid "✨ Quick Setup Wizard"
+msgstr "✨ 快速設定精靈"
+
+msgid "Step 1: Internet Setup"
+msgstr "第一步：上網設定"
+
+msgid "Step 2: Wi-Fi Setup"
+msgstr "第二步：Wi-Fi 設定"
+
+msgid "Set your wireless network name and password."
+msgstr "設定您的無線網路名稱與密碼。"
+
+msgid "Step 3: Confirm & Apply"
+msgstr "第三步：確認與套用"
+
+msgid "Skip Wizard"
+msgstr "略過精靈"
+
+msgid "Don't show this again"
+msgstr "不再提示"
+
+msgid "✨ Reopen Wizard"
+msgstr "✨ 重新打開精靈"
+
+msgid "Skip Wi-Fi Setup (Keep current)"
+msgstr "暫不設定 Wi-Fi (保持現狀)"
