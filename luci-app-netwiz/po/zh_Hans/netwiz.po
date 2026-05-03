@@ -512,7 +512,7 @@ msgid "Click to Settings"
 msgstr "点击直达设置"
 
 msgid "WAN Blind-Switch: Unplug the WAN cable for 10 seconds and reconnect to auto-detect and switch the connection type."
-msgstr "盲切WAN 口上网方式：断开 WAN 网线 10 秒再插回，系统会自动检测并切换上网方式。"
+msgstr "盲切WAN口上网方式：断开 WAN 网线 10 秒再插回，系统会自动检测并切换上网方式（过程约2分钟）"
 
 msgid "New Config"
 msgstr "新配置"
