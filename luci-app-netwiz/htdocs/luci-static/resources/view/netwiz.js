@@ -1754,19 +1754,31 @@ return view.extend({
             });
         }
        // 結束
+
+        // 统一的页面切换+置顶函数
+        var switchStep = function(hideEl, showEl) {
+            hideEl.style.display = 'none'; 
+            showEl.style.display = 'block';
+            // 延迟 50ms 等待 DOM 渲染完，进入顶部
+            setTimeout(function() {
+                var header = document.querySelector('.nw-header');
+                if (header) { header.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+                else { window.scrollTo(0, 0); }
+            }, 50);
+        };
+
         container.querySelectorAll('.nw-card').forEach(function (card) { card.addEventListener('click', function () { 
             selectedMode = card.getAttribute('data-mode'); 
-            step1.style.display = 'none'; 
             container.querySelector('#fields-router').style.display = (selectedMode === 'router') ? 'block' : 'none'; 
             container.querySelector('#fields-pppoe').style.display = (selectedMode === 'pppoe') ? 'block' : 'none'; 
             container.querySelector('#fields-lan').style.display = (selectedMode === 'lan') ? 'block' : 'none'; 
             container.querySelector('#fields-wifi').style.display = (selectedMode === 'wifi') ? 'block' : 'none'; 
-            step2.style.display = 'block'; 
+            switchStep(step1, step2); // 切换并置顶
         }); });
-        container.querySelector('#btn-back-1').addEventListener('click', function () { step2.style.display = 'none'; step1.style.display = 'block'; });
-        container.querySelector('#top-back-1').addEventListener('click', function () { step2.style.display = 'none'; step1.style.display = 'block'; });
-        container.querySelector('#btn-back-2').addEventListener('click', function () { step3.style.display = 'none'; step2.style.display = 'block'; });
-        container.querySelector('#top-back-2').addEventListener('click', function () { step3.style.display = 'none'; step2.style.display = 'block'; });
+        container.querySelector('#btn-back-1').addEventListener('click', function () { switchStep(step2, step1); });
+        container.querySelector('#top-back-1').addEventListener('click', function () { switchStep(step2, step1); });
+        container.querySelector('#btn-back-2').addEventListener('click', function () { switchStep(step3, step2); });
+        container.querySelector('#top-back-2').addEventListener('click', function () { switchStep(step3, step2); });
 
         container.querySelector('#btn-next-2').addEventListener('click', function () {
             try {
@@ -2006,9 +2018,10 @@ return view.extend({
                             ]);
                         }
                         
-                        if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; } }); return; }
+                        if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; window.scrollTo(0, 0); } }); return; }
                         
                         step2.style.display = 'none'; step3.style.display = 'block';
+                        window.scrollTo(0, 0); // 置顶
                     } catch (err) {
                         openModal({ title: T['M_SYS_ERR'], msg: 'Data processing failed: ' + err, okText: T['M_CLOSE'] });
                     }
