@@ -1912,12 +1912,14 @@ return view.extend({
                         
                         var b = function(t, p) { var h = "<div style='text-align:center; font-size:18px; margin-bottom:15px;'>" + t + "</div><div style='background:rgba(0,0,0,0.15); border-radius:8px; padding:10px 15px; font-size:14.5px;'>"; for (var i=0; i < p.length; i++) h += "<div style='display:flex; justify-content:space-between; align-items:flex-start; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); gap:10px;'><span style='opacity:0.8; flex-shrink:0; max-width:45%; word-break:break-word; line-height:1.4;'>" + p[i][0] + "</span><span style='font-family:monospace; word-break:break-word; text-align:right; flex:1; min-width:0;'>" + p[i][1] + "</span></div>"; return h + "</div>"; };
 
-                        // === Diff 高亮渲染带新旧对比助手函数 (移动端优化版) ===
+                        // === Diff 高亮渲染带新旧对比助手函数 ===
                         var mkDiff = function(label, newVal, oldVal) {
                             var sNew = String(newVal).trim();
                             var sOld = (oldVal !== undefined && oldVal !== null) ? String(oldVal).trim() : '';
                             
-                            var isActuallyNew = (sOld === '' || sOld === 'undefined');
+                            // 提取纯文本进行判断
+                            var rawOld = sOld.replace(/<[^>]+>/g, '').trim();
+                            var isActuallyNew = (rawOld === '' || rawOld === 'undefined' || rawOld === 'null');
                             var isChanged = (sNew !== sOld) && !isActuallyNew;
                             
                             // div 独立成行
@@ -1980,6 +1982,12 @@ return view.extend({
                             // 解析旧状态对象以便对比
                             var oldS = window._origWifiState ? JSON.parse(window._origWifiState) : {};
                             
+                            // 兜底：防止多频合一和分开模式互相切换时产生 undefined 污染
+                            oldS.s2 = oldS.s2 || ''; oldS.ec2 = oldS.ec2 || '';
+                            oldS.s5 = oldS.s5 || ''; oldS.ec5 = oldS.ec5 || '';
+                            oldS.ss = oldS.ss || ''; oldS.ecs = oldS.ecs || '';
+                            oldS.ws = oldS.ws || '';
+                            
                             if (sTog) {
                                 var isEn = container.querySelector('#wifi-smart-en').checked;
                                 confirmList.push(mkDiff(T['LBL_SMART_CONN'], isEn ? '<b style="color:#10b981;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444;">' + T['TXT_OFF'] + '</b>', oldS.es ? '<b style="color:#10b981;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444;">' + T['TXT_OFF'] + '</b>'));
@@ -2027,14 +2035,14 @@ return view.extend({
                                 }
                             }
                             
-                            // 中继 (WISP) 的确认信息展示 (带 Diff)
+                            // 中继 (WISP) 的确认信息展示
                             var wTogConfirm = container.querySelector('#wisp-toggle');
                             if (wTogConfirm) {
                                 var wNew = wTogConfirm.checked;
                                 var wOld = oldS.wt;
-                                if (wNew || wOld) {
-                                    confirmList.push(mkDiff('<b style="color:#10b981; font-size:15px;">🌐 ' + T['LBL_WISP_EN'] + '</b>', wNew ? '<b style="color:#10b981;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444;">' + T['TXT_OFF'] + '</b>', wOld ? '<b style="color:#10b981;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444;">' + T['TXT_OFF'] + '</b>'));
-                                    if (wNew) {
+                                    if (wNew || wOld) {
+                                        confirmList.push(mkDiff('<b style="color:#ffffff; font-size:15px;">🌐 ' + T['LBL_WISP_EN'] + '</b>', wNew ? '<b style="color:#10b981;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444;">' + T['TXT_OFF'] + '</b>', wOld ? '<b style="color:#10b981;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444;">' + T['TXT_OFF'] + '</b>'));
+                                        if (wNew) {
                                         confirmList.push(mkDiff('<span style="padding-left:12px; color:#ffffff; font-weight:500; opacity:0.95;">└ ' + T['TXT_TARGET_SSID'] + '</span>', '<span style="font-weight:bold; color:#facc15;">' + container.querySelector('#wisp-target-ssid').value + '</span>', '<span style="font-weight:bold; color:#facc15;">' + oldS.ws + '</span>'));
                                     }
                                 }
@@ -2049,9 +2057,9 @@ return view.extend({
                                 mkDiff(T['M_PWD'], container.querySelector('#pppoe-pass').value, oldPppoePass)
                             ]);
                         }
-                         // 隐藏第二步、显示第三步警告框动画延时
+                        
                         if (selectedMode === 'lan' && !isBypass && targetGw !== '') { openModal({ title: T['M_WARN_TIT'], msg: T['M_WARN_MSG'], cancelText: T['BTN_EDIT'], okText: T['M_WARN_BTN'], isDanger: true, onOk: function() { container.querySelector('#nw-global-modal').style.display = 'none'; step2.style.display = 'none'; step3.style.display = 'block'; setTimeout(function(){ smoothScrollToTop(650); }, 20); } }); return; }
-                        // 正常第三步动画延时
+                        
                         step2.style.display = 'none'; step3.style.display = 'block';
                         setTimeout(function(){ smoothScrollToTop(650); }, 20); 
                     } catch (err) {
