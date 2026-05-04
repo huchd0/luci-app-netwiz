@@ -541,8 +541,8 @@ msgstr "設定您的無線網路名稱與密碼。"
 msgid "Step 3: Confirm & Apply"
 msgstr "第三步：確認與套用"
 
-msgid "Skip Wizard"
-msgstr "略過精靈"
+msgid "Skip this time"
+msgstr "略過本次引導"
 
 msgid "Don't show this again"
 msgstr "不再提示"
