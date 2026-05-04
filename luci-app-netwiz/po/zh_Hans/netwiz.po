@@ -561,3 +561,12 @@ msgstr "未设置"
 
 msgid "No Password (Open)"
 msgstr "无密码 (Open)"
+
+msgid "Wizard execution failed"
+msgstr "向导执行失败"
+
+msgid "Configuration data processing failed"
+msgstr "配置数据处理失败"
+
+msgid "Input validation failed"
+msgstr "输入校验失败"
