@@ -505,7 +505,7 @@ return view.extend({
             '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_WIFI}}</div>',
             '            <p style="color: #64748b; font-size: 14.5px; margin: 0 0 20px 0; text-align: center;">{{WIZ_WIFI_DESC}}</p>',
             '            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">',
-            '               <label class="nw-wiz-cb-wrap" style="font-size: 14.5px; color: #3b82f6; font-weight: bold; margin: 0;">',
+            '               <label class="nw-wiz-cb-wrap" style="font-size: 16.5px; color: #3b82f6; font-weight: bold; margin: 0;">',
             '                  <input type="checkbox" id="wiz-skip-wifi-checkbox">',
             '                  <span class="nw-wiz-checkmark"></span>',
             '                  <span style="line-height: 1;">{{WIZ_SKIP_WIFI}}</span>',
