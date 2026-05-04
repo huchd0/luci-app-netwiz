@@ -452,9 +452,23 @@ return view.extend({
             // ===== 快速向导悬浮层 =====
             '  <div id="nw-wizard-modal" class="nw-wisp-modal" style="display:none;">',
             '    <div class="nw-wiz-modal-box">',
-            '      <div class="nw-wiz-modal-header">',
-            '         <h3 class="nw-wiz-modal-title">{{WIZ_TITLE}}</h3>',
-            '         <span id="wiz-modal-close" class="nw-pointer" style="color: #fff; font-size: 26px; opacity: 0.8; line-height: 1;">&times;</span>',
+            '      <div class="nw-wiz-modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:15px 10px; background:#5e72e4;">',
+            '         <!-- 左侧：1 ➔ 2 ➔ 3 步骤指示器 (纯SVG矢量箭头) -->',
+            '         <div style="flex:1; display:flex; justify-content:flex-start;">',
+            '            <div id="wiz-step-indicator" style="display: flex; align-items: center; gap: 2px;">',
+            '               <div class="nw-step-dot" style="width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; transition:all 0.3s; box-sizing:border-box;">1</div>',
+            '               <div class="nw-step-line" style="display:flex; align-items:center; justify-content:center; margin:0 2px; transition:all 0.3s; background:transparent;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>',
+            '               <div class="nw-step-dot" style="width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; transition:all 0.3s; box-sizing:border-box;">2</div>',
+            '               <div class="nw-step-line" style="display:flex; align-items:center; justify-content:center; margin:0 2px; transition:all 0.3s; background:transparent;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>',
+            '               <div class="nw-step-dot" style="width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; transition:all 0.3s; box-sizing:border-box;">3</div>',
+            '            </div>',
+            '         </div>',
+            '         <!-- 中间：大标题 (利用flex:2完美居中) -->',
+            '         <h3 class="nw-wiz-modal-title" style="flex:2; margin:0; padding:0; text-align:center; font-size:18px; letter-spacing:0.5px; white-space:nowrap; color:#fff;">{{WIZ_TITLE}}</h3>',
+            '         <!-- 右侧：关闭按钮 -->',
+            '         <div style="flex:1; display:flex; justify-content:flex-end;">',
+            '            <span id="wiz-modal-close" class="nw-pointer" style="color: #fff; font-size: 26px; opacity: 0.8; line-height: 1;">&times;</span>',
+            '         </div>',
             '      </div>',
             '      <div style="padding: 30px 25px 15px; overflow-y: auto;">',
             '         <!-- Step 1: WAN -->',
@@ -783,6 +797,46 @@ return view.extend({
         var wizHideCb = container.querySelector('#wiz-hide-checkbox');
         var currentWizStep = 1;
 
+        // 【新增】：向导步骤点阵高亮引擎
+        var updateWizSteps = function(step) {
+            var dots = container.querySelectorAll('.nw-step-dot');
+            dots.forEach(function(d, i) {
+                if (i + 1 === step) {
+                    // 1. 当前进行中的步骤：突显（白底蓝字，轻微放大，发光）
+                    d.style.background = '#ffffff';
+                    d.style.color = '#5e72e4';
+                    d.style.border = 'none';
+                    d.style.transform = 'scale(1.15)';
+                    d.style.boxShadow = '0 0 8px rgba(255,255,255,0.6)';
+                    d.style.opacity = '1';
+                } else if (i + 1 < step) {
+                    // 2. 已经完成的步骤：柔和（半透明白底）
+                    d.style.background = 'rgba(255,255,255,0.25)';
+                    d.style.color = '#ffffff';
+                    d.style.border = 'none';
+                    d.style.transform = 'scale(1)';
+                    d.style.boxShadow = 'none';
+                    d.style.opacity = '1';
+                } else {
+                    // 3. 未来的步骤：暗淡（透明底白边框）
+                    d.style.background = 'transparent';
+                    d.style.color = 'rgba(255,255,255,0.6)';
+                    d.style.border = '1px solid rgba(255,255,255,0.4)';
+                    d.style.transform = 'scale(1)';
+                    d.style.boxShadow = 'none';
+                    d.style.opacity = '0.8';
+                }
+            });
+            var lines = container.querySelectorAll('.nw-step-line');
+            lines.forEach(function(l, i) {
+                l.style.background = 'transparent'; // 强制透明，彻底根除诡异底色
+                // 已经走过的箭头点亮（纯白），未走过的变暗淡（半透明）
+                l.style.color = (i + 1 < step) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.3)';
+            });
+        };
+        // 初始化界面时渲染一次
+        updateWizSteps(currentWizStep);
+
         // 1. 退出(X) 按钮此时勾选了“不再提示”，就执行静默写入。
         var closeWizard = function() {
             if (wizHideCb && wizHideCb.checked) {
@@ -805,6 +859,7 @@ return view.extend({
                 
                 // 2. 状态重置归零：回到第一步
                 currentWizStep = 1;
+                updateWizSteps(1); // 【更新点阵】
                 wArea1.style.display = 'block';
                 wArea2.style.display = 'none';
                 wArea3.style.display = 'none';
@@ -848,7 +903,7 @@ return view.extend({
                     openModal({ title: T['M_INC_TIT'], msg: T['M_INC_PPPOE'], okText: T['M_CLOSE'] }); 
                     return; 
                 }
-                wArea1.style.display = 'none'; wArea2.style.display = 'block'; wBtnPrev.style.display = 'block'; currentWizStep = 2;
+                wArea1.style.display = 'none'; wArea2.style.display = 'block'; wBtnPrev.style.display = 'block'; wArea1.style.display = 'none'; wArea2.style.display = 'block'; wBtnPrev.style.display = 'block'; currentWizStep = 2; updateWizSteps(2); // 【更新点阵】
             } else if (currentWizStep === 2) {
                 var isSkipWifi = skipWifiCb ? skipWifiCb.checked : false;
                 var ssid = container.querySelector('#wiz-wifi-ssid').value.trim();
@@ -868,7 +923,7 @@ return view.extend({
                     htmlConfirm += "</div>";
                     container.querySelector('#wiz-confirm-text').innerHTML = htmlConfirm;
 
-                    wArea2.style.display = 'none'; wArea3.style.display = 'block'; wBtnNext.style.display = 'none'; wBtnApply.style.display = 'block'; currentWizStep = 3;
+                    wArea2.style.display = 'none'; wArea3.style.display = 'block'; wBtnNext.style.display = 'none'; wBtnApply.style.display = 'block'; wArea2.style.display = 'none'; wArea3.style.display = 'block'; wBtnNext.style.display = 'none'; wBtnApply.style.display = 'block'; currentWizStep = 3; updateWizSteps(3); // 【更新点阵】
                 };
 
                 if (!isSkipWifi) {
@@ -897,8 +952,11 @@ return view.extend({
 
         // 5. 返回逻辑
         wBtnPrev.addEventListener('click', function() {
-            if (currentWizStep === 2) { wArea2.style.display = 'none'; wArea1.style.display = 'block'; wBtnPrev.style.display = 'none'; currentWizStep = 1;
-            } else if (currentWizStep === 3) { wArea3.style.display = 'none'; wArea2.style.display = 'block'; wBtnApply.style.display = 'none'; wBtnNext.style.display = 'block'; currentWizStep = 2; }
+            if (currentWizStep === 2) { 
+                wArea2.style.display = 'none'; wArea1.style.display = 'block'; wBtnPrev.style.display = 'none'; currentWizStep = 1; updateWizSteps(1); // 【新增更新点阵】
+            } else if (currentWizStep === 3) { 
+                wArea3.style.display = 'none'; wArea2.style.display = 'block'; wBtnApply.style.display = 'none'; wBtnNext.style.display = 'block'; currentWizStep = 2; updateWizSteps(2); // 【新增更新点阵】
+            }
         });
 
         // 6. 一键合并提交，分流双通道与单通道
