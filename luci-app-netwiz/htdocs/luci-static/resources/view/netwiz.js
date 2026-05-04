@@ -363,8 +363,8 @@ return view.extend({
 
             '/* --- 9. Alerts, Notes & Specific Panels --- */',
             '.nw-roam-title { font-weight: 600; color: #0f172a; font-size: 15px; margin-bottom: 4px; }',
-            '.nw-roam-desc { font-size: 13.5px; color: #64748b; line-height: 1.5; word-break: break-word; }',
-            '.nw-roam-warn { font-size: 13px; color: #ef4444; margin-top: 6px; font-weight: 600; background: #fef2f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #fecaca; line-height: 1.4; }',
+            '.nw-roam-desc { font-size: 14.5px; color: #64748b; line-height: 1.5; word-break: break-word; }',
+            '.nw-roam-warn { font-size: 14px; color: #ef4444; margin-top: 6px; font-weight: 600; background: #fef2f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #fecaca; line-height: 1.4; }',
             '.nw-warn-bypass, .nw-warn-main { padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid; line-height: 1.7; font-weight: bolder; }',
             '.nw-warn-bypass { background: #fef2f2; color: #ef4444; border-color: #fecaca; }',
             '.nw-warn-main { background: #f0fdf4; color: #059669; border-color: #bbf7d0; }',
