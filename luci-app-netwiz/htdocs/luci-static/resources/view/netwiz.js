@@ -233,7 +233,7 @@ return view.extend({
             '/* --- 1. Base & Layout --- */',
             ' header { margin: -5px -5px 0; }',
             '#maincontent, .main-right { overflow-y: auto !important; overflow-x: hidden !important; }', 
-            '#netwiz-container { display: block !important; width: 100% !important; min-height: 101vh !important; padding: 0 !important; margin: 0 auto !important; box-sizing: border-box !important; color: #64748b; }',
+            '#netwiz-container { display: block !important; width: 100% !important; min-height: 101vh !important; padding: 0 !important; margin: 0 auto !important; box-sizing: border-box !important; color: #64748b; font-size: 14px;}',
             '.nw-wrapper { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; width: 100% !important; max-width: 900px !important; margin: 0 auto !important; padding-bottom: 10vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box !important; }',
             '.nw-header { display: block !important; width: 100% !important; max-width: 750px !important; margin: 0 auto 30px auto !important; text-align: center; background-color: #5e72e4; padding: 15px; border-radius: 16px; position: relative; box-sizing: border-box; box-shadow: 0 10px 25px rgba(94, 114, 228, 0.15); z-index: 20; }',
             '.nw-step { width: 100% !important; max-width: 800px !important; text-align: center; animation: slideUp 0.4s ease-out; margin: 0 auto !important; }',
@@ -362,7 +362,7 @@ return view.extend({
             '.nw-modal-btn-cancel:hover { background: #e2e8f0 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1) !important; }',
 
             '/* --- 9. Alerts, Notes & Specific Panels --- */',
-            '.nw-roam-title { font-weight: 600; color: #0f172a; font-size: 15px; margin-bottom: 4px; }',
+            '.nw-roam-title { font-weight: 600; color: #0f172a; font-size: 16px; margin-bottom: 4px; }',
             '.nw-roam-desc { font-size: 14.5px; color: #64748b; line-height: 1.5; word-break: break-word; }',
             '.nw-roam-warn { font-size: 14px; color: #ef4444; margin-top: 6px; font-weight: 600; background: #fef2f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #fecaca; line-height: 1.4; }',
             '.nw-warn-bypass, .nw-warn-main { padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid; line-height: 1.7; font-weight: bolder; }',
