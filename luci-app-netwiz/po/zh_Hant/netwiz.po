@@ -813,3 +813,6 @@ msgstr "永久"
 
 msgid "Expired"
 msgstr "已過期"
+
+msgid "Terminal Device & IP Binding"
+msgstr "終端裝置與 IP 綁定"
