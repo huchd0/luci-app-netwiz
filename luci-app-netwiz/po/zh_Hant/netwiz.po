@@ -868,17 +868,17 @@ msgstr "+ 新建分組"
 msgid "Manage Groups"
 msgstr "管理分組"
 
-msgid "Department Subnet (Auto Tagging)"
-msgstr "自定義分組網段 (自動打標籤)"
+msgid "Group Pool (Auto Assign)"
+msgstr "分組網段 (自動發號)"
 
-msgid "Assign IPs from custom department ranges to act as logical switches"
-msgstr "從自定義的分組網段中分配 IP，實現邏輯層面的分類管理"
+msgid "Assign free IPs automatically from the selected Target Group's specific IP range"
+msgstr "自動從下方選擇的“目標分組”所設定的專屬 IP 段中提取空閒 IP 進行分配"
 
 msgid "Target Department"
 msgstr "目標分組"
 
-msgid "Department Subnet"
-msgstr "自定義分組網段"
+msgid "Group IP Pool"
+msgstr "分組專屬網段"
 
 msgid "❌ The IP pool for the selected department is full! Please expand the range."
 msgstr "❌ 該分組的 IP 池已全部分配完畢！請前往“管理分組”擴大網段範圍。"
