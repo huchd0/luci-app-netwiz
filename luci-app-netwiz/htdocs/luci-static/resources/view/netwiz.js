@@ -569,7 +569,7 @@ return view.extend({
 
     bindEvents: function (container) {
         // ==============================================================
-        // ★ 终极防空指针补丁：智能重定向 DOM 查找，完美配合弹窗越狱！
+        // 防空指针，重定向 DOM 查找
         var oriQuery = container.querySelector.bind(container);
         var oriQueryAll = container.querySelectorAll.bind(container);
         container.querySelector = function(sel) { return oriQuery(sel) || document.querySelector(sel); };
@@ -604,7 +604,7 @@ return view.extend({
         };
         // ==============================================================
 
-        // ★ 核心魔法：将所有弹窗移出被主题污染的容器，直接挂载到最外层 body，彻底摆脱布局与层级陷阱！
+        // 所有弹窗移出被主题污染的容器，挂载到最外层 body
         var globalModal = container.querySelector('#nw-global-modal');
         if (globalModal) document.body.appendChild(globalModal);
 
@@ -874,9 +874,8 @@ return view.extend({
         });
         // ==========================================
 
-        // ===== 自定义动画滚动 =====
+        // ===== 义动画滚动 =====
         var smoothScrollToTop = function(duration) {
-            // 兼容 Argon、Bootstrap 等各种 OpenWrt
             var scroller = document.querySelector('#maincontent') || document.querySelector('.main-right') || document.scrollingElement || document.documentElement;
             var start = scroller.scrollTop;
             if (start === 0 && window.pageYOffset > 0) { scroller = window; start = window.pageYOffset; }
@@ -1506,7 +1505,6 @@ return view.extend({
                             var i = apIfaces[0];
                             var sName = escapeHTML(i.ssid);
                             var kTxt = i.key ? escapeHTML(i.key) : "<span style='color:#ef4444;'>" + T['TXT_NO_PASS'] + "</span>"; 
-                            // 【修改点】：统一多频合一的颜色为 #10b981 绿字
                             var tLbl = "<b class='nw-wifi-badge' style='color:#10b981;'>" + T['LBL_SMART_CONN'] + "</b>";
                             var bandStr = 'smart';
                             
@@ -1571,11 +1569,11 @@ return view.extend({
                     
                     var ipv6Html = "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; line-height: 1.8; margin-top: 6px; max-width:100%; min-width:0; word-break:break-all;'><span style='font-weight: 900; margin-right: 8px; flex-shrink:0;'>IPv6 (DHCPv6): </span>" + ipv6Label + "</div>";
                     
-                    // ★ 1. 宣告全局離場動畫跳轉函數
+                    // 全局出场跳转函数
                     window._leavePage = function(url) {
                         var wrap = document.querySelector('.nw-wrapper');
                         if (wrap) wrap.classList.add('page-leaving');
-                        // 延遲 400ms 等待動畫播完再跳轉
+                        // 400ms 等动画完了再跳转
                         setTimeout(function() { window.location.href = url; }, 400); 
                     };
 
@@ -1583,7 +1581,7 @@ return view.extend({
                     var devMgrBtn = "";
                     if (!isBypass) {
                          var devUrl = window.location.pathname.replace('/netwiz', '/netwiz_dev');
-                         // 只負責生成按鈕的 HTML 並賦予 id="btn-goto-dev" 即可，點擊事件已經交給第一步的全局代理了
+                         // 生成按鈕的 HTML
                          devMgrBtn = "<div style='margin-top: 20px; width: 100%;'><a href='" + devUrl + "' id='btn-goto-dev' style='font-size: 18.5px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: rgba(99, 102, 241, 0.95) !important; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; color: #fff; text-decoration: none; font-weight: bold; transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1);' onmouseover=\"this.style.background='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)';\" onmouseout=\"this.style.background='rgba(99, 102, 241, 0.5)'; this.style.transform='none';\"><svg style='width: 18px; height: 18px;' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='3' width='20' height='14' rx='2' ry='2'></rect><line x1='8' y1='21' x2='16' y2='21'></line><line x1='12' y1='17' x2='12' y2='21'></line></svg> " + (T['BTN_DEV_BIND'] || '终端设备与 IP 绑定') + "</a></div>";
                     }
 
