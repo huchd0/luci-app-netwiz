@@ -69,6 +69,7 @@ To ensure the backend daemons and RPC interfaces function correctly, the followi
 
 ```bash
 chmod +x luci-app-netwiz/root/usr/libexec/rpcd/netwiz
+chmod +x luci-app-netwiz/root/usr/libexec/rpcd/netwiz_dev
 chmod +x luci-app-netwiz/root/usr/libexec/netwiz-autodetect.sh
 chmod +x luci-app-netwiz/root/usr/libexec/netwiz-monitor-loop.sh
 chmod +x luci-app-netwiz/root/etc/init.d/netwiz-monitor
@@ -78,39 +79,42 @@ chmod +x luci-app-netwiz/root/etc/init.d/netwiz-recovery
 
 ```bash
 luci-app-netwiz/
-├── README.md                   # Project documentation (Features, Installation, Changelog)
-├── LICENSE                     # Open source license
-├── Makefile                    # Standard OpenWrt/immortalwrt Makefile (Package definition, dependencies)
+├── README.md                               # Project documentation (Features, Installation guide, Changelog)
+├── LICENSE                                 # Open-source license declaration
+├── Makefile                                # OpenWrt/immortalwrt standard Makefile (Package definition & dependencies)
 ├── htdocs/
 │   └── luci-static/
 │       └── resources/
 │           └── view/
-│               └── netwiz.js   # Frontend UI (Async radar, dynamic stopwatch, wizard flow engine, core JS logic)
+│               ├── netwiz.css               # Independent CSS stylesheet (UI styles for modals, responsive grid, badges)
+│               ├── netwiz.js                # Frontend Core 1: Network Setup Wizard (Async radar, dial-up, anti-loss logic)
+│               └── netwiz_dev.js            # Frontend Core 2: Device Network Manager (Device status radar, smart subnetting, batch assign)
 ├── po/
 │   ├── zh_Hans/
-│   │   └── netwiz.po           # Simplified Chinese translation dictionary
+│   │   └── netwiz.po                        # Simplified Chinese translation dictionary (Covers both Wizard and Device Manager)
 │   └── zh_Hant/
-│       └── netwiz.po           # Traditional Chinese translation dictionary
+│       └── netwiz.po                        # Traditional Chinese translation dictionary (Covers both Wizard and Device Manager)
 └── root/
     ├── etc/
-    │   ├── config/             # Default UCI configuration directory
-    │   │   └── netwiz          # Netwiz exclusive underlying configuration file (Default settings)
+    │   ├── config/                          # UCI default configuration directory
+    │   │   └── netwiz                       # Netwiz exclusive config file (Saves Wizard states and Device Manager's custom group JSON)
     │   └── init.d/
-    │       ├── netwiz-monitor  # Background daemon service for the monitor loop
-    │       └── netwiz-recovery # Power-loss auto-recovery service (START=15)
+    │       ├── netwiz-monitor               # Background daemon service for the connection monitor loop
+    │       └── netwiz-recovery              # Auto-recovery service on power loss (START=15)
     └── usr/
         ├── libexec/
-        │   ├── netwiz-autodetect.sh   # WAN protocol auto-detection engine (DHCP/PPPoE)
-        │   ├── netwiz-monitor-loop.sh # Core monitor daemon (Debounce, connection radar, rollback mechanism)
+        │   ├── netwiz-autodetect.sh         # WAN protocol auto-detection engine (DHCP/PPPoE)
+        │   ├── netwiz-monitor-loop.sh       # Core monitoring daemon (Debounce, connection radar, rollback execution)
         │   └── rpcd/
-        │       └── netwiz             # Backend Lua/Shell RPC interface (Receives and processes frontend commands)
+        │       ├── netwiz                   # Backend RPC API 1: Setup Wizard (Handles network replacement & config validation)
+        │       └── netwiz_dev               # Backend RPC API 2: Device Manager (Fetches ARP/DHCP lists, bind/unbind IPs, saves groups)
         └── share/
             ├── luci/
             │   └── menu.d/
-            │       └── luci-app-netwiz.json # System menu definition (Places Netwiz under "System" or "Network" menu)
+            │       └── luci-app-netwiz.json # LuCI Menu definitions (Registers entry points for Wizard and Device Manager)
             └── rpcd/
                 └── acl.d/
-                    └── luci-app-netwiz.json # RPC Access Control List (Must be under /usr/share to grant frontend API permissions)
+                    └── luci-app-netwiz.json # RPC Access Control List (Crucial: Must include exec permissions for `netwiz_dev` to prevent 403 Forbidden errors)
 ```
 ---
 
