@@ -6,7 +6,7 @@
 
 case "$1" in
     list)
-        echo '{ "get_list": {}, "bind": { "mac": "string", "ip": "string", "name": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" } }'
+        echo '{ "get_list": {}, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" } }'
         exit 0
         ;;
     call)
@@ -18,19 +18,16 @@ case "$1" in
                 hosts_str=$(cat /tmp/hosts/* /etc/hosts 2>/dev/null || true)
                 uci_hosts=$(uci show dhcp 2>/dev/null | grep "\.@host\[" || true)
 
-                # 多行 ubus JSON
                 ubus_leases=$(ubus call dhcp ipv4leases 2>/dev/null || ubus call odhcpd ipv4leases 2>/dev/null || true)
 
                 gw_ip=$(ip -4 route show default 2>/dev/null | awk '/default/ {print $3}' | head -n1 | tr -d ' \r\n')
                 lan_ip=$(ip addr show br-lan 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1 | head -n1 | tr -d ' \r\n')
                 [ -z "$lan_ip" ] && lan_ip=$(uci -q get network.lan.ipaddr | cut -d/ -f1 | tr -d ' \r\n')
                 
-                # 获取路由器自身的 MAC 和所有 IPv4 地址
                 lan_mac=$(ip link show br-lan 2>/dev/null | awk '/link\/ether/ {print $2}' | tr 'A-Z' 'a-z')
                 [ -z "$lan_mac" ] && lan_mac=$(ip link | awk '/link\/ether/ {print $2}' | head -n1 | tr 'A-Z' 'a-z')
                 local_ips=$(ip -4 addr show 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1 | tr '\n' ' ')
                 
-                # 抓取当前正在访问路由器 Web 界面 (80/443端口) 的IP
                 visitor_ips=$(netstat -nt 2>/dev/null | awk '$4 ~ /:(80|443)$/ && $6 ~ /ESTABLISHED/ {split($5, a, ":"); if(a[1]!="") print a[1]}' | sort -u | tr '\n' ' ')
 
                 curr_time=$(date +%s)
@@ -46,7 +43,6 @@ case "$1" in
                         if(lip_arr[i] != "" && lip_arr[i] != "127.0.0.1") router_ips[lip_arr[i]] = 1;
                     }
 
-                    # 解析访客 IP 数组
                     split(visitor_ips_str, vip_arr, " ");
                     for(i in vip_arr) {
                         if(vip_arr[i] != "" && vip_arr[i] != "127.0.0.1") visitor_ips[vip_arr[i]] = 1;
@@ -58,13 +54,15 @@ case "$1" in
                         arp_online[lan_mac] = 1;
                         ubus_name[lan_mac] = "OpenWrt (Local)";
                     }
-                    split(wifi_str, warr, "\n"); for(i in warr) if(warr[i]!="") wifi_online[warr[i]]=1;
+                    split(wifi_str, warr, "\n");
+                    for(i in warr) if(warr[i]!="") wifi_online[warr[i]]=1;
                     
                     split(arp_str, aarr, "\n");
                     for(i in aarr) {
                         split(aarr[i], f, " ");
                         if(f[1]!="" && f[1]!~/dev/) {
-                            mac=""; state="";
+                            mac="";
+                            state="";
                             for(j=1; j<=length(f); j++) {
                                 if(f[j]=="lladdr") mac=tolower(f[j+1]);
                                 else if(f[j] ~ /^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$/) mac=tolower(f[j]);
@@ -99,7 +97,8 @@ case "$1" in
                                 if (cur_ip != "") leases_ip[cur_mac] = cur_ip;
                                 if (cur_name != "" && cur_name != "*" && cur_name != "?") ubus_name[cur_mac] = cur_name;
                                 if (cur_valid > 0) {
-                                    h = int(cur_valid / 3600); m = int((cur_valid % 3600) / 60); s = cur_valid % 60;
+                                    h = int(cur_valid / 3600);
+                                    m = int((cur_valid % 3600) / 60); s = cur_valid % 60;
                                     leases_time[cur_mac] = sprintf("%dh %dm %ds", h, m, s);
                                 } else if (cur_valid == 0) {
                                     leases_time[cur_mac] = "Expired";
@@ -172,6 +171,7 @@ case "$1" in
                                 }
                                 else if(prop=="ip") uci_ip_map[h_idx]=val;
                                 else if(prop=="name") uci_name_map[h_idx]=val;
+                                else if(prop=="netwiz_dept") uci_dept_map[h_idx]=val; # ★新增底层部门Tag解析
                             }
                         }
                     }
@@ -184,6 +184,7 @@ case "$1" in
                             is_static_mac[m_mac] = 1;
                             if (uci_ip_map[h_idx] != "") static_ip[m_mac] = uci_ip_map[h_idx];
                             if (uci_name_map[h_idx] != "") uci_name[m_mac] = uci_name_map[h_idx];
+                            if (uci_dept_map[h_idx] != "") static_dept[m_mac] = uci_dept_map[h_idx]; # ★记录MAC对应的Tag
                         }
                     }
 
@@ -216,17 +217,19 @@ case "$1" in
                             }
                         }
 
-                        gsub(/["\\\r\n\t]/, "", mac); gsub(/["\\\r\n\t]/, "", ip); gsub(/["\\\r\n\t]/, "", name);
+                        gsub(/["\\\r\n\t]/, "", mac); gsub(/["\\\r\n\t]/, "", ip);
+                        gsub(/["\\\r\n\t]/, "", name);
                         
                         is_static = (is_static_mac[mac]==1) ? "true" : "false";
                         is_gw = (ip != "" && ip == gw_ip) ? "true" : "false";
                         is_local = (ip != "" && router_ips[ip] == 1) ? "true" : "false";
-                        # 当前正在访问页面的设备
                         is_visitor = (ip != "" && visitor_ips[ip] == 1) ? "true" : "false";
-                        b_ip = static_ip[mac]; # 已写入系统 IP
+                        
+                        b_ip = static_ip[mac]; 
+                        b_dept = static_dept[mac]; # ★获取绑定Tag
                         
                         if(!first) printf ", ";
-                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\"}", mac, ip, b_ip, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time;
+                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\"}", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time;
                         first=0;
                     }
                     printf "]}";
@@ -239,6 +242,7 @@ case "$1" in
                 mac=$(echo "$input" | jsonfilter -e '@.mac' | tr 'A-Z' 'a-z')
                 ip=$(echo "$input" | jsonfilter -e '@.ip')
                 name=$(echo "$input" | jsonfilter -e '@.name')
+                dept=$(echo "$input" | jsonfilter -e '@.dept') # ★获取前端传来的Tag
                 no_reload=$(echo "$input" | jsonfilter -e '@.no_reload')
 
                 [ -z "$mac" ] || [ -z "$ip" ] && exit 0
@@ -251,6 +255,11 @@ case "$1" in
                 uci set dhcp.$new_sect.name="$name"
                 uci set dhcp.$new_sect.mac="$mac"
                 uci set dhcp.$new_sect.ip="$ip"
+                
+                # ★ 如果用户选择了目标组，则写入独立标签
+                if [ -n "$dept" ] && [ "$dept" != "none" ]; then
+                    uci set dhcp.$new_sect.netwiz_dept="$dept"
+                fi
                 
                 uci commit dhcp
                 if [ "$no_reload" != "true" ] && [ "$no_reload" != "1" ]; then
@@ -279,28 +288,19 @@ case "$1" in
                 echo '{"result":0}'
                 exit 0
                 ;;
-            # ======== 读取部门配置 ========
             get_depts)
                 val=$(uci -q get netwiz.global.depts_json)
                 [ -z "$val" ] && val="[]"
                 echo "{\"depts\": $val}"
                 exit 0
                 ;;
-            # ======== 保存部门配置 ========
             save_depts)
                 input=$(cat)
                 json_str=$(echo "$input" | jsonfilter -e '@.data')
-                
-                # 配置文件不存在或为空，生成结构
-                if [ ! -s /etc/config/netwiz ]; then
-                    echo "config netwiz 'global'" > /etc/config/netwiz
-                fi
-                
                 uci -q delete netwiz.global
                 uci set netwiz.global=netwiz
                 uci set netwiz.global.depts_json="$json_str"
                 uci commit netwiz
-                
                 echo '{"result":0}'
                 exit 0
                 ;;
