@@ -816,3 +816,6 @@ msgstr "已过期"
 
 msgid "Terminal Device & IP Binding"
 msgstr "终端设备与 IP 绑定"
+
+msgid "Current Device"
+msgstr "当前设备"
