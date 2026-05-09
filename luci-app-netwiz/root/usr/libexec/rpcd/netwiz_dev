@@ -171,7 +171,7 @@ case "$1" in
                                 }
                                 else if(prop=="ip") uci_ip_map[h_idx]=val;
                                 else if(prop=="name") uci_name_map[h_idx]=val;
-                                else if(prop=="netwiz_dept") uci_dept_map[h_idx]=val; # ★新增底层部门Tag解析
+                                else if(prop=="netwiz_dept") uci_dept_map[h_idx]=val; # 底层部门Tag解析
                             }
                         }
                     }
@@ -184,7 +184,7 @@ case "$1" in
                             is_static_mac[m_mac] = 1;
                             if (uci_ip_map[h_idx] != "") static_ip[m_mac] = uci_ip_map[h_idx];
                             if (uci_name_map[h_idx] != "") uci_name[m_mac] = uci_name_map[h_idx];
-                            if (uci_dept_map[h_idx] != "") static_dept[m_mac] = uci_dept_map[h_idx]; # ★记录MAC对应的Tag
+                            if (uci_dept_map[h_idx] != "") static_dept[m_mac] = uci_dept_map[h_idx]; # 记录MAC对应的Tag
                         }
                     }
 
@@ -226,7 +226,7 @@ case "$1" in
                         is_visitor = (ip != "" && visitor_ips[ip] == 1) ? "true" : "false";
                         
                         b_ip = static_ip[mac]; 
-                        b_dept = static_dept[mac]; # ★获取绑定Tag
+                        b_dept = static_dept[mac]; # 获取绑定Tag
                         
                         if(!first) printf ", ";
                         printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\"}", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time;
@@ -242,7 +242,7 @@ case "$1" in
                 mac=$(echo "$input" | jsonfilter -e '@.mac' | tr 'A-Z' 'a-z')
                 ip=$(echo "$input" | jsonfilter -e '@.ip')
                 name=$(echo "$input" | jsonfilter -e '@.name')
-                dept=$(echo "$input" | jsonfilter -e '@.dept') # ★获取前端传来的Tag
+                dept=$(echo "$input" | jsonfilter -e '@.dept') # 前端传来的Tag
                 no_reload=$(echo "$input" | jsonfilter -e '@.no_reload')
 
                 [ -z "$mac" ] || [ -z "$ip" ] && exit 0
@@ -256,7 +256,7 @@ case "$1" in
                 uci set dhcp.$new_sect.mac="$mac"
                 uci set dhcp.$new_sect.ip="$ip"
                 
-                # ★ 如果用户选择了目标组，则写入独立标签
+                # 选择目标组，则写入独立标签
                 if [ -n "$dept" ] && [ "$dept" != "none" ]; then
                     uci set dhcp.$new_sect.netwiz_dept="$dept"
                 fi
