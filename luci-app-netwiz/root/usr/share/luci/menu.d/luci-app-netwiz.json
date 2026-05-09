@@ -9,5 +9,15 @@
 		"depends": {
 			"acl": [ "luci-app-netwiz" ]
 		}
+	},
+	"admin/netwiz_dev": {
+		"action": {
+			"type": "view",
+			"path": "netwiz_dev"
+		},
+		"depends": {
+			"acl": [ "luci-app-netwiz" ]
+		},
+		"hidden": true
 	}
 }
