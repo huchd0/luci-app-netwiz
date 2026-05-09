@@ -47,7 +47,7 @@ body {
 /* ---------------------------------------------------------
    2. 顶部蓝色大横幅 (Header)
 --------------------------------------------------------- */
-.nw-header { display: block !important; text-align: center !important; background-color: #5e72e4 !important; padding: 22px 15px !important; border-radius: 0 0 14px 14px !important; position: relative !important; box-shadow: 0 8px 20px rgba(94, 114, 228, 0.15) !important; z-index: 20 !important; margin: 0 auto 20px auto !important; border: none !important; }
+.nw-header { top: -20px; display: block !important; text-align: center !important; background-color: #5e72e4 !important; padding: 22px 15px !important; border-radius: 0 0 14px 14px !important; position: relative !important; box-shadow: 0 8px 20px rgba(94, 114, 228, 0.15) !important; z-index: 20 !important; margin: 0 auto 20px auto !important; border: none !important; }
 .nw-main-title { font-size: 36px !important; letter-spacing: 4px !important; font-weight: 600 !important; margin: 0 0 8px 0 !important; color: #ffffff !important; line-height: 1.2 !important; }
 .nw-header p { color: #ffffff !important; font-size: 20px !important; letter-spacing: 2px !important; opacity: 0.9 !important; margin: 8px 0 !important; }
 .nw-title-wrap { position: relative; display: inline-block; cursor: pointer; }
@@ -65,7 +65,7 @@ body {
 .nw-form-area, .nw-confirm-board { position: relative; max-width: 460px; margin: 0 auto; text-align: left; padding: 30px 35px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.88); box-shadow: 0 10px 30px rgba(0,0,0,0.06); box-sizing: border-box; display: block !important; overflow: hidden; word-break: break-word; }
 .nw-step-title { text-align: center; margin-bottom: 25px; color: #111; font-weight: 600; font-size: 18px; }
 
-.nw-card-group { display: flex !important; gap: 18px !important; justify-content: center !important; flex-wrap: wrap !important; margin-top: 0 !important; width: 100% !important; box-sizing: border-box !important; }
+.nw-card-group { display: flex !important; gap: 18px !important; justify-content: center !important; flex-wrap: wrap !important; margin-top: -20px !important; width: 100% !important; box-sizing: border-box !important; }
 .nw-card { flex: 1 !important; min-width: 170px !important; max-width: 220px !important; aspect-ratio: 1 / 1 !important; padding: 28px 18px !important; border-radius: 14px !important; cursor: pointer !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(255,255,255,0.2) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; transition: transform 0.25s ease !important; display: flex !important; flex-direction: column !important; align-items: center !important; box-sizing: border-box !important; }
 .nw-card:hover { transform: translateY(-5px) !important; }
 
@@ -545,11 +545,11 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
         box-sizing: border-box !important;
     }
     
-    .nw-header { border-radius: 14px !important; padding: 0 0 10px 0 !important; }
+    .nw-header {top: 0; border-radius: 14px !important; padding: 5px 0 10px 0 !important; }
     .nw-main-title { font-size: 24px !important; letter-spacing: 0 !important; }
     .nw-header p { font-size: 14px !important; letter-spacing: 0 !important; margin-bottom: 0 !important;}
     
-    .nw-card-group { display: block !important; width: 100% !important; padding: 0 !important; margin-top: 0 !important; }
+    .nw-card-group { display: block !important; width: 100% !important; padding: 0 !important; margin-top: -5px !important; }
     .nw-card { 
         width: 100% !important; max-width: 100% !important; 
         margin: 0 0 15px 0 !important; 
