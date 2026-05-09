@@ -202,6 +202,7 @@ var T = {
     'TXT_NOT_CONFIGURED': _('Not configured (Keep current)'),
     'TXT_UNSET': _('Not set'),
     'TXT_NO_PWD_OPEN': _('No Password (Open)'),
+    'BTN_DEV_BIND': _('Terminal Device & IP Binding'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -228,230 +229,23 @@ return view.extend({
         var container = dom.create('div', { id: 'netwiz-container' });
 
         var htmlTemplate = [
+            '<link rel="stylesheet" type="text/css" href="' + L.resource('view/netwiz.css') + '?v=' + Date.now() + '">',
             '<style>',
-            '/* ====== Netwiz Elegant UI Styles ====== */',
-            '/* --- 1. Base & Layout --- */',
-            ' header { margin: -5px -5px 0; }',
-            '#maincontent, .main-right { overflow-y: auto !important; overflow-x: hidden !important; }', 
-            '#netwiz-container { display: block !important; width: 100% !important; min-height: 101vh !important; padding: 0 !important; margin: 0 auto !important; box-sizing: border-box !important; color: #64748b; font-size: 14px;}',
-            '.nw-wrapper { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; width: 100% !important; max-width: 900px !important; margin: 0 auto !important; padding-bottom: 10vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box !important; }',
-            '.nw-header { display: block !important; width: 100% !important; max-width: 750px !important; margin: 0 auto 30px auto !important; text-align: center; background-color: #5e72e4; padding: 15px; border-radius: 16px; position: relative; box-sizing: border-box; box-shadow: 0 10px 25px rgba(94, 114, 228, 0.15); z-index: 20; }',
-            '.nw-step { width: 100% !important; max-width: 800px !important; text-align: center; animation: slideUp 0.4s ease-out; margin: 0 auto !important; }',
-            '.nw-form-area, .nw-confirm-board { position: relative; max-width: 460px; margin: 0 auto; text-align: left; padding: 40px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.88); box-shadow: 0 10px 30px rgba(0,0,0,0.06); box-sizing: border-box; display: block !important; overflow: hidden; word-break: break-word; }',
-
-            '/* --- 2. Shared Flex Rows --- */',
-            '.nw-setting-row, .nw-setting-row-alt, .nw-switch-row-padded, .nw-adv-setting-row, .nw-roam-row, .nw-roam-row-alt, .nw-split-header-row, .nw-legacy-row, .nw-wisp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }',
-            '.nw-setting-row { padding: 15px 0; border-bottom: 1px solid #f1f5f9; }',
-            '.nw-setting-row-alt { padding: 0 0 15px 0; border-bottom: 1px solid #f1f5f9; }',
-            '.nw-switch-row-padded { padding: 10px 0 15px 0; border-bottom: 1px dashed #e2e8f0; }',
-            '.nw-adv-setting-row { padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; animation: fadeIn 1s ease; }',
-            '.nw-roam-row { padding: 5px 0 15px 0; border-bottom: 1px dashed #cbd5e1; }',
-            '.nw-roam-row-alt { padding: 15px 0 5px 0; border-top: 1px dashed #cbd5e1; margin-top: 10px; margin-bottom: 0; }',
-            '.nw-split-header-row { }',
-            '.nw-legacy-row { padding: 15px 0 0 0; border-top: 1px solid #f1f5f9; margin-top: 15px; }',
-            '.nw-wisp-header { margin: 10px; 0 5px 0 }',
-
-            '/* --- 3. Header & Typography --- */',
-            '.nw-main-title { font-size: 35px; font-weight: 600; margin-bottom: 10px; color: #ffffff; letter-spacing: 2px; }',
-            '.nw-header p { color: #ffffff; font-size: 16px; opacity: 0.9; margin: 10px; letter-spacing: 1px; }',
-            '.nw-title-wrap { position: relative; display: inline-block; cursor: pointer; }',
-            '.nw-version-tag { position: absolute; top: 15px; left: 100%; margin-left: 1px; background: rgba(255, 255, 255, 0.15); color: #fff; font-size: 13px; font-weight: bold; padding: 3px 10px; border-radius: 8px; font-family: monospace; z-index: 50; border: 1px solid rgba(255, 255, 255, 0.3); white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(0px); }',
-            '.nw-title-wrap:hover .nw-version-tag { opacity: 1; top: -7px; transform: translateY(-5px); }',
-            '.nw-version-dot { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9); display: block; }',
-            '.nw-step-title { text-align: center; margin-bottom: 30px; color: #111; font-weight: 600; font-size: 20px; }',
-            '.nw-setting-row-label, .nw-wisp-title { font-weight: 600; font-size: 16px; }',
-            '.nw-setting-row-label { color: #222; }',
-            '.nw-wisp-title { color: #059669; }',
-            '.nw-desc-title { font-weight: 600; color: #222; font-size: 15px; word-break: break-word; line-height: 1.3; }',
-
-            '/* --- 4. Cards & Badges --- */',
-            '.nw-card-group { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin-top: 20px; width: 100%; box-sizing: border-box; }',
-            '.nw-card { flex: 1; min-width: 170px; max-width: 220px; padding: 35px 20px; border-radius: 16px; cursor: pointer; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.5); box-shadow: 0px 0px 15px 2px #b7b7b7; transition: all 0.25s ease; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }',
-            '.nw-card:hover { transform: translateY(-5px); }',
-            '.nw-card[data-mode="pppoe"] { background: rgba(79, 150, 101, 0.85); }',
-            '.nw-card[data-mode="wifi"] { background: rgba(245, 54, 92, 0.85); }', 
-            '.nw-card[data-mode="router"] { background: rgba(80, 0, 183, 0.85); }',
-            '.nw-card[data-mode="lan"] { background: rgba(245, 158, 11, 0.85); }',
-            '.nw-card-title { font-size: 19px; margin: 0 0 10px 0; color: #ffffff; font-weight: 600; line-height: 1.2; }',
-            '.nw-card span { font-size: 14.5px; color: #ffffff; line-height: 1.5; opacity: 0.9; }',
-            '.nw-badge { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }',
-            '.nw-badge svg { width: 26px; height: 26px; }',
-            '.nw-badge-pppoe { background: #fef3c7; color: #059669; }',
-            '.nw-badge-wifi { background: #f3e8ff; color: #0284c7; }', 
-            '.nw-badge-dhcp { background: #e0f2fe; color: #9333ea; }',
-            '.nw-badge-bypass { background: #d1fae5; color: #d97706; }',
-
-            '/* --- 5. Forms & Inputs --- */',
-            '.nw-value { border: none !important; padding-bottom: 12px !important; display: flex !important; flex-direction: column !important; width: 100% !important; margin: 0 !important; background: transparent !important; }',
-            '.nw-value-title { text-align: left !important; font-weight: 600 !important; color: #334155 !important; font-size: 14.5px !important; margin: 10px 0 10px 4px !important; line-height: 1.2 !important; display: block !important; padding: 0 !important; width: auto !important; float: none !important; }',
-            '.nw-value-field { width: 100% !important; margin: 0 !important; padding: 0 !important; display: block !important; float: none !important; }',
-            '.nw-form-area input[type="text"], .nw-form-area input[type="password"], .nw-form-area select, .nw-form-area textarea, .nw-wiz-modal-box input[type="text"], .nw-wiz-modal-box textarea { appearance: none !important; width: 100% !important; box-sizing: border-box !important; padding: 14px 16px !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; font-size: 15px !important; outline: none !important; background: #f8fafc !important; color: #0f172a !important; height: auto !important; min-height: 48px !important; line-height: 1.5 !important; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02) !important; margin: 0 !important; transition: all 0.2s ease !important; display: block !important; font-family: inherit; resize: none; word-break: break-all; }',
-            '.nw-form-area input::placeholder, .nw-form-area textarea::placeholder, .nw-wiz-modal-box input::placeholder, .nw-wiz-modal-box textarea::placeholder { color: #94a3b8 !important; opacity: 1 !important; }',
-            '.nw-form-area input:focus, .nw-form-area select:focus, .nw-form-area textarea:focus, .nw-wiz-modal-box input:focus, .nw-wiz-modal-box textarea:focus { border-color: #3b82f6 !important; background: #ffffff !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important; }',
-
-            '/* --- 自定义复选框 --- */',
-            '.nw-wiz-cb-wrap { display: inline-flex; align-items: center; cursor: pointer; user-select: none; position: relative; }',
-            '.nw-wiz-cb-wrap input { position: absolute !important; opacity: 0 !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; left: -9999px !important; }',
-            '.nw-wiz-checkmark { box-sizing: border-box; height: 20px; width: 20px; background-color: #fff; border: 2px solid #cbd5e1; border-radius: 4px; margin-right: 8px; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }',
-            '.nw-wiz-cb-wrap:hover input ~ .nw-wiz-checkmark { border-color: #3b82f6; }',
-            '.nw-wiz-cb-wrap input:checked ~ .nw-wiz-checkmark { background-color: #3b82f6; border-color: #3b82f6; }',
-            '.nw-wiz-checkmark:after { content: ""; display: none; width: 6px; height: 11px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }',
-            '.nw-wiz-cb-wrap input:checked ~ .nw-wiz-checkmark:after { display: block; }',
-
-            '/* --- 6. Custom Controls (Radio & Switch) --- */',
-            '.nw-radio-group { display: flex; gap: 15px; align-items: stretch; margin: 0; padding: 0; width: 100%; }',
-            '.nw-radio-btn { cursor: pointer; position: relative; display: block; flex: 1; margin: 0 !important; padding: 0 !important; }',
-            '.nw-radio-btn input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }',
-            '.nw-radio-btn-text { display: flex; align-items: center; justify-content: center; height: 100%; padding: 12px 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14.5px; color: #475569; background: #fff; transition: all 0.25s ease; position: relative; overflow: hidden; font-weight: normal; box-sizing: border-box; line-height: 1.3; text-align: center; }',
-            '.nw-radio-btn:hover .nw-radio-btn-text { border-color: #3b82f6; color: #3b82f6; background: #f8fafc; }',
-            '.nw-radio-btn input[type="radio"]:checked + .nw-radio-btn-text { border-color: #3b82f6; color: #ef4444; font-weight: 600; box-shadow: 0 0 0 1px #3b82f6; background: #eff6ff; }',
-            '.nw-radio-btn-text::after { content: ""; position: absolute; right: 0; bottom: 0; width: 0; height: 0; border-bottom: 24px solid #3b82f6; border-left: 24px solid transparent; opacity: 0; transition: opacity 0.2s ease; }',
-            '.nw-radio-btn-text::before { content: ""; position: absolute; right: 5px; bottom: 5px; width: 4px; height: 9px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); opacity: 0; transition: opacity 0.2s ease; z-index: 2; }',
-            '.nw-radio-btn input[type="radio"]:checked + .nw-radio-btn-text::after, .nw-radio-btn input[type="radio"]:checked + .nw-radio-btn-text::before { opacity: 1; }',
-            '.nw-switch { position: relative; display: inline-block; width: 46px; height: 24px; margin: 0; }',
-            '.nw-switch input { opacity: 0; width: 0; height: 0; }',
-            '.nw-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: background-color 0.3s ease; border-radius: 24px; -webkit-tap-highlight-color: transparent; -webkit-transform: translateZ(0); transform: translateZ(0); }',
-            '.nw-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }',
-            'input:checked + .nw-slider { background-color: #10b981; }',
-            'input.is-dirty:checked + .nw-slider { background-color: #ea580c; }',
-            'input:checked + .nw-slider:before { -webkit-transform: translate3d(22px, 0, 0); transform: translate3d(22px, 0, 0); }',
-
-            '/* --- 7. Unified Button UI Kit --- */',
-            '/* 主面板底部 */',
-            '.nw-actions { margin-top: 35px; display: flex; justify-content: center; gap: 20px; width: 100%; box-sizing: border-box; }',
-            '/* 弹窗/向导底部 */',
-            '.nw-modal-btn-wrap { display: flex; justify-content: center; gap: 15px; width: 100%; margin-top: 25px; box-sizing: border-box; }',
-            '/* 基础按钮 */',
-            '.nw-u-btn { appearance: none !important; border-radius: 8px !important; padding: 12px 30px !important; font-weight: 600 !important; font-size: 15px !important; cursor: pointer !important; border: none !important; outline: none !important; height: auto !important; line-height: normal !important; margin: 0 !important; transition: all 0.25s ease !important; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 130px; letter-spacing: 1px; }',
-            '/* 向导内的按钮 */',
-            '.nw-modal-btn-wrap .nw-u-btn { flex: 1; }',
-            
-            '/* 颜色定义区 */',
-            '.nw-u-btn-green { background: #10b981 !important; color: white !important; }',
-            '.nw-u-btn-green:hover { background: #059669 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35) !important; }',
-            '.nw-u-btn-blue { background: #3b82f6 !important; color: white !important; }',
-            '.nw-u-btn-blue:hover { background: #2563eb !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.35) !important; }',
-            '.nw-u-btn-red { background: #ef4444 !important; color: white !important; }',
-            '.nw-u-btn-red:hover { background: #dc2626 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.35) !important; }',
-            '.nw-u-btn-gray { background: #f1f5f9 !important; color: #475569 !important; }',
-            '.nw-u-btn-gray:hover { background: #e2e8f0 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1) !important; }',
-
-            '/* 特殊悬浮按钮和文字按钮 */',
-            '.nw-top-back { position: absolute; top: 20px; left: 20px; width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10; }',
-            '.nw-top-back:hover { background: #e2e8f0; color: #0f172a; transform: translateX(-3px); box-shadow: 2px 2px 8px rgba(0,0,0,0.05); }',
-            '.nw-top-back svg { width: 20px; height: 20px; }',
-            '.nw-adv-btn { text-align: center; margin: 15px; cursor: pointer; color: #64748b; font-size: 14px; font-weight: bold; user-select: none; transition: color 0.25s ease; }',
-            '.nw-adv-btn:hover { color: #3b82f6; }',
-
-            '/* --- 8. Modals & Overlays --- */',
-            '#nw-global-modal, .nw-wisp-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 2000000; display: flex; align-items: center; justify-content: center; }',
-            '#nw-wizard-modal { backdrop-filter: blur(8px); z-index: 1000000; }',
-            '#nw-global-modal .nw-modal-box, .nw-wisp-modal-box, .nw-wiz-modal-box { background: #fff; width: 90%; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }',
-            '#nw-global-modal .nw-modal-box { padding: 40px; text-align: center; max-width: 420px; }',
-            '.nw-wisp-modal-box { max-width: 400px; max-height: 80vh; }',
-            '.nw-wiz-modal-box { max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }',
-            '#nw-global-modal h3 { font-size: 22px; color: #fff ;background: rgba(0, 0, 0, 0.65); border-radius: 10px; margin-bottom: 15px; border:none; }',
-            '#nw-global-modal p, #nw-global-msg div { font-size: 15px; color: #475569; line-height: 1.6; margin: 0; word-break: break-all; }',
-            '.nw-modal-btn-wrap { display: flex; gap: 15px; width: 100%; margin-top: 25px; }',
-            '.nw-modal-btn-ok, .nw-modal-btn-cancel, .nw-modal-btn-danger { border: none !important; padding: 12px 30px !important; border-radius: 8px !important; font-size: 15px !important; cursor: pointer !important; flex: 1 !important; transition: all 0.25s ease !important; height: auto !important; margin: 0 !important; }',
-            '.nw-modal-btn-ok { background: #3b82f6 !important; color: white !important; }',
-            '.nw-modal-btn-ok:hover { background: #2563eb !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(59, 130, 246, 0.35) !important; }',
-            '.nw-modal-btn-danger { background: #ef4444 !important; color: white !important; }',
-            '.nw-modal-btn-danger:hover { background: #ef4444 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.35) !important; }',
-            '.nw-modal-btn-cancel { background: #f1f5f9 !important; color: #475569 !important; }',
-            '.nw-modal-btn-cancel:hover { background: #e2e8f0 !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1) !important; }',
-
-            '/* --- 9. Alerts, Notes & Specific Panels --- */',
-            '.nw-roam-title { font-weight: 600; color: #0f172a; font-size: 16px; margin-bottom: 4px; }',
-            '.nw-roam-desc { font-size: 14.5px; color: #64748b; line-height: 1.5; word-break: break-word; }',
-            '.nw-roam-warn { font-size: 14px; color: #ef4444; margin-top: 6px; font-weight: 600; background: #fef2f2; padding: 6px 10px; border-radius: 6px; border: 1px solid #fecaca; line-height: 1.4; }',
-            '.nw-warn-bypass, .nw-warn-main { padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid; line-height: 1.7; font-weight: bolder; }',
-            '.nw-warn-bypass { background: #fef2f2; color: #ef4444; border-color: #fecaca; }',
-            '.nw-warn-main { background: #f0fdf4; color: #059669; border-color: #bbf7d0; }',
-            '.nw-adv-panel { background: rgba(241, 245, 249, 0.5); border-radius: 12px; padding: 20px; margin-top: 15px; border: 1px solid #e2e8f0; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); }',
-            '.nw-note-box { background-color: #f8fafc; padding: 15px; font-size: 13.5px; margin-top: 20px; border: 1px solid #e2e8f0; line-height: 1.7; color: #475569; border-radius: 12px; }',
-            '.nw-note-title { font-weight: bold; color: #0f172a; margin-bottom: 8px; font-size: 14.5px; }',
-            '.nw-confirm-mode-text { color: #fff; background: #0055bb; padding: 20px; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); margin-top: 15px; }',
-            '.nw-current-mode-display { margin-top: 35px; background: #5e72e4; padding: 20px 35px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 8px 20px rgba(94, 114, 228, 0.3); text-align: center; min-width: 320px; max-width: 100%; box-sizing: border-box; word-break: break-all; overflow-wrap: anywhere; overflow: hidden; }',
-            /* ===== 向导头部响应式排版 (PC端默认布局) ===== */
-            '.nw-wiz-header-responsive { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; }',
-            '.nw-wiz-step-wrap { flex: 1; display: flex; justify-content: flex-start; order: 1; }',
-            '.nw-wiz-title-responsive { flex: 2; margin: 0; padding: 0; text-align: center; font-size: 18px; letter-spacing: 0.5px; white-space: nowrap; color: #fff; order: 2; }',
-            '.nw-wiz-close-wrap { flex: 1; display: flex; justify-content: flex-end; order: 3; }',
-            '.nw-wisp-modal-title, .nw-wiz-modal-title { margin: 0 20px; font-size: 16px; color: #eee; background: #0f172a; text-align: center; border-radius: 12px; }',
-            '.nw-wiz-modal-title { background: transparent; font-size: 19px; font-weight: 600; margin: 0; padding: 0; letter-spacing: 0.5px; }',
-            '.nw-wisp-ui-panel { flex-direction: column; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }',
-            '.nw-wisp-target-input { background: #e2e8f0 !important; color: #475569 !important; }',
-            '.nw-wifi-tabs { display: flex; gap: 10px; margin-bottom: 15px; }',
-            '.nw-tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; }',
-
-            '/* --- 10. Utilities & Animations --- */',
-            '.nw-hl { color: #facc15; font-weight: bold; margin-left: 6px; }',
-            '.nw-flex-1 { flex: 1; padding-right: 15px; min-width: 0; }',
-            '.nw-flex-shrink-0 { flex-shrink: 0; }',
-            '.nw-scale-switch { transform: scale(0.9); transform-origin: left; }',
-            '.nw-m0 { margin: 0 !important; }',
-            '.nw-pointer { cursor: pointer; }',
-            '.nw-spinner { width: 50px; height: 50px; border: 4px solid #f1f5f9; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 25px; }',
-            '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }',
-            '@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }',
-            '@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }',
-            '#btn-reopen-wizard:hover { background: rgba(255,255,255,0.25) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }',
-            /* ===== 状态面板响应式类 ===== */
-            '.nw-info-item { display: inline-block; white-space: normal; word-break: break-all; margin: 0 10px; max-width: 100%; }',
-            '.nw-wifi-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px; margin-bottom: 8px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }',
-            '.nw-wifi-left { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; max-width: 100%; min-width: 0; }',
-            '.nw-wifi-badge { padding: 8px 10px; background: #ffffff; border-radius: 6px; font-size: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap; flex-shrink: 0; }',
-            '.nw-wifi-colon { font-size: 15.5px; opacity: 0.9; font-weight: 600; margin: 0 6px; flex-shrink: 0; }',
-            '.nw-wifi-name { font-size: 16.5px; letter-spacing: 0.5px; display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; word-break: break-all; overflow-wrap: anywhere; white-space: normal; text-align: center; max-width: 100%; min-width: 0; }',
-            '.nw-wifi-pwd { color: #ffffff; font-size: 15px; font-weight: 600; white-space: normal; word-break: break-all; max-width: 100%; min-width: 0; }',
-
-            '/* --- 11. Mobile Adaption --- */',
-            '@media screen and (max-width: 768px) {',
-            '  .nw-wrapper { padding-top: 3vh; padding-bottom: 5vh; }',
-            '  .nw-header { margin: -10px auto 15px !important; padding: 20px 15px !important; width: 100% !important; max-width: 320px !important; box-sizing: border-box !important; border-radius: 12px; }',
-            '  .nw-main-title { font-size: 22px; line-height: 1.3; }',
-            '  .nw-header p { font-size: 14px; }',
-            '  .nw-card-group { flex-direction: column; align-items: center; gap: 15px; margin-top: 0; }',
-            '  .nw-card { width: 100% !important; max-width: 320px !important; padding: 25px 20px !important; text-align: center; box-sizing: border-box !important; margin: 0 auto !important; }',
-            '  .nw-badge { margin-bottom: 15px; width: 48px; height: 48px; }',
-            '  .nw-form-area, .nw-confirm-board { width: 100% !important; max-width: 320px !important; margin: 0 auto !important; padding: 25px 20px !important; box-sizing: border-box !important; }',
-            '  .nw-top-back { top: 12px; left: 12px; width: 32px; height: 32px; }',
-            '  .nw-step-title { font-size: 18px; margin-top: 15px; margin-bottom: 20px; }',
-            '  .nw-current-mode-display { width: 100% !important; max-width: 100% !important; min-width: 0 !important; margin: 20px auto 0 !important; padding: 15px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: center !important; }',
-            '  .nw-actions { width: 100% !important; max-width: 320px !important; margin: 20px auto 0 !important; display: flex !important; flex-direction: row !important; gap: 12px !important; box-sizing: border-box !important; }',
-            '  .nw-actions button { flex: 1 !important; padding: 12px 0 !important; font-size: 15px !important; margin: 0 !important; min-width: 0 !important; box-sizing: border-box !important; }',
-            '  #nw-global-modal .nw-modal-box { padding: 25px 20px; width: 85%; box-sizing: border-box !important; }',
-            '  .nw-wiz-modal-box { width: 95%; max-height: 90vh; }',
-            '  .nw-modal-btn-wrap { flex-direction: row; gap: 12px; }',
-            '  .nw-modal-btn-wrap button { flex: 1; padding: 12px 0 !important; margin: 0 !important; }',
-            '  .nw-radio-group { flex-wrap: wrap; gap: 12px; }',
-            '  .nw-form-area input::placeholder, .nw-form-area textarea::placeholder, .nw-wiz-modal-box input::placeholder { font-size: 13px; }',
-            '  .nw-version-tag {display: none; }',
-            /* ===== 手机端 Header 自动换行及重新排序 ===== */
-            '  .nw-wiz-header-responsive { flex-wrap: wrap; padding: 12px 15px !important; }',
-            '  .nw-wiz-title-responsive { flex: 1; text-align: center; font-size: 17px; order: 1; }',
-            '  .nw-wiz-close-wrap { flex: 0 0 auto; order: 2; }',
-            '  .nw-wiz-step-wrap { flex: 0 0 100%; justify-content: center; margin-top: 5px; order: 3; }',
-            /* ===== 状态面板手机端换行与间距 ===== */
-            '  .nw-info-item { display: block; margin: 8px 0; text-align: center; max-width: 100%; min-width: 0; }',
-            '  .nw-wifi-line { flex-direction: column; gap: 10px; margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px dashed rgba(255,255,255,0.2); max-width: 100%; min-width: 0; }',
-            '  .nw-wifi-line:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }',
-            '  .nw-wifi-left { flex-direction: column; gap: 8px; max-width: 100%; min-width: 0; }',
-            '  .nw-wifi-colon { display: none; }',
-            '  .nw-hl { margin-left: 0 !important; max-width: 100%; min-width: 0; display: inline-block; word-break: break-all; white-space: normal; }',
-            '  .nw-wifi-name { flex-direction: column; gap: 6px; max-width: 100%; min-width: 0; }',
-            '  .nw-wifi-name span[title] { margin-left: 0 !important; }',
-            '}',
+            '  .nw-badge svg { width: 24px; height: 24px; }',
+            '  .nw-top-back svg { width: 18px; height: 18px; }',
+            '  .nw-step-line svg { width: 16px; height: 16px; display: block; }',
+            '  body #view #netwiz-container #wiz-step-indicator .nw-step-line svg, body #maincontent #netwiz-container #wiz-step-indicator .nw-step-line svg { background: transparent !important; background-color: transparent !important; border: none !important; box-shadow: none !important; }',
+            ' @media screen and (max-width: 768px) { .nw-top-back svg { width: 16px; height: 16px; } }',
             '</style>',
-            
-            '  <div class="nw-header">',
+
+            '<div class="nw-wrapper">',
+            '   <div class="nw-header">',
             '    <div class="nw-title-wrap">',
             '      <div class="nw-main-title">{{TITLE}}</div>',
             '      <div class="nw-version-tag">{{APP_VERSION}} <div class="nw-version-dot" style="display: none;"></div></div>',
             '    </div>',
             '    <p>{{SUBTITLE}}</p>',
-            '    <div id="btn-reopen-wizard" style="margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); padding: 6px 18px; border-radius: 20px; font-size: 13.5px; font-weight: 500; color: #fff; transition: all 0.25s ease;">{{WIZ_REOPEN}}</div>',
+            '    <div id="btn-reopen-wizard" class="nw-reopen-btn">{{WIZ_REOPEN}}</div>',
             '  </div>',
             '  <div id="nw-global-modal" style="display:none;">',
             '    <div class="nw-modal-box">',
@@ -464,13 +258,11 @@ return view.extend({
             '      </div>',
             '    </div>',
             '  </div>',
-            // WISP 扫描结果
             '  <div id="wisp-scan-modal" class="nw-wisp-modal" style="display:none;">',
             '    <div class="nw-wisp-modal-box">',
             '      <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#5e72e4;">',
             '         <div style="flex:1;"></div>',
             '         <h3 style="flex:2; margin:0; padding:0; text-align:center; font-size:16px; font-weight:600; color:#fff; background:transparent;">{{MODAL_WISP_TITLE}}</h3>',
-            '         <!-- 关闭按钮 -->',
             '         <div style="flex:1; display:flex; justify-content:flex-end;">',
             '            <span id="wisp-modal-close" class="nw-pointer" style="font-size:40px; cursor:pointer; color:#fff; line-height:1;">&times;</span>',
             '         </div>',
@@ -480,30 +272,24 @@ return view.extend({
             '      </div>',
             '    </div>',
             '  </div>',
-            
-            // ===== 快速向导悬浮层 =====
             '  <div id="nw-wizard-modal" class="nw-wisp-modal" style="display:none;">',
             '    <div class="nw-wiz-modal-box">',
             '      <div class="nw-wiz-modal-header nw-wiz-header-responsive" style="background:#5e72e4;">',
-            '         <!-- 1 ➔ 2 ➔ 3 指示器 -->',
             '         <div class="nw-wiz-step-wrap">',
             '            <div id="wiz-step-indicator" style="display: flex; align-items: center; gap: 2px;">',
             '               <div class="nw-step-dot" style="width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; transition:all 0.3s; box-sizing:border-box;">1</div>',
-            '               <div class="nw-step-line" style="display:flex; align-items:center; justify-content:center; margin:0 2px; transition:all 0.3s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; display:block; background: transparent !important;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>',
+            '               <div class="nw-step-line" style="display:flex; align-items:center; justify-content:center; margin:0 2px; transition:all 0.3s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>',
             '               <div class="nw-step-dot" style="width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; transition:all 0.3s; box-sizing:border-box;">2</div>',
-            '               <div class="nw-step-line" style="display:flex; align-items:center; justify-content:center; margin:0 2px; transition:all 0.3s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px; height:16px; display:block; background: transparent !important;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>',
+            '               <div class="nw-step-line" style="display:flex; align-items:center; justify-content:center; margin:0 2px; transition:all 0.3s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>',
             '               <div class="nw-step-dot" style="width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; transition:all 0.3s; box-sizing:border-box;">3</div>',
             '            </div>',
             '         </div>',
-            '         <!-- 大标题 -->',
             '         <h3 class="nw-wiz-modal-title nw-wiz-title-responsive">{{WIZ_TITLE}}</h3>',
-            '         <!-- 关闭按钮 -->',
             '         <div class="nw-wiz-close-wrap">',
             '            <span id="wiz-modal-close" class="nw-pointer" style="color: #fff; font-size: 40px; opacity: 0.8; line-height: 1;">&times;</span>',
             '         </div>',
             '      </div>',
-            '      <div style="padding: 30px 25px 15px; overflow-y: auto;">',
-            '         <!-- Step 1: WAN -->',
+            '      <div style="padding: 10px 10px 5px; overflow-y: auto;">',
             '         <div id="wiz-step-1-area">',
             '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_WAN}}</div>',
             '            <div style="width: 100%; margin-bottom: 15px;">',
@@ -517,7 +303,6 @@ return view.extend({
             '               <div class="nw-value"><label class="nw-value-title">{{LBL_PASS}}</label><div class="nw-value-field"><input type="text" id="wiz-pppoe-pass" placeholder="{{PH_PASS}}"></div></div>',
             '            </div>',
             '         </div>',
-            '         <!-- Step 2: Wi-Fi -->',
             '         <div id="wiz-step-2-area" style="display:none;">',
             '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_WIFI}}</div>',
             '            <p style="color: #64748b; font-size: 14.5px; margin: 0 0 20px 0; text-align: center;">{{WIZ_WIFI_DESC}}</p>',
@@ -533,7 +318,6 @@ return view.extend({
             '               <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}}</label><div class="nw-value-field"><input type="text" id="wiz-wifi-key" placeholder="{{M_PWD_SHORT}}"></div></div>',
             '            </div>',
             '         </div>',
-            '         <!-- Step 3: Confirm -->',
             '         <div id="wiz-step-3-area" style="display:none;">',
             '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_CONFIRM}}</div>',
             '            <div id="wiz-confirm-text" class="nw-confirm-mode-text" style="margin-top: 0; padding: 20px; background: #0f172a;"></div>',
@@ -557,27 +341,16 @@ return view.extend({
             '      </div>',
             '    </div>',
             '  </div>',
-            // ===================================
-            
             '  <div id="step-1" class="nw-step">',
             '    <div class="nw-card-group">',
-            
-            // 1. PPPoE拔号
             '      <div class="nw-card" data-mode="pppoe"><div class="nw-badge nw-badge-pppoe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>',
             '        <div class="nw-card-title">{{MODE_PPPOE_TITLE}}</div><span>{{MODE_PPPOE_DESC}}</span></div>',
-
-            // 2. Wi-Fi设置
             '      <div class="nw-card" id="card-wifi" data-mode="wifi" style="display: none;"><div class="nw-badge nw-badge-wifi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>', 
             '        <div class="nw-card-title">{{MODE_WIFI_TITLE}}</div><span>{{MODE_WIFI_DESC}}</span></div>',
-
-            // 3. 二級路由模式
             '      <div class="nw-card" data-mode="router"><div class="nw-badge nw-badge-dhcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></div>',
             '        <div class="nw-card-title">{{MODE_ROUTER_TITLE}}</div><span>{{MODE_ROUTER_DESC}}</span></div>',
-
-            // 4. 局域网设置
             '      <div class="nw-card" data-mode="lan"><div class="nw-badge nw-badge-bypass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>',
             '        <div class="nw-card-title">{{MODE_LAN_TITLE}}</div><span>{{MODE_LAN_DESC}}</span></div>',
-            
             '    </div>',
             '    <div id="current-mode-display" class="nw-current-mode-display">',
             '       <div id="current-mode-text" style="color: #fff;"><div class="nw-spinner" style="width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;"></div><div style="margin-top:10px; font-size:15px; font-weight:bold; color:#fff;">{{LOADING_CONFIG}}</div></div>',
@@ -679,13 +452,13 @@ return view.extend({
             '                 <div class="nw-legacy-row">',
             '                    <div class="nw-flex-1">',
             '                        <div class="nw-desc-title">{{LBL_LEGACY_B}}</div>',
-            '                        <div class="nw-legacy-desc">{{DESC_LEGACY_B}}</div>',
+            '                        <div class="nw-legacy-desc" style="font-size:13.5px; color:#64748b;">{{DESC_LEGACY_B}}</div>',
             '                    </div>',
             '                    <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="legacy-b-toggle"><span class="nw-slider"></span></label>',
             '                 </div>',
             '                 <div class="nw-roam-row-alt">',
             '                    <div class="nw-flex-1">',
-            '                       <div class="nw-roam-title nw-desc-title">{{LBL_ROAMING}}</div>',
+            '                       <div class="nw-roam-title">{{LBL_ROAMING}}</div>',
             '                       <div class="nw-roam-desc">{{DESC_ROAMING}}</div>',
             '                       <div id="roam-warn-2g" class="nw-roam-warn" style="display:none;">{{DESC_ROAM_DIRTY}}</div>',
             '                    </div>',
@@ -730,7 +503,7 @@ return view.extend({
             '              <div class="nw-wisp-title">{{LBL_WISP_EN}}</div>',
             '              <label class="nw-switch"><input type="checkbox" id="wisp-toggle"><span class="nw-slider"></span></label>',
             '           </div>',
-            '           <div class="nw-wisp-desc" style="padding:5px 0;">{{DESC_WISP}}</div>',
+            '           <div class="nw-wisp-desc" style="padding:5px 0; font-size:13.5px; color:#64748b;">{{DESC_WISP}}</div>',
             '           <div id="wisp-ui-panel" class="nw-wisp-ui-panel" style="display:none;">',
             '              <button id="btn-wisp-scan" class="nw-u-btn nw-u-btn-blue" style="width: 100%;">{{BTN_SCAN}}</button>',
             '              <div id="wisp-selected-info" style="display:none; width: 100%;">',
@@ -760,7 +533,7 @@ return view.extend({
             '        <div class="nw-legacy-row">',
             '           <div class="nw-flex-1">',
             '               <div class="nw-desc-title">{{LBL_FORCE_APPLY}}</div>',
-            '               <div style="font-size: 14px; color: #64748b; margin-top: 4px; word-break: break-word; line-height: 1.4;">{{DESC_FORCE_APPLY}}</div>',
+            '               <div style="font-size: 13.5px; color: #64748b; margin-top: 4px; word-break: break-word; line-height: 1.4;">{{DESC_FORCE_APPLY}}</div>',
             '           </div>',
             '           <label class="nw-switch nw-flex-shrink-0"><input type="checkbox" id="lan-safe-toggle" checked><span class="nw-slider"></span></label>',
             '        </div>',
@@ -783,8 +556,7 @@ return view.extend({
             '      </div>',
             '    </div>',
             '    <div class="nw-actions"><button id="btn-back-2" class="nw-u-btn nw-u-btn-red">{{BTN_BACK}}</button><button id="btn-apply" class="nw-u-btn nw-u-btn-green">{{BTN_APPLY}}</button></div>',
-            '  </div>',
-            '</div>'
+            '  </div>'
         ].join('');
 
         for (var k in T) {
@@ -796,6 +568,24 @@ return view.extend({
     },
 
     bindEvents: function (container) {
+        // ==============================================================
+        // ★ 终极防空指针补丁：智能重定向 DOM 查找，完美配合弹窗越狱！
+        var oriQuery = container.querySelector.bind(container);
+        var oriQueryAll = container.querySelectorAll.bind(container);
+        container.querySelector = function(sel) { return oriQuery(sel) || document.querySelector(sel); };
+        container.querySelectorAll = function(sel) { var r = oriQueryAll(sel); return (r && r.length > 0) ? r : document.querySelectorAll(sel); };
+        // ==============================================================
+
+        container.addEventListener('click', function(e) {
+            var btnGotoDev = e.target.closest('#btn-goto-dev');
+            if (btnGotoDev) {
+                e.preventDefault();
+                var wrap = document.querySelector('.nw-wrapper');
+                if (wrap) wrap.classList.add('page-leaving');
+                setTimeout(function() { window.location.href = btnGotoDev.href; }, 350);
+            }
+        });
+
         // ==================  安全XSS 字符转义  ==================
         var escapeHTML = function(str) {
             if (!str) return '';
@@ -808,14 +598,21 @@ return view.extend({
 
         // ================== 向导状态后端静默保存 ==================
         var silentSaveWizardState = function(state) {
-            // 如果状态一样，返回空 Promise
             if (window._currentWizState === String(state)) return Promise.resolve();
             window._currentWizState = String(state);
-            
-            // 后端 Lua 接口，后端在底层改文件
             return callNetSetup('set_wizard', String(state), '', '', '', '', '').catch(function(e){});
         };
         // ==============================================================
+
+        // ★ 核心魔法：将所有弹窗移出被主题污染的容器，直接挂载到最外层 body，彻底摆脱布局与层级陷阱！
+        var globalModal = container.querySelector('#nw-global-modal');
+        if (globalModal) document.body.appendChild(globalModal);
+
+        var wizModalInner = container.querySelector('#nw-wizard-modal');
+        if (wizModalInner) document.body.appendChild(wizModalInner);
+
+        var wispModal = container.querySelector('#wisp-scan-modal');
+        if (wispModal) document.body.appendChild(wispModal);
 
         var step1 = container.querySelector('#step-1'), step2 = container.querySelector('#step-2'), step3 = container.querySelector('#step-3');
         var confirmText = container.querySelector('#confirm-mode-text'), modeTextEl = container.querySelector('#current-mode-text');
@@ -1773,12 +1570,31 @@ return view.extend({
                     }
                     
                     var ipv6Html = "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; line-height: 1.8; margin-top: 6px; max-width:100%; min-width:0; word-break:break-all;'><span style='font-weight: 900; margin-right: 8px; flex-shrink:0;'>IPv6 (DHCPv6): </span>" + ipv6Label + "</div>";
+                    
+                    // ★ 1. 宣告全局離場動畫跳轉函數
+                    window._leavePage = function(url) {
+                        var wrap = document.querySelector('.nw-wrapper');
+                        if (wrap) wrap.classList.add('page-leaving');
+                        // 延遲 400ms 等待動畫播完再跳轉
+                        setTimeout(function() { window.location.href = url; }, 400); 
+                    };
+
+                    // 跳转到新网络管家按钮
+                    var devMgrBtn = "";
+                    if (!isBypass) {
+                         var devUrl = window.location.pathname.replace('/netwiz', '/netwiz_dev');
+                         // 只負責生成按鈕的 HTML 並賦予 id="btn-goto-dev" 即可，點擊事件已經交給第一步的全局代理了
+                         devMgrBtn = "<div style='margin-top: 20px; width: 100%;'><a href='" + devUrl + "' id='btn-goto-dev' style='font-size: 18.5px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: rgba(99, 102, 241, 0.95) !important; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; color: #fff; text-decoration: none; font-weight: bold; transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1);' onmouseover=\"this.style.background='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)';\" onmouseout=\"this.style.background='rgba(99, 102, 241, 0.5)'; this.style.transform='none';\"><svg style='width: 18px; height: 18px;' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='3' width='20' height='14' rx='2' ry='2'></rect><line x1='8' y1='21' x2='16' y2='21'></line><line x1='12' y1='17' x2='12' y2='21'></line></svg> " + (T['BTN_DEV_BIND'] || '终端设备与 IP 绑定') + "</a></div>";
+                    }
+
                     var extraInfo = "<div style='margin-top: 16px; padding-top: 18px; border-top: 1px dashed rgba(255,255,255,0.6); font-size:15.5px; color:#ffffff; font-weight: 600; font-family:monospace; display:flex; flex-direction:column; gap:5px; align-items:center; max-width:100%; min-width:0; width:100%; box-sizing:border-box;'>";
                     extraInfo += wifiLines.join('');
                     extraInfo += "</div>";
 
-                    if (modeTextEl) modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:8px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; max-width:100%; min-width:0;'><span style='white-space:nowrap; max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.3; max-width:100%; min-width:0;'>" + sDetails + "</div>" + ipv6Html + extraInfo;
-
+                    if (modeTextEl) {
+                        modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:8px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; max-width:100%; min-width:0;'><span style='white-space:nowrap; max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.3; max-width:100%; min-width:0;'>" + sDetails + "</div>" + ipv6Html + devMgrBtn + extraInfo;
+                    }
+                    
                 }).catch(function() {});
             } catch(e) {}
         }
@@ -2408,7 +2224,7 @@ return view.extend({
                         if (selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass && newIpv6 === currentIpv6) isNoMod = true;
                         if (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) isNoMod = true;
                         if (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp') isNoMod = true;
-                        if (selectedMode === 'pppoe' && container.querySelector('#pppoe-user').value === safeUciGet('network', 'wan', 'username', '') && container.querySelector('#pppoe-pass').value === safeUciGet('network', 'wan', 'password', '')) isNoMod = true;
+                        // if (selectedMode === 'pppoe' && container.querySelector('#pppoe-user').value === safeUciGet('network', 'wan', 'username', '') && container.querySelector('#pppoe-pass').value === safeUciGet('network', 'wan', 'password', '')) isNoMod = true;
                         // 只要相关快照完全一致，且没有提交标记，弹窗拦截
                         if (selectedMode === 'wifi') {
                             if (window._forceWifiSubmit) {
