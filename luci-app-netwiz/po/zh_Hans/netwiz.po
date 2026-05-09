@@ -25,8 +25,8 @@ msgstr "在本设备上直接使用宽带账号和密码进行拨号。"
 msgid "LAN Settings"
 msgstr "局域网设置"
 
-msgid "Change device LAN IP, or switch to AP Wired Relay mode."
-msgstr "修改设备局域网 IP，或切换至旁路由（AP有线中继）模式。"
+msgid "Change device LAN IP, switch to AP Wired Relay mode, or one-click IPv6 distribution."
+msgstr "修改设备局域网 IP，或切换至旁路由（AP有线中继）模式，一键下发IPv6。"
 
 msgid "Reading underlying config..."
 msgstr "正在读取底层配置..."
@@ -352,8 +352,8 @@ msgstr "正在等待路由器放弃修改并恢复网络..."
 msgid "Wi-Fi Settings"
 msgstr "Wi-Fi 设置"
 
-msgid "Configure wireless network, SSID, and password."
-msgstr "设置无线网络名称、密码及加密方式。"
+msgid "Set Wi-Fi name, password, enable Wireless Relay (WISP) and Seamless Roaming."
+msgstr "设置无线网络名称、密码，开启无线中继 (WISP)，开启路由间无缝漫游。"
 
 msgid "Configure Wi-Fi"
 msgstr "设置 Wi-Fi"
