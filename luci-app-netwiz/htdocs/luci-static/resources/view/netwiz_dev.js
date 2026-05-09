@@ -115,14 +115,11 @@ var T = {
     'ERR_DEPT_INVALID': _('❌ Save Failed: IPs must be between 2-254 and format must be valid!'),
     'ERR_DEPT_POOL_FULL': _('❌ IP pool reached the end (254). Cannot auto-append. Please arrange subnets manually!'),
     'ERR_DEPT_FULL': _('❌ The IP pool for the selected department is full! Please expand the range.'),
-    
-    // ★ 翻译新增
     'LBL_TARGET_GROUP': _('Assign to Group (Optional)'),
     'OPT_NO_GROUP': _('-- Uncategorized (None) --'),
     'ERR_DEPT_NOT_SEL': _('❌ Strategy Error: Please select a Target Group first to allocate IPs from its pool!')
 };
 
-// ★ 修改绑定 API，增加 dept 参数
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', expect: { '': {} } });
 var callDeviceBind = rpc.declare({ object: 'netwiz_dev', method: 'bind', params: ['mac', 'ip', 'name', 'dept', 'no_reload'], expect: { result: 0 } });
 var callDeviceUnbind = rpc.declare({ object: 'netwiz_dev', method: 'unbind', params: ['mac', 'no_reload'], expect: { result: 0 } });
@@ -250,7 +247,7 @@ return view.extend({
             '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="dept"> <span class="nw-radio-btn-text" style="padding: 10px 4px; font-size: 15.5px;">🏢 {{STRAT_DEPT}}</span></label>',
             '                   </div>',
             '               </div>',
-            // ★ 解耦后的独立目标组选项
+            // 目标组选项
             '               <div class="nd-input-group">',
             '                   <label class="nd-input-label">{{LBL_TARGET_GROUP}}</label>',
             '                   <select id="nd-single-tag-select" class="nd-input"></select>',
@@ -282,7 +279,7 @@ return view.extend({
             '                       </div>',
             '                   </div>',
             '               </div>',
-            // ★ 解耦后的独立目标组选项
+            // 目标组选项
             '               <div class="nd-input-group">',
             '                   <label class="nd-input-label">{{LBL_TARGET_GROUP}}</label>',
             '                   <select id="nd-batch-tag-select" class="nd-input"></select>',
@@ -445,8 +442,6 @@ return view.extend({
 
         var globalDepartments = [];
 
-        // ★ 终极净化：自定义组现在纯粹是一个“标签(Tag)”
-        // 它的设定 IP 段仅用作“发号池”。在雷达显示和列表过滤时，只认标签，绝对不看 IP！
         function getDeviceDept(dev) {
             if (dev.dept && dev.dept !== 'none' && dev.dept !== '') {
                 return globalDepartments.find(function(d){ return d.id === dev.dept; }) || null;
@@ -454,11 +449,10 @@ return view.extend({
             return null;
         }
 
-        // ★ 组装下拉选项
         function populateTagSelects() {
             var html = '<option value="none">' + T['OPT_NO_GROUP'] + '</option>';
             globalDepartments.forEach(function(d) {
-                html += '<option value="'+d.id+'">' + d.icon + ' ' + d.name + ' (' + d.start + '-' + d.end + ')</option>';
+                html += '<option value="'+d.id+'">' + d.icon + ' ' + d.name + '</option>';
             });
             if(mSingleTagSelect) mSingleTagSelect.innerHTML = html;
             if(batchTagSelect) batchTagSelect.innerHTML = html;
@@ -732,7 +726,7 @@ return view.extend({
                     
                     if (options.showSingleStrategy) {
                         mSingleStrategyGroup.style.display = 'block';
-                        // 预选中原有的部门
+                        // 预选部门
                         if (currentSingleDev && currentSingleDev.dept) {
                             mSingleTagSelect.value = currentSingleDev.dept;
                         } else {
@@ -913,7 +907,7 @@ return view.extend({
             globalDepartments.forEach(function(d) { deptCounts[d.id] = 0; });
 
             globalDevices.forEach(function(d) {
-                // 使用解耦的新逻辑测算部门
+                // 测算部门
                 var dept = getDeviceDept(d);
                 if (dept) {
                     deptCounts[dept.id]++;
