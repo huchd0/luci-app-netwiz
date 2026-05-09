@@ -821,4 +821,4 @@ msgid "Current Device"
 msgstr "當前訪問"
 
 msgid "Pending"
-msgstr "尚未生效"
+msgstr "待生效"
