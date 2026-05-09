@@ -8,7 +8,7 @@
 'require rpc';
 
 var T = {
-    'NW_TITLE': _('Netwiz Network Setup Wizard'),
+    'NW_TITLE': _('Netwiz NETWORK SETUP'),
     'NW_SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
     'BTN_HOME': _('Back to Home'),
     'DEV_TITLE': _('Device Network Manager'),
