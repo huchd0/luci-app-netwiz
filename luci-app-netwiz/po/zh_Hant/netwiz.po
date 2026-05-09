@@ -818,4 +818,4 @@ msgid "Terminal Device & IP Binding"
 msgstr "終端裝置與 IP 綁定"
 
 msgid "Current Device"
-msgstr "当前设备"
+msgstr "當前設備"
