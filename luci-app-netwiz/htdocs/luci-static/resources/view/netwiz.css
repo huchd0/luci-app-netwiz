@@ -90,7 +90,7 @@ body {
    4. 设备管家组件
 --------------------------------------------------------- */
 .nd-control-bar { 
-    position: sticky !important; top: 0px !important; z-index: 99999 !important;
+    position: sticky !important; top: 0px !important; z-index: 750 !important;
     display: flex !important; align-items: center !important; justify-content: space-between !important; 
     background: rgba(94, 114, 228) !important; backdrop-filter: blur(10px) !important; 
     padding: 12px 20px !important; border-radius: 14px !important; color: #fff !important; 
@@ -564,7 +564,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     .nw-actions button, .nw-actions .nw-u-btn { flex: 0 1 auto !important; min-width: 140px !important; padding: 10px 20px !important; margin: 0 !important; font-size: 14px !important; text-align: center !important; justify-content: center !important; }
     
     /* ======== 设备卡片 ======== */
-    .nd-control-bar { position: sticky !important; top: 0 !important; z-index: 99999 !important; padding: 12px !important; border-radius: 12px !important; flex-wrap: wrap !important; gap: 8px !important; margin-bottom: 15px !important; max-width: calc(100% - 24px) !important; }
+    .nd-control-bar { position: sticky !important; top: 0 !important; z-index: 750 !important; padding: 12px !important; border-radius: 12px !important; flex-wrap: wrap !important; gap: 8px !important; margin-bottom: 15px !important; max-width: calc(100% - 24px) !important; }
     .nd-cb-sub { display: none; }
     
     .nd-list { gap: 0 !important; }
