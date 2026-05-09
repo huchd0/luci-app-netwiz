@@ -8,7 +8,7 @@
 'require rpc';
 
 var T = {
-    'NW_TITLE': _('Netwiz NETWORK SETUP'),
+    'NW_TITLE': _('Netwiz Network Setup Wizard'),
     'NW_SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
     'BTN_HOME': _('Back to Home'),
     'DEV_TITLE': _('Device Network Manager'),
@@ -285,6 +285,41 @@ return view.extend({
         var mBtnCancel = container.querySelector('#nd-m-cancel');
 
         if (modalOverlay) { document.body.appendChild(modalOverlay); }
+        
+        // ==============================================================
+        var controlBar = container.querySelector('.nd-control-bar');
+        if (controlBar) {
+            var lastHeight = -1;
+            var adjustStickyTop = function() {
+                var topOffset = 0;
+                var headers = document.querySelectorAll('header, .navbar, .main-top, #header, .topbar');
+                for (var i = 0; i < headers.length; i++) {
+                    var style = window.getComputedStyle(headers[i]);
+                    if (style.position === 'fixed' || style.position === 'sticky') {
+                        var rect = headers[i].getBoundingClientRect();
+                        if (rect.top <= 5 && rect.height > 10 && rect.height < 150) {
+                            if (rect.bottom > topOffset) topOffset = rect.bottom;
+                        }
+                    }
+                }
+                
+                if (topOffset !== lastHeight) {
+                    controlBar.style.setProperty('top', topOffset + 'px', 'important');
+                    lastHeight = topOffset;
+                }
+            };
+            
+            adjustStickyTop();
+            
+            [100, 500, 2000].forEach(function(t) { setTimeout(adjustStickyTop, t); });
+            
+            window.addEventListener('scroll', function() {
+                if (lastHeight <= 0) adjustStickyTop();
+            }, { passive: true });
+
+            window.addEventListener('resize', adjustStickyTop);
+        }
+        // ==============================================================
 
         var savedStrategy = localStorage.getItem('nw_batch_strategy') || 'keep';
         var savedRanges = JSON.parse(localStorage.getItem('nw_smart_ranges') || '{"os":50,"oe":99,"ms":100,"me":149,"ps":150,"pe":199,"is":200,"ie":250}');
@@ -947,12 +982,7 @@ return view.extend({
                 } else if (res && typeof res === 'string') {
                     try { devices = JSON.parse(res).devices || []; } catch(e){}
                 }
-
-                var currentHostIp = window.location.hostname;
-                devices.forEach(function(d) {
-                    if (d.ip === currentHostIp) d.is_local = true;
-                });
-
+                
                 globalDevices = devices;
                 
                 var gwDev = globalDevices.find(function(d) { return d.is_gw === 'true' || d.is_local === 'true'; });
