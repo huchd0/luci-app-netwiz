@@ -105,21 +105,26 @@ var T = {
     'TXT_INFINITE': _('Infinite'),
     'TXT_EXPIRED': _('Expired'),
     'BTN_MANAGE_DEPTS': _('Manage Groups'),
-    'STRAT_DEPT': _('Department Subnet'),
-    'STRAT_DEPT_TITLE': _('Department Subnet (Auto Tagging)'),
-    'STRAT_DEPT_DESC': _('Assign IPs from custom department ranges to act as logical switches'),
-    'LBL_SELECT_DEPT': _('Target Department'),
+    'STRAT_DEPT': _('Group IP Pool'),
+    'STRAT_DEPT_TITLE': _('Group Pool (Auto Assign)'),
+    'STRAT_DEPT_DESC': _('Assign free IPs automatically from the selected Target Group\'s specific IP range'),
     'TIT_MGR_DEPTS': _('Department Network Segments'),
     'BTN_ADD_DEPT': _('+ Add New Department'),
     'ERR_DEPT_OVERLAP': _('❌ Subnet Conflict: IP ranges between groups cannot overlap!\nConflicting groups: '),
     'ERR_DEPT_NAME_DUP': _('❌ Save Failed: Group names cannot be duplicated!\nDuplicate name: '),
     'ERR_DEPT_INVALID': _('❌ Save Failed: IPs must be between 2-254 and format must be valid!'),
     'ERR_DEPT_POOL_FULL': _('❌ IP pool reached the end (254). Cannot auto-append. Please arrange subnets manually!'),
-    'ERR_DEPT_FULL': _('❌ The IP pool for the selected department is full! Please expand the range.')
+    'ERR_DEPT_FULL': _('❌ The IP pool for the selected department is full! Please expand the range.'),
+    
+    // ★ 翻译新增
+    'LBL_TARGET_GROUP': _('Assign to Group (Optional)'),
+    'OPT_NO_GROUP': _('-- Uncategorized (None) --'),
+    'ERR_DEPT_NOT_SEL': _('❌ Strategy Error: Please select a Target Group first to allocate IPs from its pool!')
 };
 
+// ★ 修改绑定 API，增加 dept 参数
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', expect: { '': {} } });
-var callDeviceBind = rpc.declare({ object: 'netwiz_dev', method: 'bind', params: ['mac', 'ip', 'name', 'no_reload'], expect: { result: 0 } });
+var callDeviceBind = rpc.declare({ object: 'netwiz_dev', method: 'bind', params: ['mac', 'ip', 'name', 'dept', 'no_reload'], expect: { result: 0 } });
 var callDeviceUnbind = rpc.declare({ object: 'netwiz_dev', method: 'unbind', params: ['mac', 'no_reload'], expect: { result: 0 } });
 var callApplyDhcp = rpc.declare({ object: 'netwiz_dev', method: 'apply_dhcp', expect: { result: 0 } });
 var callGetDepts = rpc.declare({ object: 'netwiz_dev', method: 'get_depts', expect: { depts: [] } });
@@ -239,15 +244,16 @@ return view.extend({
             '               <div class="nd-input-group" id="nd-single-strategy-group" style="display:none;">',
             '                   <label class="nd-input-label">{{LBL_QUICK_STRAT}}</label>',
             '                   <div class="nw-radio-group" style="flex-direction: row; flex-wrap: wrap; gap: 8px;">',
-            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="keep" checked> <span class="nw-radio-btn-text" style="padding: 6px 4px; font-size: 12.5px;">🛡️ {{STRAT_KEEP}}</span></label>',
-            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="smart"> <span class="nw-radio-btn-text" style="padding: 6px 4px; font-size: 12.5px;">🧠 {{STRAT_SMART}}</span></label>',
-            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="dept"> <span class="nw-radio-btn-text" style="padding: 6px 4px; font-size: 12.5px;">🏢 {{STRAT_DEPT}}</span></label>',
-            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="seq"> <span class="nw-radio-btn-text" style="padding: 6px 4px; font-size: 12.5px;">🔢 {{STRAT_SEQ}}</span></label>',
+            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="keep" checked> <span class="nw-radio-btn-text" style="padding: 12px 4px; font-size: 14.5px;">🛡️ {{STRAT_KEEP}}</span></label>',
+            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="smart"> <span class="nw-radio-btn-text" style="padding: 12px 4px; font-size: 14.5px;">🧠 {{STRAT_SMART}}</span></label>',
+            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="seq"> <span class="nw-radio-btn-text" style="padding: 12px 4px; font-size: 14.5px;">🔢 {{STRAT_SEQ}}</span></label>',
+            '                       <label class="nw-radio-btn" style="flex: 1 1 30%;"><input type="radio" name="single_strategy" value="dept"> <span class="nw-radio-btn-text" style="padding: 10px 4px; font-size: 15.5px;">🏢 {{STRAT_DEPT}}</span></label>',
             '                   </div>',
             '               </div>',
-            '               <div class="nd-input-group" id="nd-single-dept-group" style="display:none;">',
-            '                   <label class="nd-input-label">{{LBL_SELECT_DEPT}}</label>',
-            '                   <select id="nd-single-dept-select" class="nd-input"></select>',
+            // ★ 解耦后的独立目标组选项
+            '               <div class="nd-input-group">',
+            '                   <label class="nd-input-label">{{LBL_TARGET_GROUP}}</label>',
+            '                   <select id="nd-single-tag-select" class="nd-input"></select>',
             '               </div>',
             '               <div class="nd-input-group">',
             '                   <label class="nd-input-label">{{LBL_ASSIGN_IP}}</label>',
@@ -266,19 +272,20 @@ return view.extend({
             '                           <div style="font-size:15px;">🧠 {{STRAT_SMART_TITLE}}</div>',
             '                           <div style="font-size:12.5px; font-weight:normal; opacity:0.8;">{{STRAT_SMART_DESC}}</div>',
             '                       </div>',
-            '                       <div class="nd-strategy-card" data-val="dept">',
-            '                           <div style="font-size:15px;">🏢 {{STRAT_DEPT_TITLE}}</div>',
-            '                           <div style="font-size:12.5px; font-weight:normal; opacity:0.8;">{{STRAT_DEPT_DESC}}</div>',
-            '                       </div>',
             '                       <div class="nd-strategy-card" data-val="seq">',
             '                           <div style="font-size:15px;">🔢 {{STRAT_SEQ_TITLE}}</div>',
             '                           <div style="font-size:12.5px; font-weight:normal; opacity:0.8;">{{STRAT_SEQ_DESC}}</div>',
             '                       </div>',
+            '                       <div class="nd-strategy-card" data-val="dept">',
+            '                           <div style="font-size:15px;">🏢 {{STRAT_DEPT_TITLE}}</div>',
+            '                           <div style="font-size:12.5px; font-weight:normal; opacity:0.8;">{{STRAT_DEPT_DESC}}</div>',
+            '                       </div>',
             '                   </div>',
             '               </div>',
-            '               <div class="nd-input-group" id="nd-batch-dept-group" style="display:none;">',
-            '                   <label class="nd-input-label">{{LBL_SELECT_DEPT}}</label>',
-            '                   <select id="nd-batch-dept-select" class="nd-input"></select>',
+            // ★ 解耦后的独立目标组选项
+            '               <div class="nd-input-group">',
+            '                   <label class="nd-input-label">{{LBL_TARGET_GROUP}}</label>',
+            '                   <select id="nd-batch-tag-select" class="nd-input"></select>',
             '               </div>',
             '               <div class="nd-input-group" id="nd-batch-ip-group" style="display:none;">',
             '                   <label class="nd-input-label">{{LBL_START_IP}}</label>',
@@ -331,8 +338,7 @@ return view.extend({
         var mInpIp = container.querySelector('#nd-inp-ip');
         
         var mSingleStrategyGroup = container.querySelector('#nd-single-strategy-group');
-        var mSingleDeptGroup = container.querySelector('#nd-single-dept-group');
-        var mSingleDeptSelect = container.querySelector('#nd-single-dept-select');
+        var mSingleTagSelect = container.querySelector('#nd-single-tag-select');
         var singleRadios = container.querySelectorAll('input[name="single_strategy"]');
         var currentSingleDev = null;
         var currentOriginalIp = "";
@@ -340,8 +346,7 @@ return view.extend({
         var strategyCards = container.querySelectorAll('.nd-strategy-card');
         var batchIpGroup = container.querySelector('#nd-batch-ip-group');
         var batchSmartDesc = container.querySelector('#nd-batch-smart-desc');
-        var batchDeptGroup = container.querySelector('#nd-batch-dept-group');
-        var batchDeptSelect = container.querySelector('#nd-batch-dept-select');
+        var batchTagSelect = container.querySelector('#nd-batch-tag-select');
         var batchSuffixInput = container.querySelector('#nd-batch-suffix');
 
         var mBtnOk = container.querySelector('#nd-m-ok');
@@ -440,26 +445,23 @@ return view.extend({
 
         var globalDepartments = [];
 
-        function getDeviceDept(ip) {
-            if (!ip || ip === 'Unknown IP') return null;
-            var suffix = parseInt(ip.split('.').pop());
-            if (isNaN(suffix)) return null;
-            for (var i = 0; i < globalDepartments.length; i++) {
-                if (suffix >= globalDepartments[i].start && suffix <= globalDepartments[i].end) {
-                    return globalDepartments[i];
-                }
+        // ★ 终极净化：自定义组现在纯粹是一个“标签(Tag)”
+        // 它的设定 IP 段仅用作“发号池”。在雷达显示和列表过滤时，只认标签，绝对不看 IP！
+        function getDeviceDept(dev) {
+            if (dev.dept && dev.dept !== 'none' && dev.dept !== '') {
+                return globalDepartments.find(function(d){ return d.id === dev.dept; }) || null;
             }
             return null;
         }
 
-        function populateDeptSelects() {
-            var html = '';
+        // ★ 组装下拉选项
+        function populateTagSelects() {
+            var html = '<option value="none">' + T['OPT_NO_GROUP'] + '</option>';
             globalDepartments.forEach(function(d) {
                 html += '<option value="'+d.id+'">' + d.icon + ' ' + d.name + ' (' + d.start + '-' + d.end + ')</option>';
             });
-            if (html === '') html = '<option value="">-</option>';
-            if(mSingleDeptSelect) mSingleDeptSelect.innerHTML = html;
-            if(batchDeptSelect) batchDeptSelect.innerHTML = html;
+            if(mSingleTagSelect) mSingleTagSelect.innerHTML = html;
+            if(batchTagSelect) batchTagSelect.innerHTML = html;
         }
 
         function renderDeptManager() {
@@ -608,51 +610,59 @@ return view.extend({
             return 'type_other';
         }
 
-        singleRadios.forEach(function(radio) {
-            radio.addEventListener('change', function() {
-                if(!currentSingleDev) return;
-                var val = this.value;
-                var usedIps = globalDevices.map(function(d){return d.bound_ip || d.ip;});
-                if (val === 'keep') {
-                    mSingleDeptGroup.style.display = 'none';
-                    mInpIp.value = currentOriginalIp;
-                } else if (val === 'smart') {
-                    mSingleDeptGroup.style.display = 'none';
-                    var devType = getDeviceType(currentSingleDev);
-                    var sStart = savedRanges.os, sEnd = savedRanges.oe;
-                    if (devType === 'mobile') { sStart = savedRanges.ms; sEnd = savedRanges.me; }
-                    else if (devType === 'pc') { sStart = savedRanges.ps; sEnd = savedRanges.pe; }
-                    else if (devType === 'iot') { sStart = savedRanges.is; sEnd = savedRanges.ie; }
-                    var smartIp = getAvailableIpInRange(basePrefix, sStart, sEnd, usedIps);
-                    if(smartIp) {
-                        mInpIp.value = smartIp;
-                    } else {
-                        mInpIp.value = '';
-                        alert(T['ERR_POOL_FULL']);
-                    }
-                } else if (val === 'dept') {
-                    mSingleDeptGroup.style.display = 'block';
-                    var updateDeptIp = function() {
-                        var dId = mSingleDeptSelect.value;
-                        var tgt = globalDepartments.find(function(d){ return d.id === dId; });
-                        if(tgt) {
-                            var dip = getAvailableIpInRange(basePrefix, tgt.start, tgt.end, usedIps);
-                            mInpIp.value = dip || '';
-                            if(!dip) alert(T['ERR_DEPT_FULL']);
-                        }
-                    };
-                    updateDeptIp();
-                    mSingleDeptSelect.onchange = updateDeptIp;
-                } else if (val === 'seq') {
-                    mSingleDeptGroup.style.display = 'none';
-                    var lastIp = localStorage.getItem('nw_last_ip');
-                    if (!lastIp || lastIp.substring(0, lastIp.lastIndexOf('.') + 1) !== basePrefix) {
-                        lastIp = basePrefix + "50"; 
-                    }
-                    var nextIp = getNextAvailableIp(lastIp, usedIps);
-                    mInpIp.value = nextIp;
+        // ★ 核心动态算号引擎
+        var updateSingleIpByStrategy = function() {
+            if(!currentSingleDev) return;
+            var activeRadio = modalOverlay.querySelector('input[name="single_strategy"]:checked');
+            if(!activeRadio) return;
+            var val = activeRadio.value;
+            var usedIps = globalDevices.map(function(d){return d.bound_ip || d.ip;});
+
+            if (val === 'keep') {
+                mInpIp.value = currentOriginalIp;
+            } else if (val === 'smart') {
+                var devType = getDeviceType(currentSingleDev);
+                var sStart = savedRanges.os, sEnd = savedRanges.oe;
+                if (devType === 'mobile') { sStart = savedRanges.ms; sEnd = savedRanges.me; }
+                else if (devType === 'pc') { sStart = savedRanges.ps; sEnd = savedRanges.pe; }
+                else if (devType === 'iot') { sStart = savedRanges.is; sEnd = savedRanges.ie; }
+                var smartIp = getAvailableIpInRange(basePrefix, sStart, sEnd, usedIps);
+                if(smartIp) {
+                    mInpIp.value = smartIp;
+                } else {
+                    mInpIp.value = '';
+                    alert(T['ERR_POOL_FULL']);
                 }
-            });
+            } else if (val === 'dept') {
+                var dId = mSingleTagSelect.value;
+                if (dId === 'none') {
+                    mInpIp.value = '';
+                } else {
+                    var tgt = globalDepartments.find(function(d){ return d.id === dId; });
+                    if(tgt) {
+                        var dip = getAvailableIpInRange(basePrefix, tgt.start, tgt.end, usedIps);
+                        mInpIp.value = dip || '';
+                        if(!dip) alert(T['ERR_DEPT_FULL']);
+                    }
+                }
+            } else if (val === 'seq') {
+                var lastIp = localStorage.getItem('nw_last_ip');
+                if (!lastIp || lastIp.substring(0, lastIp.lastIndexOf('.') + 1) !== basePrefix) {
+                    lastIp = basePrefix + "50"; 
+                }
+                mInpIp.value = getNextAvailableIp(lastIp, usedIps);
+            }
+        };
+
+        singleRadios.forEach(function(radio) {
+            radio.addEventListener('change', updateSingleIpByStrategy);
+        });
+
+        mSingleTagSelect.addEventListener('change', function() {
+            var activeRadio = modalOverlay.querySelector('input[name="single_strategy"]:checked');
+            if (activeRadio && activeRadio.value === 'dept') {
+                updateSingleIpByStrategy();
+            }
         });
 
         function applyStrategyUI(val) {
@@ -663,12 +673,10 @@ return view.extend({
             if (val === 'seq') {
                 batchIpGroup.style.display = 'block';
                 batchSmartDesc.style.display = 'none';
-                batchDeptGroup.style.display = 'none';
                 setTimeout(function(){ batchSuffixInput.focus(); }, 100);
             } else if (val === 'smart') {
                 batchIpGroup.style.display = 'none';
                 batchSmartDesc.style.display = 'block';
-                batchDeptGroup.style.display = 'none';
                 modalOverlay.querySelectorAll('.nd-ip-prefix').forEach(function(el) { el.innerText = basePrefix; });
                 modalOverlay.querySelector('#sm-oth-s').value = savedRanges.os; 
                 modalOverlay.querySelector('#sm-oth-e').value = savedRanges.oe;
@@ -679,14 +687,9 @@ return view.extend({
                 modalOverlay.querySelector('#sm-iot-s').value = savedRanges.is; 
                 modalOverlay.querySelector('#sm-iot-e').value = savedRanges.ie;
                 autoCascadeRanges(); 
-            } else if (val === 'dept') {
-                batchIpGroup.style.display = 'none';
-                batchSmartDesc.style.display = 'none';
-                batchDeptGroup.style.display = 'block';
             } else {
                 batchIpGroup.style.display = 'none';
                 batchSmartDesc.style.display = 'none';
-                batchDeptGroup.style.display = 'none';
             }
         }
 
@@ -716,10 +719,11 @@ return view.extend({
                 renderDeptManager();
             } else if (options.showForm) { 
                 mForm.style.display = 'block'; 
+                populateTagSelects();
+                
                 if (options.isBatchBind) {
                     mNormalFields.style.display = 'none';
                     mBatchFields.style.display = 'block';
-                    populateDeptSelects();
                     applyStrategyUI(savedStrategy);
                 } else {
                     mBatchFields.style.display = 'none';
@@ -728,7 +732,12 @@ return view.extend({
                     
                     if (options.showSingleStrategy) {
                         mSingleStrategyGroup.style.display = 'block';
-                        populateDeptSelects();
+                        // 预选中原有的部门
+                        if (currentSingleDev && currentSingleDev.dept) {
+                            mSingleTagSelect.value = currentSingleDev.dept;
+                        } else {
+                            mSingleTagSelect.value = 'none';
+                        }
                     } else {
                         mSingleStrategyGroup.style.display = 'none';
                         mInpIp.value = options.defIp || ''; 
@@ -749,6 +758,13 @@ return view.extend({
                 } else if (options.showForm) {
                     if (options.isBatchBind) {
                         var activeStrategy = modalOverlay.querySelector('.nd-strategy-card.active').getAttribute('data-val');
+                        var batchDeptId = batchTagSelect.value;
+                        
+                        if (activeStrategy === 'dept' && batchDeptId === 'none') {
+                            alert(T['ERR_DEPT_NOT_SEL']);
+                            return;
+                        }
+
                         if (activeStrategy === 'smart') {
                             autoCascadeRanges(); 
                             var nr = {
@@ -760,12 +776,20 @@ return view.extend({
                             localStorage.setItem('nw_smart_ranges', JSON.stringify(nr));
                             savedRanges = nr;
                         }
-                        var resBatch = { strategy: activeStrategy, startSuffix: batchSuffixInput.value.trim(), ranges: savedRanges };
+                        var resBatch = { strategy: activeStrategy, startSuffix: batchSuffixInput.value.trim(), ranges: savedRanges, dept: batchDeptId };
                         if (options.onOk) options.onOk(resBatch);
                         modalOverlay.style.display = 'none';
                         if (floatBar) floatBar.style.removeProperty('display'); 
                     } else {
                         var submitIp = mInpIp.value.trim();
+                        var singleDeptId = mSingleTagSelect.value;
+                        var activeSingleRadio = modalOverlay.querySelector('input[name="single_strategy"]:checked');
+                        
+                        if (activeSingleRadio && activeSingleRadio.value === 'dept' && singleDeptId === 'none') {
+                            alert(T['ERR_DEPT_NOT_SEL']);
+                            return;
+                        }
+
                         if (!submitIp) { alert(T['ERR_IP_EMPTY']); return; }
 
                         var conflictDev = globalDevices.find(function(d) {
@@ -780,13 +804,14 @@ return view.extend({
 
                         var newName = mInpName.value.trim();
                         var isCurrentlyStatic = currentSingleDev.is_static === true || currentSingleDev.is_static === 'true';
+                        var oldDeptId = currentSingleDev.dept || 'none';
                         
-                        if (isCurrentlyStatic && submitIp === currentOriginalIp && newName === options.defName) {
+                        if (isCurrentlyStatic && submitIp === currentOriginalIp && newName === options.defName && singleDeptId === oldDeptId) {
                             alert(T['TIP_NO_CHANGE']);
                             return;
                         }
                         
-                        var resSingle = { name: newName, ip: submitIp };
+                        var resSingle = { name: newName, ip: submitIp, dept: singleDeptId };
                         if(resSingle.ip) localStorage.setItem('nw_last_ip', resSingle.ip);
                         
                         if (options.onOk) options.onOk(resSingle);
@@ -880,13 +905,16 @@ return view.extend({
 
         function updateTabsAndFilter() {
             var cAll = globalDevices.length;
+            
             var cMob = 0, cPc = 0, cIot = 0, cTypeOth = 0;
+            
             var deptCounts = {};
             var cDeptOth = 0;
             globalDepartments.forEach(function(d) { deptCounts[d.id] = 0; });
 
             globalDevices.forEach(function(d) {
-                var dept = getDeviceDept(d.bound_ip || d.ip);
+                // 使用解耦的新逻辑测算部门
+                var dept = getDeviceDept(d);
                 if (dept) {
                     deptCounts[dept.id]++;
                 } else {
@@ -1011,11 +1039,11 @@ return view.extend({
                 });
             } else if (currentFilter === 'dept_other') {
                 filteredDevices = globalDevices.filter(function(d) {
-                    return getDeviceDept(d.bound_ip || d.ip) === null;
+                    return getDeviceDept(d) === null;
                 });
             } else {
                 filteredDevices = globalDevices.filter(function(d) {
-                    var dept = getDeviceDept(d.bound_ip || d.ip);
+                    var dept = getDeviceDept(d);
                     return dept && dept.id === currentFilter;
                 });
             }
@@ -1051,7 +1079,7 @@ return view.extend({
                     statusBadgesHtml += '<span class="nd-badge nd-badge-static">🔒 ' + T['BDG_STATIC'] + '</span>';
                 }
                 
-                var dept = getDeviceDept(dev.bound_ip || dev.ip);
+                var dept = getDeviceDept(dev);
                 if (dept) {
                     statusBadgesHtml += '<span class="nd-badge" style="background:'+dept.color+'15; color:'+dept.color+'; border-color:'+dept.color+'40;">' + dept.icon + ' ' + dept.name + '</span>';
                 }
@@ -1073,7 +1101,7 @@ return view.extend({
 
                 var actions = "";
                 if (isGw || isLocal) {
-                    actions = '<span style="color:#f00; font-size:16.5px; font-weight:bold; padding: 10px;">' + T['TXT_SYS_RESERVED'] + '</span>';
+                    actions = '<span style="color:#94a3b8; font-size:12.5px; font-weight:bold; padding: 10px;">' + T['TXT_SYS_RESERVED'] + '</span>';
                 } else if (isStatic) {
                     actions = '<button class="nd-btn nd-btn-gray btn-edit" data-mac="'+dev.mac+'" data-ip="'+(dev.bound_ip || dev.ip)+'" data-name="'+dev.name+'">' + T['BTN_EDIT'] + '</button>' +
                               '<button class="nd-btn nd-btn-red btn-unbind" data-mac="'+dev.mac+'">' + T['BTN_UNBIND'] + '</button>';
@@ -1174,7 +1202,7 @@ return view.extend({
                             loadingEl.style.display = 'flex';
                             loadingText.innerText = T['MSG_WRITING'];
                             
-                            callDeviceBind(mac, data.ip, data.name, false).then(function() {
+                            callDeviceBind(mac, data.ip, data.name, data.dept, false).then(function() {
                                 setTimeout(loadDevices, 1000);
                             }).catch(function() { setTimeout(loadDevices, 1000); });
                         }
@@ -1268,6 +1296,7 @@ return view.extend({
                 onOk: function(data) {
                     var strategy = data.strategy;
                     var usedIps = globalDevices.map(function(d) { return d.bound_ip || d.ip; });
+                    var dept_id = data.dept;
                     
                     if (strategy === 'seq') {
                         var suf = parseInt(data.startSuffix, 10);
@@ -1304,8 +1333,7 @@ return view.extend({
                             }
                         }
                     } else if (strategy === 'dept') {
-                        var dId = batchDeptSelect.value;
-                        var tgt = globalDepartments.find(function(d){ return d.id === dId; });
+                        var tgt = globalDepartments.find(function(d){ return d.id === dept_id; });
                         if(tgt) {
                             var availDept = 0;
                             for (var j = tgt.start; j <= tgt.end; j++) { if (usedIps.indexOf(basePrefix + j) === -1) availDept++; }
@@ -1347,8 +1375,7 @@ return view.extend({
                                 usedIps.push(assignIp);
                             }
                         } else if (strategy === 'dept') {
-                            var dId2 = batchDeptSelect.value;
-                            var tgt2 = globalDepartments.find(function(d){ return d.id === dId2; });
+                            var tgt2 = globalDepartments.find(function(d){ return d.id === dept_id; });
                             if(tgt2) {
                                 var dip = getAvailableIpInRange(basePrefix, tgt2.start, tgt2.end, usedIps);
                                 if (dip) { assignIp = dip; usedIps.push(assignIp); }
@@ -1356,7 +1383,8 @@ return view.extend({
                         }
 
                         var isCurrentlyStatic = dev.is_static === true || dev.is_static === 'true';
-                        if (isCurrentlyStatic && assignIp === (dev.bound_ip || dev.ip)) {
+                        var oldDeptId = dev.dept || 'none';
+                        if (isCurrentlyStatic && assignIp === (dev.bound_ip || dev.ip) && dept_id === oldDeptId) {
                             skippedCount++;
                             return; 
                         }
@@ -1364,7 +1392,7 @@ return view.extend({
                         lastAssignedGlobal = assignIp;
                         var safeName = dev.name === "Unknown" ? "" : dev.name;
                         tasks.push(function() {
-                            return callDeviceBind(dev.mac, assignIp, safeName, true);
+                            return callDeviceBind(dev.mac, assignIp, safeName, dept_id, true);
                         });
                     });
 
