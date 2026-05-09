@@ -134,7 +134,7 @@ body {
 .nd-badge-gw { background: #fef08a; color: #854d0e; border-color: #fde047; }
 .nd-badge-local { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
 .nd-badge-visitor { background: #fae8ff !important; color: #86198f !important; border-color: #f0abfc !important; }
-
+.nd-badge-pending { background: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
 /* ---------------------------------------------------------
    5. 表单控件与按钮
 --------------------------------------------------------- */
