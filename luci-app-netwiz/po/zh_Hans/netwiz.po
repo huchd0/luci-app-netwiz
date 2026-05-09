@@ -882,3 +882,6 @@ msgstr "自定义分组网段"
 
 msgid "❌ The IP pool for the selected department is full! Please expand the range."
 msgstr "❌ 该分组的 IP 池已全部分配完毕！请前往“管理分组”扩大网段范围。"
+
+msgid "Uncategorized"
+msgstr "未分组"
