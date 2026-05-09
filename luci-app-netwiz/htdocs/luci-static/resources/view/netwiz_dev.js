@@ -21,9 +21,12 @@ var T = {
     'TAB_PC': _('PC/Work'),
     'TAB_IOT': _('Smart Home'),
     'TAB_OTHER': _('Others'),
+    
+    // ★ 国际化新增的键值
     'LBL_ROW_TYPE_SMART': _('Device Type (By IP)'),
     'LBL_ROW_TYPE_NAME': _('Device Type (Built-in)'),
     'LBL_ROW_CUSTOM': _('Custom Groups'),
+    'TAB_DEPT_OTHER': _('Uncategorized'),
     'LBL_SMART_FILTER': _('Filter by IP Subnet'),
     'TIP_SMART_FILTER': _('Checked: Classify device types by IP subnet\nUnchecked: Classify device types by built-in names'),
     'PH_DEPT_NAME': _('Group Name'),
@@ -110,6 +113,8 @@ var T = {
     'LBL_SELECT_DEPT': _('Target Department'),
     'TIT_MGR_DEPTS': _('Department Network Segments'),
     'BTN_ADD_DEPT': _('+ Add New Department'),
+    
+    // ★ 彻底英文化的防呆字典
     'ERR_DEPT_OVERLAP': _('❌ Subnet Conflict: IP ranges between groups cannot overlap!\nConflicting groups: '),
     'ERR_DEPT_NAME_DUP': _('❌ Save Failed: Group names cannot be duplicated!\nDuplicate name: '),
     'ERR_DEPT_INVALID': _('❌ Save Failed: IPs must be between 2-254 and format must be valid!'),
@@ -158,10 +163,19 @@ return view.extend({
             '  .nd-btn-add-dept { width: 100%; padding: 14px; margin: 15px 0 5px 0; border: 2px dashed #cbd5e1; background: #f8fafc; color: #64748b; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14.5px; display: flex; align-items: center; justify-content: center; }',
             '  .nd-btn-add-dept:hover { border-color: #94a3b8; color: #475569; background: #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }',
             '  .nd-modal-actions { display: flex; gap: 15px; width: 100%; margin-top: 25px; padding-top: 15px; border-top: 1px solid #f1f5f9; }',
+            /* ★ 電腦端排版：名稱加寬，保持單行 */
+            '  .nd-dept-row-inner { display: flex; align-items: center; gap: 10px; width: 100%; }',
+            '  .nd-dept-col-name { display: flex; flex: 1 1 160px; gap: 6px; }', 
+            '  .nd-dept-col-ip { display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; flex: 0 0 auto; }',
+            '  .nd-dept-col-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }',
+            /* ★ 手機端排版：觸發 2 行 Grid 佈局 */
             '  @media screen and (max-width: 768px) {',
             '    .nd-batch-bar.show { padding-right: 15px !important; }',
             '    .nd-batch-close-btn { top: 2px; right: 15px; transform: none; font-size: 36px; }',
-            '    .dept-row { flex-wrap: wrap; }',
+            '    .nd-dept-row-inner { display: grid; grid-template-columns: 1fr auto; gap: 10px; }',
+            '    .nd-dept-col-name { grid-column: 1 / 2; grid-row: 1 / 2; }',
+            '    .nd-dept-col-actions { grid-column: 2 / 3; grid-row: 1 / 2; }',
+            '    .nd-dept-col-ip { grid-column: 1 / 3; grid-row: 2 / 3; width: 100%; box-sizing: border-box; }',
             '  }',
             '</style>',
             '<div class="nw-wrapper">',
@@ -463,20 +477,21 @@ return view.extend({
                 el.className = 'dept-row';
                 el.style.cssText = 'background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px;';
                 el.innerHTML = 
-                    '<div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">' +
-                        '<div style="display:flex; flex: 1 1 130px; gap:6px;">' +
+                    '<div class="nd-dept-row-inner">' +
+                        '<div class="nd-dept-col-name">' +
                             '<input type="text" class="nd-input d-icon" style="flex: 0 0 35px !important; width:35px !important; max-width:35px !important; text-align:center; padding:8px 0 !important;" value="'+(d.icon||'📁')+'" title="Icon">' +
                             '<input type="text" class="nd-input d-name" style="flex:1; min-width:80px; padding:8px;" value="'+(d.name||'')+'" placeholder="'+T['PH_DEPT_NAME']+'">' +
                         '</div>' +
-                        '<div style="display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:2px 8px; flex: 1 1 160px;">' +
-                            '<span style="font-family:monospace; color:#64748b; font-size:13px; font-weight:bold;">'+basePrefix.split('.')[0]+'.'+basePrefix.split('.')[1]+'.'+basePrefix.split('.')[2]+'.</span>' +
-                            '<input type="number" class="nd-input nd-ip-num d-start" style="flex: 0 0 60px !important; width:45px !important; border:none; box-shadow:none; background:transparent; padding:6px 0; text-align:center; font-family:monospace; font-weight:bold; font-size:14px; color:#0f172a;" value="'+d.start+'" min="2" max="254">' +
+                        '<div class="nd-dept-col-ip">' +
+                            '<span style="font-family:monospace; color:#64748b; font-size:12px; font-weight:bold;">'+basePrefix.split('.')[0]+'.'+basePrefix.split('.')[1]+'.'+basePrefix.split('.')[2]+'.</span>' +
+                            '<input type="number" class="nd-input nd-ip-num d-start" style="flex: 0 0 45px !important; width:45px !important; border:none; box-shadow:none; background:transparent; padding:6px 0 !important; text-align:center; font-family:monospace; font-weight:bold; font-size:14px; color:#0f172a;" value="'+d.start+'" min="2" max="254">' +
                             '<span style="color:#94a3b8; font-weight:bold; margin:0 4px;">-</span>' +
-                            '<input type="number" class="nd-input nd-ip-num d-end" style="flex: 0 0 60px !important; width:45px !important; border:none; box-shadow:none; background:transparent; padding:6px 0; text-align:center; font-family:monospace; font-weight:bold; font-size:14px; color:#0f172a;" value="'+d.end+'" min="2" max="254">' +
+                            '<input type="number" class="nd-input nd-ip-num d-end" style="flex: 0 0 45px !important; width:45px !important; border:none; box-shadow:none; background:transparent; padding:6px 0 !important; text-align:center; font-family:monospace; font-weight:bold; font-size:14px; color:#0f172a;" value="'+d.end+'" min="2" max="254">' +
                         '</div>' +
-                        '<div style="display:flex; align-items:center; gap:8px; flex: 0 0 auto;">' +
+                        '<div class="nd-dept-col-actions">' +
                             '<input type="color" class="d-color dept-color" value="'+(d.color||'#3b82f6')+'" style="flex: 0 0 34px !important; width:34px !important; height:34px !important; cursor:pointer; padding:0; border:1px solid #cbd5e1; border-radius:4px;">' +
-                            '<button class="nd-btn nd-btn-red d-del" style="flex: 0 0 auto; padding:6px 14px; font-weight:bold; margin:0;">&times;</button>' +
+                            // ★ 終極修復：強制清除 padding，鎖死 34x34 絕對正方形
+                            '<button class="nd-btn nd-btn-red d-del" style="flex: 0 0 34px !important; width: 34px !important; min-width: 34px !important; max-width: 34px !important; height: 34px !important; padding: 0 !important; margin: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 22px; line-height: 1;">&times;</button>' +
                         '</div>' +
                     '</div>';
                 
@@ -926,7 +941,7 @@ return view.extend({
                 var displayStyle = count === 0 ? 'display:none;' : '';
                 deptBtns += '<button class="nd-cat-btn '+(currentFilter===d.id?'active':'')+'" data-cat="'+d.id+'" style="color:'+d.color+'; border-color:'+d.color+'40; '+activeStyle+displayStyle+'">'+d.icon+' '+d.name+' ('+count+')</button>';
             });
-            var btnDeptOth = '<button class="nd-cat-btn '+(currentFilter==='dept_other'?'active':'')+'" data-cat="dept_other" style="border-color:#cbd5e1; color:#64748b; '+(cDeptOth===0?'display:none;':'')+'">❔ '+T['TAB_OTHER']+' (<span id="cnt-dept-other">'+cDeptOth+'</span>)</button>';
+            var btnDeptOth = '<button class="nd-cat-btn '+(currentFilter==='dept_other'?'active':'')+'" data-cat="dept_other" style="border-color:#cbd5e1; color:#64748b; '+(cDeptOth===0?'display:none;':'')+'">❔ '+T['TAB_DEPT_OTHER']+' (<span id="cnt-dept-other">'+cDeptOth+'</span>)</button>';
             var btnMgr = '<button class="nd-cat-btn" id="btn-manage-depts" style="border-style:dashed; border-color:#cbd5e1; color:#64748b;">⚙️ '+T['BTN_MANAGE_DEPTS']+'</button>';
 
             var tabsHtml = '';
