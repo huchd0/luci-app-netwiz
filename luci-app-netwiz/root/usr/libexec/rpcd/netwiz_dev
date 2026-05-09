@@ -1,276 +1,254 @@
-/*
- * Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
- * Licensed under the GNU General Public License v3.0
- */
-'use strict';
-'require view';
-'require dom';
-'require rpc';
+#!/bin/sh
+# Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
+# Licensed under the GNU General Public License v3.0
 
-var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', expect: { '': {} } });
-var callDeviceBind = rpc.declare({ object: 'netwiz_dev', method: 'bind', params: ['mac', 'ip', 'name'], expect: { result: 0 } });
-var callDeviceUnbind = rpc.declare({ object: 'netwiz_dev', method: 'unbind', params: ['mac'], expect: { result: 0 } });
+case "$1" in
+    list)
+        echo '{ "get_list": {}, "bind": { "mac": "string", "ip": "string", "name": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {} }'
+        exit 0
+        ;;
+    call)
+        case "$2" in
+            get_list)
+                wifi_macs=$(iwinfo 2>/dev/null | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' | tr 'A-Z' 'a-z' || true)
+                arp_cache=$(ip -4 neigh show 2>/dev/null || cat /proc/net/arp 2>/dev/null | tail -n +2 || true)
+                leases=$(cat /tmp/dhcp.leases /var/dhcp.leases /tmp/run/dnsmasq/dhcp.leases /var/lib/misc/dnsmasq.leases 2>/dev/null || true)
+                hosts_str=$(cat /tmp/hosts/* /etc/hosts 2>/dev/null || true)
+                uci_hosts=$(uci show dhcp 2>/dev/null | grep "\.@host\[" || true)
 
-return view.extend({
-    handleSaveApply: null,
-    handleSave: null,
-    handleReset: null,
+                # 多行 ubus JSON
+                ubus_leases=$(ubus call dhcp ipv4leases 2>/dev/null || ubus call odhcpd ipv4leases 2>/dev/null || true)
 
-    render: function () {
-        if (!document.querySelector('meta[name="viewport"]')) {
-            var meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
-            document.head.appendChild(meta);
-        }
+                gw_ip=$(ip -4 route show default 2>/dev/null | awk '/default/ {print $3}' | head -n1 | tr -d ' \r\n')
+                lan_ip=$(ip addr show br-lan 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1 | head -n1 | tr -d ' \r\n')
+                [ -z "$lan_ip" ] && lan_ip=$(uci -q get network.lan.ipaddr | cut -d/ -f1 | tr -d ' \r\n')
 
-        var container = dom.create('div', { id: 'netwiz-dev-container' });
+                curr_time=$(date +%s)
 
-        var htmlTemplate = [
-            '<link rel="stylesheet" type="text/css" href="' + L.resource('view/netwiz.css') + '?v=' + Date.now() + '">',
-            '<style>',
-            '  .nd-cb-back svg { width: 22px; height: 22px; }',
-            '  .nd-cb-refresh svg { width: 15px; height: 15px; }',
-            '  .nd-card-name svg { width: 18px; height: 18px; margin-right: 2px; vertical-align: sub; }',
-            '  .nd-lease-info svg { width: 12px; height: 12px; margin-right: 2px; vertical-align: baseline; }',
-            '  .btn-bind svg { width: 15px; height: 15px; margin-right: 4px; vertical-align: sub; }',
-            '</style>',
-            '<div class="nw-wrapper">',
-            '   <div class="nw-header">',
-            '      <div class="nw-title-wrap">',
-            '         <div class="nw-main-title">Netwiz 网络设置向导</div>',
-            '         <div class="nw-version-tag">v1.4.0 <div class="nw-version-dot" style="display: none;"></div></div>',
-            '      </div>',
-            '      <p>纯粹 · 安全 · 无损的极简配置</p>',
-            '   </div>',
+                json_data=$(awk -v current_time="$curr_time" -v wifi_str="$wifi_macs" -v arp_str="$arp_cache" -v lease_str="$leases" -v hosts_str="$hosts_str" -v ubus_str="$ubus_leases" -v uci_str="$uci_hosts" -v gw_ip="$gw_ip" -v lan_ip="$lan_ip" '
+                BEGIN {
+                    gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", gw_ip);
+                    gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", lan_ip);
 
-            '   <div class="nd-control-bar">',
-            '      <div class="nd-cb-back" id="dev-back" title="返回主界面">',
-            '         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
-            '      </div>',
-            '      <div class="nd-cb-title-wrap">',
-            '          <div class="nd-cb-title">设备网络管家</div>',
-            '          <p class="nd-cb-sub">终端设备状态监控与固定 IP 管理</p>',
-            '      </div>',
-            '      <div class="nd-cb-refresh" id="dev-refresh" title="重新扫描网络">',
-            '         <svg class="nd-refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path></svg> 刷新',
-            '      </div>',
-            '   </div>',
-
-            '   <div id="nd-loading" style="display:flex; flex-direction:column; align-items:center; padding:50px 0; gap:15px; color:#64748b; font-weight:bold; width: 100%;">',
-            '      <div class="nd-spinner"></div>',
-            '      <span id="nd-loading-text">正在启动三维雷达探测...</span>',
-            '   </div>',
-
-            '   <div id="nd-list-container" class="nd-list" style="display: none;"></div>',
-            '</div>', 
-
-            '<div id="nd-modal-overlay">',
-            '   <div class="nd-modal-box">',
-            '       <div id="nd-m-title" class="nd-modal-title"></div>',
-            '       <div id="nd-m-content" style="color:#475569; font-size:15px; margin-bottom:20px; text-align:left; line-height:1.5;"></div>',
-            '       <div id="nd-m-form" style="display:none;">',
-            '           <div class="nd-input-group">',
-            '               <label class="nd-input-label">设备备注名</label>',
-            '               <input type="text" id="nd-inp-name" class="nd-input" placeholder="例如: 小明的电脑" autocomplete="off">',
-            '           </div>',
-            '           <div class="nd-input-group">',
-            '               <label class="nd-input-label">分配固定 IP</label>',
-            '               <input type="text" id="nd-inp-ip" class="nd-input" placeholder="例如: 192.168.1.50" autocomplete="off">',
-            '           </div>',
-            '       </div>',
-            '       <div style="display:flex; gap:15px; width:100%;">',
-            '           <button id="nd-m-cancel" class="nd-btn nd-btn-gray" style="flex:1;">取消</button>',
-            '           <button id="nd-m-ok" class="nd-btn nd-btn-blue" style="flex:1;">确定</button>',
-            '       </div>',
-            '   </div>',
-            '</div>'
-        ].join('\n');
-
-        container.innerHTML = htmlTemplate;
-        this.bindEvents(container);
-        return container;
-    },
-
-    bindEvents: function(container) {
-        container.querySelector('#dev-back').addEventListener('click', function() {
-            window.location.href = window.location.pathname.replace('/netwiz_dev', '/netwiz');
-        });
-
-        var modalOverlay = container.querySelector('#nd-modal-overlay');
-        var mTitle = container.querySelector('#nd-m-title');
-        var mContent = container.querySelector('#nd-m-content');
-        var mForm = container.querySelector('#nd-m-form');
-        var mInpName = container.querySelector('#nd-inp-name');
-        var mInpIp = container.querySelector('#nd-inp-ip');
-        var mBtnOk = container.querySelector('#nd-m-ok');
-        var mBtnCancel = container.querySelector('#nd-m-cancel');
-
-        var openModal = function(options) {
-            mTitle.innerText = options.title || '';
-            if (options.content) { mContent.innerHTML = options.content; mContent.style.display = 'block'; } else { mContent.style.display = 'none'; }
-            if (options.showForm) { mForm.style.display = 'block'; mInpName.value = options.defName || ''; mInpIp.value = options.defIp || ''; } else { mForm.style.display = 'none'; }
-            mBtnOk.className = 'nd-btn ' + (options.danger ? 'nd-btn-red' : 'nd-btn-blue');
-            mBtnOk.innerText = options.okText || '确定';
-            mBtnOk.onclick = function() { var res = options.showForm ? { name: mInpName.value.trim(), ip: mInpIp.value.trim() } : true; if (options.onOk) options.onOk(res); modalOverlay.style.display = 'none'; };
-            mBtnCancel.onclick = function() { modalOverlay.style.display = 'none'; };
-            modalOverlay.style.display = 'flex';
-            if (options.showForm) setTimeout(function(){ mInpName.focus(); }, 100);
-        };
-
-        var loadingEl = container.querySelector('#nd-loading');
-        var loadingText = container.querySelector('#nd-loading-text');
-        var listEl = container.querySelector('#nd-list-container');
-        var refreshBtn = container.querySelector('#dev-refresh');
-
-        var loadDevices = function() {
-            loadingEl.style.display = 'flex';
-            loadingText.innerText = "正在启动三维雷达探测...";
-            listEl.style.display = 'none';
-            
-            callDeviceList().then(function(res) {
-                loadingEl.style.display = 'none';
-                listEl.style.display = 'flex';
-                
-                var devices = (res && Array.isArray(res.devices)) ? res.devices : [];
-                
-                devices.sort(function(a, b) {
-                    var aGw = (a.is_gw === true || a.is_gw === 'true');
-                    var bGw = (b.is_gw === true || b.is_gw === 'true');
-                    var aLocal = (a.is_local === true || a.is_local === 'true');
-                    var bLocal = (b.is_local === true || b.is_local === 'true');
-                    var aStatic = (a.is_static === true || a.is_static === 'true');
-                    var bStatic = (b.is_static === true || b.is_static === 'true');
-                    var aOnline = (a.online === true || a.online === 'true');
-                    var bOnline = (b.online === true || b.online === 'true');
-
-                    if (aGw !== bGw) return aGw ? -1 : 1;
-                    if (aLocal !== bLocal) return aLocal ? -1 : 1;
-                    if (aStatic !== bStatic) return aStatic ? -1 : 1;
-                    if (aOnline !== bOnline) return aOnline ? -1 : 1;
-                    return a.ip.localeCompare(b.ip, undefined, {numeric: true, sensitivity: 'base'});
-                });
-
-                if (devices.length === 0) {
-                    listEl.innerHTML = '<div style="text-align:center; padding:60px 20px; color:#64748b; background:#fff; border-radius:16px; border:1px dashed #cbd5e1; width:100%;">当前局域网内未发现任何设备记录</div>';
-                    return;
-                }
-
-                var html = "";
-                devices.forEach(function(dev) {
-                    var isOnline = (dev.online === true || dev.online === 'true');
-                    var isStatic = (dev.is_static === true || dev.is_static === 'true');
-                    var isGw = (dev.is_gw === true || dev.is_gw === 'true');
-                    var isLocal = (dev.is_local === true || dev.is_local === 'true');
+                    split(wifi_str, warr, "\n"); for(i in warr) if(warr[i]!="") wifi_online[warr[i]]=1;
                     
-                    var statusBadgesHtml = isOnline 
-                        ? '<span class="nd-status-badge nd-status-online"><span class="nd-dot-online"></span>在线</span>' 
-                        : '<span class="nd-status-badge nd-status-offline"><span class="nd-dot-offline"></span>离线</span>';
-                        
-                    if (isStatic) statusBadgesHtml += '<span class="nd-badge nd-badge-static">🔒 静态</span>';
-                    if (isGw) statusBadgesHtml += '<span class="nd-badge nd-badge-gw">🌐 上级网关</span>';
-                    if (isLocal) statusBadgesHtml += '<span class="nd-badge nd-badge-local">💻 本机系统</span>';
-
-                    var leaseText = dev.lease || '-';
-                    if (isStatic && leaseText === '-') leaseText = '静态分配 (Static)';
-                    if (isGw) leaseText = '系统网关路由';
-
-                    var actions = "";
-                    if (isStatic) {
-                        actions = '<button class="nd-btn nd-btn-gray btn-edit" data-mac="'+dev.mac+'" data-ip="'+dev.ip+'" data-name="'+dev.name+'">修改</button>' +
-                                  '<button class="nd-btn nd-btn-red btn-unbind" data-mac="'+dev.mac+'">解绑</button>';
-                    } else {
-                        actions = '<button class="nd-btn nd-btn-green btn-bind" data-mac="'+dev.mac+'" data-ip="'+dev.ip+'" data-name="'+dev.name+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> 一键固定</button>';
+                    split(arp_str, aarr, "\n");
+                    for(i in aarr) {
+                        split(aarr[i], f, " ");
+                        if(f[1]!="" && f[1]!~/dev/) {
+                            mac=""; state="";
+                            for(j=1; j<=length(f); j++) {
+                                if(f[j]=="lladdr") mac=tolower(f[j+1]);
+                                else if(f[j] ~ /^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$/) mac=tolower(f[j]);
+                                if(j==length(f)) state=f[j];
+                            }
+                            if(mac!="" && mac!="00:00:00:00:00:00") {
+                                arp_ip[mac]=f[1];
+                                if(state ~ /REACHABLE|DELAY|PROBE|0x2/) arp_online[mac]=1;
+                                all_macs[mac]=1;
+                            }
+                        }
                     }
 
-                    var displayName = dev.name === 'Unknown' ? '<i style="color:#94a3b8; font-weight:normal;">未知设备</i>' : dev.name;
+                    split(ubus_str, ulines, "\n");
+                    cur_mac = ""; cur_ip = ""; cur_name = ""; cur_valid = -1;
+                    for(i=1; i<=length(ulines); i++) {
+                        line = ulines[i];
+                        if (line ~ /"mac":/) { split(line, p, "\""); cur_mac = tolower(p[4]); }
+                        else if (line ~ /"ip":/) { split(line, p, "\""); cur_ip = p[4]; }
+                        else if (line ~ /"hostname":/) { split(line, p, "\""); cur_name = p[4]; }
+                        else if (line ~ /"valid":/ || line ~ /"expires":/ || line ~ /"leasetime":/) { 
+                            split(line, p, ":"); val=p[2]; gsub(/[^0-9]/, "", val); val = val + 0; 
+                            if (val > 1000000000) {
+                                if (val > current_time) cur_valid = val - current_time;
+                                else cur_valid = 0;
+                            } else {
+                                cur_valid = val;
+                            }
+                        }
+                        else if (line ~ /}/) {
+                            if (cur_mac != "") {
+                                if (cur_ip != "") leases_ip[cur_mac] = cur_ip;
+                                if (cur_name != "" && cur_name != "*" && cur_name != "?") ubus_name[cur_mac] = cur_name;
+                                if (cur_valid > 0) {
+                                    h = int(cur_valid / 3600); m = int((cur_valid % 3600) / 60); s = cur_valid % 60;
+                                    leases_time[cur_mac] = sprintf("%dh %dm %ds", h, m, s);
+                                } else if (cur_valid == 0) {
+                                    leases_time[cur_mac] = "Expired";
+                                }
+                                all_macs[cur_mac] = 1;
+                            }
+                            cur_mac = ""; cur_ip = ""; cur_name = ""; cur_valid = -1;
+                        }
+                    }
 
-                    html += [
-                        '<div class="nd-card">',
-                        '   <div class="nd-card-left">',
-                        '       <div class="nd-card-name"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg> ',
-                        '           <span style="word-break:break-all;">' + displayName + '</span>',
-                        '           ' + statusBadgesHtml, 
-                        '       </div>',
-                        '       <div class="nd-card-mac">' + (dev.mac).toUpperCase() + '</div>',
-                        '   </div>',
-                        
-                        '   <div class="nd-card-mid">',
-                        '       <div class="nd-card-ip">' + dev.ip + '</div>',
-                        '       <div class="nd-lease-info"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ' + leaseText + '</div>',
-                        '   </div>',
-                        
-                        '   <div class="nd-card-right">',
-                        '       ' + actions,
-                        '   </div>',
-                        '</div>'
-                    ].join('\n');
-                });
+                    split(lease_str, larr, "\n");
+                    for(i in larr) {
+                        split(larr[i], f, " ");
+                        if(length(f) >= 4 && f[2]!="") { 
+                            mac=tolower(f[2]);
+                            if(f[3]!="") leases_ip[mac]=f[3]; 
+                            
+                            name = f[4];
+                            for(k=5; k<=length(f)-1; k++) { name = name " " f[k]; }
+                            if(name!="" && name!="*" && name!="?") leases_name[mac]=name;
+                            all_macs[mac]=1; 
+                            
+                            exp_time = f[1] + 0;
+                            if (leases_time[mac] == "") {
+                                if (exp_time > 1000000000) {
+                                    if (exp_time > current_time) {
+                                        left = exp_time - current_time;
+                                        h = int(left / 3600); m = int((left % 3600) / 60); s = left % 60;
+                                        leases_time[mac] = sprintf("%dh %dm %ds", h, m, s);
+                                    } else {
+                                        leases_time[mac] = "Expired";
+                                    }
+                                } else if (exp_time > 0 && exp_time <= 1000000000) {
+                                    left = exp_time;
+                                    h = int(left / 3600); m = int((left % 3600) / 60); s = left % 60;
+                                    leases_time[mac] = sprintf("%dh %dm %ds", h, m, s);
+                                } else if (exp_time == 0) {
+                                    leases_time[mac] = "Infinite";
+                                }
+                            }
+                        }
+                    }
 
-                listEl.innerHTML = html;
+                    split(hosts_str, harr, "\n");
+                    for(i in harr) {
+                        split(harr[i], f, " ");
+                        if(f[1]!="" && f[2]!="") {
+                            if (f[1] ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
+                                name = f[2];
+                                sub(/\.lan$/, "", name);
+                                if (name != "localhost" && name != "*" && name != "?") ip_to_name[f[1]] = name;
+                            }
+                        }
+                    }
+
+                    split(uci_str, uarr, "\n");
+                    for(i in uarr) {
+                        idx=index(uarr[i],"=");
+                        if(idx>0) {
+                            key=substr(uarr[i],1,idx-1);
+                            val=substr(uarr[i],idx+1); gsub(/^\047|\047$/, "", val);
+                            split(key, kp, ".");
+                            if(kp[1]=="dhcp" && kp[2]!="" && kp[3]!="") {
+                                h_idx=kp[2];
+                                prop=kp[3];
+                                if(prop=="mac"){
+                                    gsub(/["\r\n]/, "", val);
+                                    split(tolower(val), mparts, " "); 
+                                    for(m in mparts) { uci_mac_list[h_idx] = (uci_mac_list[h_idx]=="" ? "" : uci_mac_list[h_idx] " ") mparts[m]; }
+                                }
+                                else if(prop=="ip") uci_ip_map[h_idx]=val;
+                                else if(prop=="name") uci_name_map[h_idx]=val;
+                            }
+                        }
+                    }
+
+                    for (h_idx in uci_mac_list) {
+                        split(uci_mac_list[h_idx], mparts, " ");
+                        for (m in mparts) {
+                            m_mac = mparts[m];
+                            all_macs[m_mac] = 1;
+                            is_static_mac[m_mac] = 1;
+                            if (uci_ip_map[h_idx] != "") static_ip[m_mac] = uci_ip_map[h_idx];
+                            if (uci_name_map[h_idx] != "") uci_name[m_mac] = uci_name_map[h_idx];
+                        }
+                    }
+
+                    printf "{\"devices\": [";
+                    first=1;
+                    for(mac in all_macs) {
+                        is_online = (arp_online[mac]==1 || wifi_online[mac]==1) ? 1 : 0;
+                        ip = arp_ip[mac]; 
+                        if(ip=="") ip = static_ip[mac]; 
+                        if(ip=="") ip = leases_ip[mac];
+                        
+                        gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", ip);
+                        if(ip=="" && is_online==0) continue;
+                        if(ip=="") ip = "Unknown IP";
+                        
+                        name = uci_name[mac];
+                        if(name=="") name = ip_to_name[ip];
+                        if(name=="") name = ubus_name[mac];
+                        if(name=="") name = leases_name[mac]; 
+                        if(name=="") name = "Unknown";
+                        
+                        l_time = leases_time[mac];
+                        if(l_time=="") {
+                            if (is_static_mac[mac]==1) {
+                                l_time = "Static";
+                            } else if (arp_online[mac]==1) {
+                                l_time = "Device Addressed IP";
+                            } else {
+                                l_time = "-";
+                            }
+                        }
+
+                        gsub(/["\\\r\n\t]/, "", mac); gsub(/["\\\r\n\t]/, "", ip); gsub(/["\\\r\n\t]/, "", name);
+                        
+                        is_static = (is_static_mac[mac]==1) ? "true" : "false";
+                        is_gw = (ip != "" && ip == gw_ip) ? "true" : "false";
+                        is_local = (ip != "" && ip == lan_ip) ? "true" : "false";
+                        
+                        if(!first) printf ", ";
+                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"lease\": \"%s\"}", mac, ip, name, (is_online?"true":"false"), is_static, is_gw, is_local, l_time;
+                        first=0;
+                    }
+                    printf "]}";
+                }')
+                echo "$json_data"
+                exit 0
+                ;;
+            bind)
+                input=$(cat)
+                mac=$(echo "$input" | jsonfilter -e '@.mac' | tr 'A-Z' 'a-z')
+                ip=$(echo "$input" | jsonfilter -e '@.ip')
+                name=$(echo "$input" | jsonfilter -e '@.name')
+                no_reload=$(echo "$input" | jsonfilter -e '@.no_reload')
+
+                [ -z "$mac" ] || [ -z "$ip" ] && exit 0
+                [ -z "$name" ] || [ "$name" = "Unknown" ] && name="Device_${mac: -5}"
+
+                uci show dhcp | grep -i "\.mac=.*$mac" | cut -d'.' -f2 | while read -r h_idx; do uci delete dhcp.$h_idx 2>/dev/null; done
+                uci show dhcp | grep "\.ip='$ip'" | cut -d'.' -f2 | while read -r h_idx; do uci delete dhcp.$h_idx 2>/dev/null; done
                 
-                container.querySelectorAll('.btn-bind, .btn-edit').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        var mac = this.getAttribute('data-mac');
-                        var ip = this.getAttribute('data-ip');
-                        var rawName = this.getAttribute('data-name');
-                        var isEdit = this.classList.contains('btn-edit');
-                        
-                        openModal({
-                            title: isEdit ? '修改设备信息' : '一键固定 IP',
-                            content: '正在为 MAC: <span style="font-family:monospace; color:#3b82f6; font-weight:bold;">' + mac.toUpperCase() + '</span> 进行配置。',
-                            showForm: true,
-                            defName: rawName === 'Unknown' ? '' : rawName,
-                            defIp: ip,
-                            okText: isEdit ? '保存修改' : '绑定此设备',
-                            onOk: function(data) {
-                                if (!data.ip) { alert("IP 地址不能为空！"); return; }
-                                listEl.style.display = 'none';
-                                loadingEl.style.display = 'flex';
-                                loadingText.innerText = "正在安全写入并无感重启服务...";
-                                
-                                callDeviceBind(mac, data.ip, data.name).then(function() {
-                                    setTimeout(loadDevices, 1000);
-                                }).catch(function() { setTimeout(loadDevices, 1000); });
-                            }
-                        });
-                    });
-                });
-
-                container.querySelectorAll('.btn-unbind').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        var mac = this.getAttribute('data-mac');
-                        openModal({
-                            title: '解除 IP 绑定',
-                            content: '确定要解除对该设备 (<b style="font-family:monospace;">'+mac.toUpperCase()+'</b>) 的静态 IP 绑定吗？<br><br>解除后它将在下次请求网络时重新获取随机 IP。',
-                            danger: true,
-                            okText: '确认解绑',
-                            onOk: function() {
-                                listEl.style.display = 'none';
-                                loadingEl.style.display = 'flex';
-                                loadingText.innerText = "正在释放静态绑定...";
-                                callDeviceUnbind(mac).then(function() {
-                                    setTimeout(loadDevices, 1000);
-                                }).catch(function() { setTimeout(loadDevices, 1000); });
-                            }
-                        });
-                    });
-                });
-
-            }).catch(function(e) {
-                loadingEl.style.display = 'none';
-                listEl.style.display = 'block';
-                listEl.innerHTML = '<div class="nd-empty" style="color:#ef4444;">❌ 扫描失败：无法获取底层数据 ('+e+')</div>';
-            });
-        };
-
-        refreshBtn.addEventListener('click', function() {
-            var icon = this.querySelector('.nd-refresh-icon');
-            icon.style.transform = 'rotate(360deg)';
-            setTimeout(function(){ icon.style.transform = 'none'; }, 800);
-            loadDevices();
-        });
-
-        loadDevices();
-    }
-});
+                new_sect=$(uci add dhcp host)
+                uci set dhcp.$new_sect.name="$name"
+                uci set dhcp.$new_sect.mac="$mac"
+                uci set dhcp.$new_sect.ip="$ip"
+                
+                uci commit dhcp
+                if [ "$no_reload" != "true" ] && [ "$no_reload" != "1" ]; then
+                    /etc/init.d/dnsmasq reload >/dev/null 2>&1
+                fi
+                echo '{"result":0}'
+                exit 0
+                ;;
+            unbind)
+                input=$(cat)
+                mac=$(echo "$input" | jsonfilter -e '@.mac' | tr 'A-Z' 'a-z')
+                no_reload=$(echo "$input" | jsonfilter -e '@.no_reload')
+                [ -z "$mac" ] && exit 0
+                
+                uci show dhcp | grep -i "\.mac=.*$mac" | cut -d'.' -f2 | while read -r h_idx; do uci delete dhcp.$h_idx 2>/dev/null; done
+                
+                uci commit dhcp
+                if [ "$no_reload" != "true" ] && [ "$no_reload" != "1" ]; then
+                    /etc/init.d/dnsmasq reload >/dev/null 2>&1
+                fi
+                echo '{"result":0}'
+                exit 0
+                ;;
+            apply_dhcp)
+                /etc/init.d/dnsmasq reload >/dev/null 2>&1
+                echo '{"result":0}'
+                exit 0
+                ;;
+        esac
+        ;;
+esac
+exit 1
