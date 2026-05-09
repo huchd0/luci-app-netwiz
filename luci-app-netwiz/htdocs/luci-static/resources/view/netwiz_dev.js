@@ -211,7 +211,7 @@ return view.extend({
             '   <div id="nd-list-container" class="nd-list" style="display: none;"></div>',
             
             '   <div id="nd-batch-bar" class="nd-batch-bar">',
-            '       <div id="nd-batch-close" class="nd-batch-close-btn" title="Cancel">&times;</div>',
+            '       <div id="nd-batch-close" class="nd-batch-close-btn" title="{{BTN_CANCEL}}">&times;</div>',
             '       <div class="nd-batch-info">{{TXT_SELECTED}} <span id="nd-batch-count" style="color:#3b82f6;">0</span> {{TXT_ITEMS}}</div>',
             '       <div class="nd-batch-actions">',
             '           <button id="btn-batch-unbind" class="nd-btn nd-btn-red nd-btn-sm">{{BTN_BATCH_UNBIND}}</button>',
