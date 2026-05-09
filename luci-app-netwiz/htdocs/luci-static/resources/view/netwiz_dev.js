@@ -54,7 +54,7 @@ var T = {
     'BDG_STATIC': _('Static'),
     'BDG_GW': _('Upstream Gateway'),
     'BDG_LOCAL': _('Local System'),
-    'BDG_VISITOR': _('Current Device'),
+    'BDG_VISITOR': _('Managing'),
     'TXT_SYS_ROUTE': _('System Core Route'),
     'TXT_SYS_RESERVED': _('System Reserved Device'),
     'BTN_EDIT': _('Edit'),
