@@ -92,7 +92,7 @@ jobs:
           sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' luci-app-netwiz/Makefile
           
           # 打包前赋予后端脚本执行权限
-          chmod +x luci-app-netwiz/root/usr/libexec/rpcd/netwiz          
+          chmod +x luci-app-netwiz/root/usr/libexec/rpcd/netwiz
           chmod +x luci-app-netwiz/root/usr/libexec/rpcd/netwiz_dev
           chmod +x luci-app-netwiz/root/usr/libexec/netwiz-autodetect.sh
           chmod +x luci-app-netwiz/root/usr/libexec/netwiz-monitor-loop.sh
