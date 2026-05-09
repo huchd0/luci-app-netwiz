@@ -221,7 +221,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nw-radio-group { display: flex; gap: 12px; align-items: stretch; margin: 0; padding: 0; width: 100%; padding: 1px;}
 .nw-radio-btn { cursor: pointer; position: relative; display: block; flex: 1; margin: 0 !important; padding: 0 !important; }
 .nw-radio-btn input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
-.nw-radio-btn-text { display: flex; align-items: center; justify-content: center; height: 100%; padding: 10px 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; color: #475569; background: #fff; transition: all 0.25s ease; position: relative; overflow: hidden; font-weight: normal; box-sizing: border-box; line-height: 1.3; text-align: center; }
+.nw-radio-btn-text { display: flex; align-items: center; justify-content: center; height: 100%; padding: 15px 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; color: #475569; background: #fff; transition: all 0.25s ease; position: relative; overflow: hidden; font-weight: normal; box-sizing: border-box; line-height: 1.3; text-align: center; }
 .nw-radio-btn:hover .nw-radio-btn-text { border-color: #3b82f6; color: #3b82f6; background: #f8fafc; }
 .nw-radio-btn input[type="radio"]:checked + .nw-radio-btn-text { border-color: #3b82f6; color: #ef4444; font-weight: 600; box-shadow: 0 0 0 1px #3b82f6; background: #eff6ff; }
 .nw-radio-btn-text::after { content: ""; position: absolute; right: 0; bottom: 0; width: 0; height: 0; border-bottom: 35px solid #3b82f6; border-left: 30px solid transparent; opacity: 0; transition: opacity 0.2s ease; }
