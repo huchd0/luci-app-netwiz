@@ -190,8 +190,8 @@ case "$1" in
                     for(mac in all_macs) {
                         is_online = (arp_online[mac]==1 || wifi_online[mac]==1) ? 1 : 0;
                         ip = arp_ip[mac]; 
-                        if(ip=="") ip = static_ip[mac]; 
-                        if(ip=="") ip = leases_ip[mac];
+                        if(ip=="") ip = leases_ip[mac]; 
+                        if(ip=="") ip = static_ip[mac];
                         
                         gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", ip);
                         if(ip=="" && is_online==0) continue;
@@ -221,9 +221,10 @@ case "$1" in
                         is_local = (ip != "" && router_ips[ip] == 1) ? "true" : "false";
                         # 当前正在访问页面的设备
                         is_visitor = (ip != "" && visitor_ips[ip] == 1) ? "true" : "false";
+                        b_ip = static_ip[mac]; # 已写入系统 IP
                         
                         if(!first) printf ", ";
-                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\"}", mac, ip, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time;
+                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\"}", mac, ip, b_ip, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time;
                         first=0;
                     }
                     printf "]}";
