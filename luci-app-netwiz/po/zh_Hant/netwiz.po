@@ -353,7 +353,7 @@ msgid "Wi-Fi Settings"
 msgstr "Wi-Fi 設定"
 
 msgid "Set Wi-Fi name, password, enable Wireless Relay (WISP) and Seamless Roaming."
-msgstr "設置無線網路名稱、密碼，開啟無線中繼 (WISP)，開啟路由間無縫漫遊。"
+msgstr "設置WiFi帳號、密碼，開啟無線中繼 (WISP)，開啟路由間無縫漫遊。"
 
 msgid "Configure Wi-Fi"
 msgstr "設定 Wi-Fi"
