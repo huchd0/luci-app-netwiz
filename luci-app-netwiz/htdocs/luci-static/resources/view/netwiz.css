@@ -55,7 +55,7 @@ body {
 .nw-reopen-btn { margin: 10px 0 5px 0; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); padding: 6px 18px; border-radius: 20px; font-size: 13.5px; font-weight: 500; color: #fff; transition: all 0.25s ease; }
 .nw-reopen-btn:hover { background: rgba(255,255,255,0.25); transform: translateY(-1px); }
 .nw-version-tag { position: absolute; top: 10px; left: 100%; margin-left: 2px; background: rgba(255, 255, 255, 0.15); color: #fff; font-size: 12px; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-family: monospace; z-index: 50; border: 1px solid rgba(255, 255, 255, 0.3); white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: all 0.3s ease; transform: translateY(0px); }
-.nw-title-wrap:hover .nw-version-tag { opacity: 1; top: -5px; transform: translateY(-5px); }
+.nw-title-wrap:hover .nw-version-tag { opacity: 1; top: 5px; transform: translateY(-5px); }
 .nw-version-dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9); display: block; }
 
 /* ---------------------------------------------------------
@@ -340,20 +340,11 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nd-strategy-card:hover { border-color: #94a3b8; }
 .nd-strategy-card.active { border-color: #3b82f6; background: #eff6ff; color: #1e3a8a; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
 
-.nd-smart-row { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; margin-bottom: 10px !important; padding-bottom: 10px !important; border-bottom: 1px dashed #e2e8f0 !important; }
-.nd-smart-label { 
-    width: 95px !important; 
-    font-weight: bold !important; 
-    color: #475569 !important; 
-    white-space: nowrap !important; 
-    flex-shrink: 0 !important; 
-    font-size: 14px !important; 
-    margin-bottom: 0 !important; 
-    display: block !important; 
-    text-align: left !important; 
-}
-.nd-smart-inputs { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; background: #ffffff !important; padding: 6px 12px !important; border-radius: 8px !important; border: 1px solid #cbd5e1 !important; width: 250px !important; box-sizing: border-box !important; }
-.nd-smart-dash { margin: 0 8px !important; color: #cbd5e1 !important; font-weight: bold !important; }
+.nd-smart-row { flex-direction: column !important; align-items: flex-start !important; padding-bottom: 5px !important; margin: 5px 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+.nd-smart-label { width: 100% !important; margin-bottom: 3px !important; font-size: 14.5px !important; }
+.nd-smart-inputs { width: 100% !important; max-width: 100% !important; background: #f8fafc !important; padding: 6px !important; box-sizing: border-box !important; display: flex !important; }
+.nd-ip-prefix { margin-right: auto !important; font-size: 13.5px !important; flex-shrink: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+.nd-input-sm { flex: 1 !important; min-width: 0 !important; max-width: 70px !important; padding: 8px 2px !important; background-color: #ffffff !important; color: #0f172a !important; box-sizing: border-box !important; }
 
 /* ======== 入场动画 ======== */
 @keyframes nwPageFadeIn {
@@ -370,24 +361,6 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 @keyframes nwPageFadeOut {
     0% { opacity: 1; transform: none; }
     100% { opacity: 0; transform: scale(0.96); /* 出场時也微微缩小消失 */ }
-}
-
-/* ==============================================
-   1. 分段表单靠右
-============================================== */
-.nd-smart-row { 
-    display: flex !important; flex-direction: row !important; align-items: center !important; 
-    justify-content: space-between !important; 
-    width: 100% !important; /* 撐满整行 */
-    box-sizing: border-box !important;
-    margin-bottom: 10px !important; padding-bottom: 10px !important; border-bottom: 1px dashed #e2e8f0 !important; 
-}
-.nd-smart-inputs { 
-    display: flex !important; flex-direction: row !important; align-items: center !important; 
-    justify-content: flex-end !important; 
-    margin-left: auto !important; /* 输入框推到最右侧 */
-    background: #ffffff !important; padding: 6px 12px !important; border-radius: 8px !important; border: 1px solid #cbd5e1 !important; 
-    width: auto !important; min-width: 240px !important; box-sizing: border-box !important; 
 }
 
 /* ==============================================
@@ -513,6 +486,39 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     display: none !important;
 }
 
+/* =========================================================
+   新增：修复开关挤压与绿色激活状态 (完全不影响原有布局)
+========================================================= */
+.nd-control-bar label.nw-switch {
+    width: auto !important; height: auto !important; flex-shrink: 0 !important; 
+    overflow: visible !important; display: flex !important; align-items: center !important; margin: 0 !important;
+}
+.nd-control-bar label.nw-switch > span { white-space: nowrap !important; }
+.nd-control-bar label.nw-switch > div { width: 42px !important; height: 22px !important; flex-shrink: 0 !important; }
+
+/* 关键：开关开启时变成绿色！ */
+.nd-control-bar input:checked + .nw-slider { background-color: #10b981 !important; }
+.btn-fw:active { transform: scale(0.95); opacity: 0.8; }
+
+#nd-modal-overlay .nd-modal-box { max-width: 650px !important; padding: 0 0 !important; }
+
+/* =========================================================
+   新增：让 MAC 地址变成点击入口特效
+========================================================= */
+.nd-card-mac.btn-fw-mac {
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+.nd-card-mac.btn-fw-mac:hover {
+    background: #ede9fe !important;
+    color: #7c3aed !important;
+    border-color: #c4b5fd !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15) !important;
+}
+.nd-card-mac.btn-fw-mac:active {
+    transform: scale(0.95) !important;
+}
 
 /* =========================================================
    12. 手机端响应式适配 (Mobile)
@@ -522,7 +528,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     #netwiz-container, #netwiz-dev-container { padding-bottom: 40px !important; }
     .nw-current-mode-display { padding-bottom: 10px !important; margin-bottom: 10px !important; height: auto !important; min-height: max-content !important; }
     .nw-step, .nw-form-area { height: auto !important; overflow: visible !important; }
-    .nd-cb-title { font-size: 14px; margin: 0; }
+    .nd-cb-title {display: none; font-size: 14px; margin: 0; }
     .nd-cb-title-wrap { margin: 0; }
     .nw-reopen-btn { margin-bottom: 0; }
 
@@ -546,11 +552,11 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
         box-sizing: border-box !important;
     }
     
-    .nw-header {top: 0; border-radius: 14px !important; padding: 5px 0 10px 0 !important; }
+    .nw-header { top: -5px !important; border-radius: 14px !important; padding: 10px 0 10px 0 !important; margin-top: 0 !important; max-width: 100% !important; }
     .nw-main-title { font-size: 24px !important; letter-spacing: 0 !important; }
     .nw-header p { font-size: 14px !important; letter-spacing: 0 !important; margin-bottom: 0 !important;}
     
-    .nw-card-group { display: block !important; width: 100% !important; padding: 0 !important; margin-top: -5px !important; }
+    .nw-card-group { display: block !important; width: 100% !important; padding: 0 !important; margin-top: -10px !important; margin-bottom: 0 !important; position: relative !important; z-index: 10 !important; }
     .nw-card { 
         width: 100% !important; max-width: 100% !important; 
         margin: 0 0 15px 0 !important; 
@@ -565,7 +571,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     .nw-actions button, .nw-actions .nw-u-btn { flex: 0 1 auto !important; min-width: 140px !important; padding: 10px 20px !important; margin: 0 !important; font-size: 14px !important; text-align: center !important; justify-content: center !important; }
     
     /* ======== 设备卡片 ======== */
-    .nd-control-bar { position: sticky !important; top: 0 !important; z-index: 750 !important; padding: 12px !important; border-radius: 12px !important; flex-wrap: wrap !important; gap: 8px !important; margin: -5px auto 0 auto !important; max-width: calc(100% - 24px) !important; }
+    .nd-control-bar { position: sticky !important; top: 0 !important; z-index: 750 !important; padding: 8px !important; border-radius: 12px !important; flex-wrap: wrap !important; gap: 3px !important; margin: -5px auto 0 auto !important; max-width: calc(100% - 12px) !important; }
     .nd-cb-sub { display: none; }
     
     .nd-list { gap: 0 !important; }
@@ -619,5 +625,9 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     #nd-m-form { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; box-sizing: border-box !important; }
     .nd-modal-box { width: 100% !important; max-width: calc(100% - 20px) !important; box-sizing: border-box !important; margin: 0 auto !important; }
     .nw-form-area { padding: 30px 10px !important; }
-
-}
+    #nd-modal-overlay .nd-modal-box { max-width: calc(100% - 20px) !important; padding: 0 !important; font-size: 15px}
+    .nw-switch span{font-size: 12px}
+    /* .nw-switch span{color: transparent !important; font-size: 0 !important; }  */
+    .nd-modal-box .nd-modal-title { font-size: 18px !important; } 
+    .nd-cb-refresh {padding: 6px 5px;}
+} 
