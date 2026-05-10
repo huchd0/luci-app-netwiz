@@ -860,7 +860,7 @@ msgid "Visiting"
 msgstr "正在訪問"
 
 msgid "Department Network Segments"
-msgstr "自定義分組IP網段自動選號池"
+msgstr "自定義分組IP自動選號池"
 
 msgid "+ Add New Department"
 msgstr "+ 新建分組"
