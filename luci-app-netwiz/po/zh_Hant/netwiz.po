@@ -933,3 +933,24 @@ msgstr "❌ 攔截規則保存失敗！\n\n原因: RPC 通信異常 ({err})\n可
 
 msgid "❌ Save failed!\nReason: {err}\nPlease run `/etc/init.d/rpcd restart` in SSH"
 msgstr "❌ 保存失敗！\n原因: {err}\n請在 SSH 執行: /etc/init.d/rpcd restart"
+
+msgid "Firewall & Access Control"
+msgstr "防火牆與權限管控"
+
+msgid "Live Connections"
+msgstr "實時連接數"
+
+msgid "Monitor real-time connections (Auto turn off in 3 mins)"
+msgstr "監控設備實時並發連接數 (開啟3分鐘後自動關閉以節省性能)"
+
+msgid "Net Blocked"
+msgstr "已斷網"
+
+msgid "Isolated"
+msgstr "已隔離"
+
+msgid "DMZ Host"
+msgstr "DMZ 主機"
+
+msgid "Conns"
+msgstr "連接"
