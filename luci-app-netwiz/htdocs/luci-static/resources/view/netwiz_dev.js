@@ -15,7 +15,7 @@ var T = {
     'DEV_SUBTITLE': _('Terminal Device Monitoring & Static IP Management'),
     'BTN_RESCAN': _('Rescan Network'),
     'BTN_REFRESH': _('Refresh'),
-    'TXT_LOADING_RADAR': _('Starting 3D radar detection...'),
+    'TXT_LOADING_RADAR': _('Syncing underlying network data...'),
     'TAB_ALL': _('All'),
     'TAB_MOBILE': _('Mobile/Tablet'),
     'TAB_PC': _('PC/Work'),
@@ -117,10 +117,31 @@ var T = {
     'ERR_DEPT_FULL': _('❌ The IP pool for the selected department is full! Please expand the range.'),
     'LBL_TARGET_GROUP': _('Assign to Group (Optional)'),
     'OPT_NO_GROUP': _('-- Uncategorized (None) --'),
-    'ERR_DEPT_NOT_SEL': _('❌ Strategy Error: Please select a Target Group first to allocate IPs from its pool!')
+    'ERR_DEPT_NOT_SEL': _('❌ Strategy Error: Please select a Target Group first to allocate IPs from its pool!'),
+    'TIT_FW_CONTROL': _('Firewall & Access Control'),
+    'BDG_FW_BLK': _('Net Blocked'),
+    'BDG_FW_ISO': _('Isolated'),
+    'BDG_FW_DMZ': _('DMZ Host'),
+    'LBL_SHOW_CONNS': _('Live Connections'),
+    'TIP_SHOW_CONNS': _('Monitor real-time connections (Auto turn off in 3 mins)'),
+    'LBL_CONN_COUNT': _('Conns'),
+    'TXT_FW_PANEL_TITLE': _('Manage device network access anytime, anywhere'),
+    'LBL_FW_BLK_TITLE': _('⛔ Block Internet (WAN)'),
+    'LBL_FW_BLK_DESC': _('Instantly cut off internet access. LAN communication remains normal.'),
+    'LBL_FW_ISO_TITLE': _('🛡️ LAN Isolation (Anti-snooping)'),
+    'LBL_FW_ISO_DESC': _('Block internal network access for this device to prevent scanning and privacy leaks.'),
+    'LBL_FW_DMZ_TITLE': _('🚀 DMZ Host (Expose to WAN)'),
+    'LBL_FW_DMZ_DESC': _('Forward all WAN ports to this device. Only one device allowed.'),
+    'TIP_MAC_CTRL': _('Click to control access'),
+    'ERR_DMZ_NO_IP': _('❌ Cannot enable DMZ: Device has no valid IP or is offline!'),
+    'ERR_DMZ_OCCUPIED_1': _('❌ Denied! Only one DMZ host allowed.\n\nDevice [ '),
+    'ERR_DMZ_OCCUPIED_2': _(' ] is currently the DMZ.\nPlease disable its DMZ first!'),
+    'ERR_FW_SAVE_FAIL': _('❌ Save failed!\n\nReason: RPC Error ({err}).\nPlease run `/etc/init.d/rpcd restart` in SSH and try again!'),
+    'ERR_SAVE_FAIL_SHORT': _('❌ Save failed!\nReason: {err}\nPlease run `/etc/init.d/rpcd restart` in SSH')
 };
 
-var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', expect: { '': {} } });
+var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns'], expect: { '': {} } });
+var callFwSet = rpc.declare({ object: 'netwiz_dev', method: 'fw_set', params: ['mac', 'ip', 'blk_en', 'iso_en', 'dmz_en'], expect: { result: 0 } });
 var callDeviceBind = rpc.declare({ object: 'netwiz_dev', method: 'bind', params: ['mac', 'ip', 'name', 'dept', 'no_reload'], expect: { result: 0 } });
 var callDeviceUnbind = rpc.declare({ object: 'netwiz_dev', method: 'unbind', params: ['mac', 'no_reload'], expect: { result: 0 } });
 var callApplyDhcp = rpc.declare({ object: 'netwiz_dev', method: 'apply_dhcp', expect: { result: 0 } });
@@ -192,8 +213,17 @@ return view.extend({
             '          <div class="nd-cb-title">{{DEV_TITLE}}</div>',
             '          <p class="nd-cb-sub">{{DEV_SUBTITLE}}</p>',
             '      </div>',
-            '      <div class="nd-cb-refresh" id="dev-refresh" title="{{BTN_RESCAN}}">',
-            '         <svg class="nd-refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path></svg> {{BTN_REFRESH}}',
+            '      <div style="display:flex; align-items:center; gap:12px;">',
+            '          <label class="nw-switch" title="{{TIP_SHOW_CONNS}}" style="display:flex; align-items:center; cursor:pointer; margin:0;">',
+            '              <span style="font-size:13px; font-weight:bold; color:#fff; margin-right:8px; white-space:nowrap;">{{LBL_SHOW_CONNS}}</span>',
+            '              <div style="position:relative; width:42px; height:22px; flex-shrink:0;">',
+            '                  <input type="checkbox" id="cb-show-conns" style="opacity:0; width:0; height:0; margin:0; position:absolute;">',
+            '                  <span class="nw-slider" style="position:absolute; top:0; left:0; right:0; bottom:0; border-radius:24px; transition:0.3s; background-color:rgba(255,255,255,0.3);"></span>',
+            '              </div>',
+            '          </label>',
+            '          <div class="nd-cb-refresh" id="dev-refresh" title="{{BTN_RESCAN}}">',
+            '             <svg class="nd-refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path></svg> <span class="nd-refresh-txt">{{BTN_REFRESH}}</span>',
+            '          </div>',
             '      </div>',
             '   </div>',
 
@@ -230,6 +260,33 @@ return view.extend({
             '       <div id="nd-m-dept-mgr" class="nd-dept-mgr-wrap" style="display:none;">',
             '           <div id="dept-list-container"></div>',
             '           <button id="btn-add-dept" class="nd-btn-add-dept">{{BTN_ADD_DEPT}}</button>',
+            '       </div>',
+
+            '       <div id="nd-m-fw-panel" style="display:none; text-align:left;">',
+            '           <p style="font-size:15px; font-weight:bold; color:#64748b; margin-bottom:15px; text-align:center;">{{TXT_FW_PANEL_TITLE}}</p>',
+            '           <div style="background:#f8fafc; margin:10px;  padding:15px; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:15px;">',
+            '               <label class="nw-switch-row-padded" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed #cbd5e1; padding-bottom:15px; margin-bottom:15px;">',
+            '                   <div style="flex:1; padding-right:15px;">',
+            '                       <div style="font-size:15.5px; font-weight:bold; color:#ef4444; margin-bottom:5px;">{{LBL_FW_BLK_TITLE}}</div>',
+            '                       <div style="font-size:13px; color:#64748b; line-height:1.4;">{{LBL_FW_BLK_DESC}}</div>',
+            '                   </div>',
+            '                   <div class="nw-switch" style="width:42px; height:22px; flex-shrink:0;"><input type="checkbox" id="fw-blk-en"><span class="nw-slider"></span></div>',
+            '               </label>',
+            '               <label class="nw-switch-row-padded" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed #cbd5e1; padding-bottom:15px; margin-bottom:15px;">',
+            '                   <div style="flex:1; padding-right:15px;">',
+            '                       <div style="font-size:15.5px; font-weight:bold; color:#d97706; margin-bottom:5px;">{{LBL_FW_ISO_TITLE}}</div>',
+            '                       <div style="font-size:13px; color:#64748b; line-height:1.4;">{{LBL_FW_ISO_DESC}}</div>',
+            '                   </div>',
+            '                   <div class="nw-switch" style="width:42px; height:22px; flex-shrink:0;"><input type="checkbox" id="fw-iso-en"><span class="nw-slider"></span></div>',
+            '               </label>',
+            '               <label class="nw-switch-row-padded" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; border:none; padding-bottom:0; margin-bottom:0;">',
+            '                   <div style="flex:1; padding-right:15px;">',
+            '                       <div style="font-size:15.5px; font-weight:bold; color:#8b5cf6; margin-bottom:5px;">{{LBL_FW_DMZ_TITLE}}</div>',
+            '                       <div style="font-size:13px; color:#64748b; line-height:1.4;">{{LBL_FW_DMZ_DESC}}</div>',
+            '                   </div>',
+            '                   <div class="nw-switch" style="width:42px; height:22px; flex-shrink:0;"><input type="checkbox" id="fw-dmz-en"><span class="nw-slider"></span></div>',
+            '               </label>',
+            '           </div>',
             '       </div>',
 
             '       <div id="nd-m-form" style="display:none;">',
@@ -604,7 +661,6 @@ return view.extend({
             return 'type_other';
         }
 
-        // ★ 核心动态算号引擎
         var updateSingleIpByStrategy = function() {
             if(!currentSingleDev) return;
             var activeRadio = modalOverlay.querySelector('input[name="single_strategy"]:checked');
@@ -705,13 +761,30 @@ return view.extend({
             mTitle.innerText = options.title || '';
             if (options.content) { mContent.innerHTML = options.content; mContent.style.display = 'block'; } else { mContent.style.display = 'none'; }
             
+            var mFwPanel = modalOverlay.querySelector('#nd-m-fw-panel');
+            var fwCurrentMac = options.targetMac || "";
+            var fwCurrentIp = options.targetIp || "";
+
             mForm.style.display = 'none';
             mDeptMgr.style.display = 'none';
+            if (mFwPanel) mFwPanel.style.display = 'none';
 
             if (options.isDeptMgr) {
                 mDeptMgr.style.display = 'block';
                 renderDeptManager();
-            } else if (options.showForm) { 
+            } else if (options.isFwPanel) {
+                if (mFwPanel) mFwPanel.style.display = 'block';
+                var d = options.targetDev;
+                var chkBlk = modalOverlay.querySelector('#fw-blk-en');
+                var chkIso = modalOverlay.querySelector('#fw-iso-en');
+                var chkDmz = modalOverlay.querySelector('#fw-dmz-en');
+                if (chkBlk) chkBlk.checked = (d.fw_block === 'true' || d.fw_block === true);
+                if (chkIso) chkIso.checked = (d.fw_isolate === 'true' || d.fw_isolate === true);
+                if (chkDmz) {
+                    chkDmz.checked = (d.fw_dmz === 'true' || d.fw_dmz === true);
+                    chkDmz.dataset.orig = chkDmz.checked; // 记住初始状态
+                }
+            } else if (options.showForm) {
                 mForm.style.display = 'block'; 
                 populateTagSelects();
                 
@@ -749,6 +822,27 @@ return view.extend({
                         if (options.onOk) options.onOk(finalDepts);
                         modalOverlay.style.display = 'none';
                     }
+                } else if (options.isFwPanel) {
+                    var blkEn = modalOverlay.querySelector('#fw-blk-en') ? modalOverlay.querySelector('#fw-blk-en').checked : false;
+                    var isoEn = modalOverlay.querySelector('#fw-iso-en') ? modalOverlay.querySelector('#fw-iso-en').checked : false;
+                    var dmzEl = modalOverlay.querySelector('#fw-dmz-en');
+                    var dmzEn = dmzEl ? dmzEl.checked : false;
+                    
+                    // DMZ校验
+                    if (dmzEn && dmzEl.dataset.orig !== 'true') {
+                        if (!fwCurrentIp || fwCurrentIp === 'Unknown IP') {
+                            alert(T['ERR_DMZ_NO_IP']); return;
+                        }
+                        var otherDmz = globalDevices.find(function(d){ return (d.fw_dmz === 'true' || d.fw_dmz === true) && d.mac !== fwCurrentMac; });
+                        if (otherDmz) {
+                            alert(T['ERR_DMZ_OCCUPIED_1'] + (otherDmz.name||otherDmz.mac) + T['ERR_DMZ_OCCUPIED_2']);
+                            return;
+                        }
+                    }
+
+                    if (options.onOk) options.onOk({ mac: fwCurrentMac, ip: fwCurrentIp, blk_en: blkEn, iso_en: isoEn, dmz_en: dmzEn });
+                    modalOverlay.style.display = 'none';
+                    if (typeof floatBar !== 'undefined' && floatBar) floatBar.style.removeProperty('display');
                 } else if (options.showForm) {
                     if (options.isBatchBind) {
                         var activeStrategy = modalOverlay.querySelector('.nd-strategy-card.active').getAttribute('data-val');
@@ -987,9 +1081,9 @@ return view.extend({
                                 listEl.style.display = 'none';
                                 catTabs.style.display = 'none';
                                 callSaveDepts(JSON.stringify(newDepts)).then(function() { setTimeout(loadDevices, 800); })
-                                .catch(function(e) {
-                                    alert(T['ERR_SAVE_RPC'].replace('{err}', e));
-                                    setTimeout(loadDevices, 800);
+                                .catch(function(e) { 
+                                    alert(T['ERR_FW_SAVE_FAIL'].replace('{err}', e));
+                                    setTimeout(loadDevices, 1000); 
                                 });
                             }
                         });
@@ -1063,9 +1157,17 @@ return view.extend({
                 var isVisitor = (dev.is_visitor === true || dev.is_visitor === 'true');
                 var isPending = (isStatic && dev.bound_ip && dev.ip && dev.ip !== 'Unknown IP' && dev.ip !== dev.bound_ip);
 
+                var isBlk = (dev.fw_block === 'true' || dev.fw_block === true);
+                var isIso = (dev.fw_isolate === 'true' || dev.fw_isolate === true);
+                var isDmz = (dev.fw_dmz === 'true' || dev.fw_dmz === true);
+
                 var statusBadgesHtml = isOnline 
                     ? '<span class="nd-status-badge nd-status-online"><span class="nd-dot-online"></span>' + T['BDG_ONLINE'] + '</span>' 
                     : '<span class="nd-status-badge nd-status-offline"><span class="nd-dot-offline"></span>' + T['BDG_OFFLINE'] + '</span>';
+
+                if (isBlk) statusBadgesHtml += '<span class="nd-badge" style="background:#fef2f2; color:#ef4444; border-color:#fecaca;">⛔ ' + T['BDG_FW_BLK'] + '</span>';
+                if (isIso) statusBadgesHtml += '<span class="nd-badge" style="background:#fffbeb; color:#d97706; border-color:#fde68a;">🛡️ ' + T['BDG_FW_ISO'] + '</span>';
+                if (isDmz) statusBadgesHtml += '<span class="nd-badge" style="background:#ede9fe; color:#8b5cf6; border-color:#ddd6fe;">🚀 ' + T['BDG_FW_DMZ'] + '</span>';
 
                 if (isPending) {
                     statusBadgesHtml += '<span class="nd-badge nd-badge-pending">⏳ ' + (T['BDG_PENDING'] || 'Pending') + '</span>';
@@ -1093,9 +1195,17 @@ return view.extend({
                 
                 if (isGw || isLocal) leaseText = T['TXT_SYS_ROUTE'];
 
+                var showConnsCbEl = container.querySelector('#cb-show-conns');
+                var showConns = showConnsCbEl ? showConnsCbEl.checked : false;
+                var connHtml = '';
+                if (showConns && dev.conn_count !== undefined) {
+                    var connColor = dev.conn_count > 500 ? '#ef4444' : '#64748b';
+                    connHtml = '<div style="font-size:12px; color:'+connColor+'; font-family:monospace; margin-top:2px; font-weight:bold;">⚡ ' + dev.conn_count + ' ' + T['LBL_CONN_COUNT'] + '</div>';
+                }
+
                 var actions = "";
                 if (isGw || isLocal) {
-                    actions = '<span style="color:#94a3b8; font-size:12.5px; font-weight:bold; padding: 10px;">' + T['TXT_SYS_RESERVED'] + '</span>';
+                    actions = '<span style="color:#f00; font-size:16.5px; font-weight:bold; padding: 10px;">' + T['TXT_SYS_RESERVED'] + '</span>';
                 } else if (isStatic) {
                     actions = '<button class="nd-btn nd-btn-gray btn-edit" data-mac="'+dev.mac+'" data-ip="'+(dev.bound_ip || dev.ip)+'" data-name="'+dev.name+'">' + T['BTN_EDIT'] + '</button>' +
                               '<button class="nd-btn nd-btn-red btn-unbind" data-mac="'+dev.mac+'">' + T['BTN_UNBIND'] + '</button>';
@@ -1134,11 +1244,12 @@ return view.extend({
                     '               ' + statusBadgesHtml, 
                     '           </div>',
                     '       </div>',
-                    '       <div class="nd-card-mac" style="margin-left:50px;">' + (dev.mac).toUpperCase() + '</div>',
+                    '       <div class="nd-card-mac btn-fw-mac" title="' + T['TIP_MAC_CTRL'] + '" data-mac="'+dev.mac+'" data-ip="'+(dev.bound_ip || dev.ip)+'" style="margin-left:50px;">' + (dev.mac).toUpperCase() + ' <span style="font-size:15px; margin-left:2px;">👈</span></div>',
                     '   </div>',
                     '   <div class="nd-card-mid">',
                     '       <div class="nd-card-ip">' + ipText + '</div>',
                     '       <div class="nd-lease-info"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ' + leaseText + '</div>',
+                    '       ' + connHtml,
                     '   </div>',
                     '   <div class="nd-card-right">' + actions + '</div>',
                     '</div>'
@@ -1152,6 +1263,31 @@ return view.extend({
                     var mac = this.getAttribute('data-mac');
                     var dev = globalDevices.find(function(d){ return d.mac === mac; });
                     toggleSelection(dev, this.checked); 
+                });
+            });
+
+            container.querySelectorAll('.btn-fw-mac').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var mac = this.getAttribute('data-mac');
+                    var ip = this.getAttribute('data-ip');
+                    var dev = globalDevices.find(function(d){ return d.mac === mac; });
+                    if (dev.is_gw === 'true' || dev.is_gw === true || dev.is_local === 'true' || dev.is_local === true) return; // 系统设备不可点
+                    
+                    var dName = dev.name === 'Unknown' ? mac.toUpperCase() : dev.name;
+                    openModal({
+                        title: T['TIT_FW_CONTROL'] + ' - ' + dName,
+                        isFwPanel: true, targetMac: mac, targetIp: ip, targetDev: dev, okText: T['BTN_SAVE'],
+                        onOk: function(data) {
+                            loadingEl.style.display = 'flex';
+                            listEl.style.display = 'none'; catTabs.style.display = 'none';
+                            callFwSet(data.mac, data.ip, data.blk_en, data.iso_en, data.dmz_en)
+                            .then(function() { setTimeout(loadDevices, 1000); })
+                            .catch(function(e) { 
+                                alert(T['ERR_SAVE_FAIL_SHORT'].replace('{err}', e));
+                                setTimeout(loadDevices, 1000); 
+                            });
+                        }
+                    });
                 });
             });
 
@@ -1423,7 +1559,10 @@ return view.extend({
             selectAllCb.checked = false;
             updateBatchBar();
             
-            Promise.all([callDeviceList(), callGetDepts()]).then(function(results) {
+            var showConnsCbEl = document.querySelector('#cb-show-conns');
+            var isShowConns = showConnsCbEl ? showConnsCbEl.checked : false;
+
+            Promise.all([callDeviceList(isShowConns), callGetDepts()]).then(function(results) {
                 loadingEl.style.display = 'none';
                 
                 var resList = results[0];
@@ -1504,10 +1643,47 @@ return view.extend({
             });
         };
 
+        var showConnsCbEl = container.querySelector('#cb-show-conns');
+        if (showConnsCbEl) {
+            // 页面加载读取绝对时间戳
+            var expTime = localStorage.getItem('nw_conns_exp');
+            if (expTime && Date.now() < parseInt(expTime)) {
+                showConnsCbEl.checked = true;
+            } else {
+                localStorage.removeItem('nw_conns_exp');
+                showConnsCbEl.checked = false;
+            }
+
+            // 每 3 秒检查一次
+            setInterval(function() {
+                var exp = localStorage.getItem('nw_conns_exp');
+                if (exp && Date.now() > parseInt(exp)) {
+                    localStorage.removeItem('nw_conns_exp');
+                    var cb = container.querySelector('#cb-show-conns');
+                    if (cb && cb.checked) {
+                        cb.checked = false;
+                        loadDevices();
+                    }
+                }
+            }, 3000);
+
+            showConnsCbEl.addEventListener('change', function() {
+                var icon = refreshBtn.querySelector('.nd-refresh-icon');
+                if(icon) { icon.style.transform = 'rotate(360deg)'; setTimeout(function(){ icon.style.transform = 'none'; }, 800); }
+                
+                if (this.checked) {
+                    // 本地浏览器记录 3 分钟过期时间戳
+                    localStorage.setItem('nw_conns_exp', Date.now() + 3 * 60 * 1000);
+                } else {
+                    localStorage.removeItem('nw_conns_exp');
+                }
+                loadDevices();
+            });
+        }
+
         refreshBtn.addEventListener('click', function() {
             var icon = this.querySelector('.nd-refresh-icon');
-            icon.style.transform = 'rotate(360deg)';
-            setTimeout(function(){ icon.style.transform = 'none'; }, 800);
+            if(icon) { icon.style.transform = 'rotate(360deg)'; setTimeout(function(){ icon.style.transform = 'none'; }, 800); }
             loadDevices();
         });
 
