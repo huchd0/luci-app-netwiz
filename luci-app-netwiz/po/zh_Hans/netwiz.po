@@ -869,7 +869,7 @@ msgid "Manage Groups"
 msgstr "管理分组"
 
 msgid "Group Pool (Auto Assign)"
-msgstr "分组网段 (自动发号)"
+msgstr "自定义分组网段 (自动发号)"
 
 msgid "Assign free IPs automatically from the selected Target Group's specific IP range"
 msgstr "自动从下方选择的“目标分组”所设定的专属 IP 段中提取空闲 IP 进行分配"
