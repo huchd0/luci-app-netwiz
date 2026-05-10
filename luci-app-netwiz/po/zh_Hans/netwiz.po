@@ -583,8 +583,8 @@ msgstr "重新扫描网络"
 msgid "Refresh"
 msgstr "刷新"
 
-msgid "Starting 3D radar detection..."
-msgstr "正在启动三维雷达探测..."
+msgid "Syncing underlying network data..."
+msgstr "正在同步底层网络数据"
 
 msgid "All"
 msgstr "全部"
