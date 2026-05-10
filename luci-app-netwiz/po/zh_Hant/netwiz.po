@@ -860,7 +860,7 @@ msgid "Visiting"
 msgstr "正在訪問"
 
 msgid "Department Network Segments"
-msgstr "分組網段管理"
+msgstr "自定義分組IP網段自動選號池"
 
 msgid "+ Add New Department"
 msgstr "+ 新建分組"
@@ -878,7 +878,7 @@ msgid "Target Department"
 msgstr "目標分組"
 
 msgid "Group IP Pool"
-msgstr "分組專屬網段"
+msgstr "自定義分組專屬網段"
 
 msgid "❌ The IP pool for the selected department is full! Please expand the range."
 msgstr "❌ 該分組的 IP 池已全部分配完畢！請前往“管理分組”擴大網段範圍。"
