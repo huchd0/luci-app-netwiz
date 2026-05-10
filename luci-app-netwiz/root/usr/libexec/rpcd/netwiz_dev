@@ -6,12 +6,12 @@
 
 delete_fw_rule() {
     local target_name="$1"
-    
+    local sec_type="${2:-rule}"
     local idx=0
-    while uci -q get firewall.@rule[$idx] >/dev/null; do
-        local name=$(uci -q get firewall.@rule[$idx].name)
+    while uci -q get firewall.@${sec_type}[$idx] >/dev/null; do
+        local name=$(uci -q get firewall.@${sec_type}[$idx].name)
         if [ -n "$name" ] && [ "${name#$target_name}" != "$name" ]; then
-            uci delete firewall.@rule[$idx]
+            uci delete firewall.@${sec_type}[$idx]
             continue
         fi
         idx=$((idx+1))
@@ -20,7 +20,7 @@ delete_fw_rule() {
 
 case "$1" in
     list)
-        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean" } }'
+        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean", "dmz_en": "boolean" } }'
         exit 0
         ;;
     call)
@@ -185,7 +185,7 @@ case "$1" in
                         }
                     }
 
-                    # 纯净版防火墙规则解析（极简双开关版）
+                    # 剔除所有回车符与引号，显示红色屏蔽徽章
                     split(fw_str_input, ffw_arr, "\n");
                     for(i in ffw_arr) {
                         line = ffw_arr[i];
@@ -194,7 +194,7 @@ case "$1" in
                             if (eq_idx > 0) {
                                 prop_full = substr(line, 1, eq_idx - 1);
                                 val = substr(line, eq_idx + 1);
-                                gsub(/^\047|\047$/, "", val);
+                                gsub(/[\047"\r\n]/, "", val);
                                 
                                 split(prop_full, kp, ".");
                                 if (kp[1] == "firewall" && kp[2] != "" && kp[3] != "") {
@@ -204,6 +204,19 @@ case "$1" in
                                 }
                             }
                         }
+                        # 解析 DMZ
+                        if (index(line, "firewall.@redirect[") == 1) {
+                            eq_idx = index(line, "=");
+                            if (eq_idx > 0) {
+                                prop_full = substr(line, 1, eq_idx - 1); val = substr(line, eq_idx + 1); gsub(/[\047"\r\n]/, "", val); split(prop_full, kp, ".");
+                                if (kp[1] == "firewall" && kp[2] != "" && kp[3] == "name" && val ~ /^nw_dmz_/) fw_name_dmz[kp[2]] = val;
+                            }
+                        }
+                    }
+
+                    for (obj in fw_name_dmz) {
+                        name = fw_name_dmz[obj]; split(name, parts, "_"); mac_clean = tolower(parts[3]);
+                        if (length(mac_clean) == 12) { mac = substr(mac_clean,1,2) ":" substr(mac_clean,3,2) ":" substr(mac_clean,5,2) ":" substr(mac_clean,7,2) ":" substr(mac_clean,9,2) ":" substr(mac_clean,11,2); fw_dmz[mac] = 1; }
                     }
 
                     for (obj in fw_name) {
@@ -218,7 +231,6 @@ case "$1" in
                         }
                     }
 
-                    # 解析连接数
                     split(conn_str_input, carr, "\n");
                     for(i in carr) {
                         split(carr[i], p, "=");
@@ -262,9 +274,10 @@ case "$1" in
                         c_count = (conn_count[ip] != "") ? conn_count[ip] : 0;
                         f_blk = (fw_blk[mac]==1) ? "true" : "false";
                         f_iso = (fw_iso[mac]==1) ? "true" : "false";
+                        f_dmz = (fw_dmz[mac]==1) ? "true" : "false";
 
                         if(!first) printf ", ";
-                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\", \"conn_count\": %d, \"fw_block\": %s, \"fw_isolate\": %s", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time, c_count, f_blk, f_iso;
+                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\", \"conn_count\": %d, \"fw_block\": %s, \"fw_isolate\": %s, \"fw_dmz\": %s", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time, c_count, f_blk, f_iso, f_dmz;
                         
                         printf "}";
                         first=0;
@@ -275,47 +288,127 @@ case "$1" in
                 exit 0
                 ;;
             fw_set)
-                # ★ 极简双开关合并处理引擎 ★
                 input=$(cat)
                 mac=$(echo "$input" | jsonfilter -e '@.mac' | tr 'A-Z' 'a-z')
                 mac_clean=$(echo "$mac" | tr -d ':')
                 ip=$(echo "$input" | jsonfilter -e '@.ip')
-                
                 blk_en=$(echo "$input" | jsonfilter -e '@.blk_en')
                 iso_en=$(echo "$input" | jsonfilter -e '@.iso_en')
+                dmz_en=$(echo "$input" | jsonfilter -e '@.dmz_en')
 
                 [ -z "$mac" ] && exit 0
 
-                # 1. 处理断网 (彻底使用 DROP 丢弃包，强制 enabled)
-                delete_fw_rule "nw_blk_${mac_clean}"
-                if [ "$blk_en" = "true" ]; then
+                delete_fw_rule "nw_blk_${mac_clean}" "rule"
+                if [ "$blk_en" = "true" ] || [ "$blk_en" = "1" ]; then
                     uci add firewall rule >/dev/null
                     uci set firewall.@rule[-1].name="nw_blk_${mac_clean}"
                     uci set firewall.@rule[-1].src="lan"
                     uci set firewall.@rule[-1].dest="wan"
                     uci set firewall.@rule[-1].src_mac="$mac"
+                    uci set firewall.@rule[-1].family="any"
                     uci set firewall.@rule[-1].target="DROP"
                     uci set firewall.@rule[-1].enabled="1"
                 fi
 
-                # 2. 处理局域网隔离
-                delete_fw_rule "nw_iso_${mac_clean}"
-                if [ "$iso_en" = "true" ]; then
+                delete_fw_rule "nw_iso_${mac_clean}" "rule"
+                if [ "$iso_en" = "true" ] || [ "$iso_en" = "1" ]; then
                     uci add firewall rule >/dev/null
                     uci set firewall.@rule[-1].name="nw_iso_${mac_clean}"
                     uci set firewall.@rule[-1].src="lan"
                     uci set firewall.@rule[-1].dest="lan"
                     uci set firewall.@rule[-1].src_mac="$mac"
+                    uci set firewall.@rule[-1].family="any"
                     uci set firewall.@rule[-1].target="DROP"
                     uci set firewall.@rule[-1].enabled="1"
+                fi
+
+                # 其他设备开启 DMZ，直接报错退出
+                if [ "$dmz_en" = "true" ] || [ "$dmz_en" = "1" ]; then
+                    existing_dmz=$(uci -q show firewall | grep -E "\.name='nw_dmz_" | grep -v "nw_dmz_${mac_clean}'" | head -n 1)
+                    if [ -n "$existing_dmz" ]; then
+                        echo '{"error":"DMZ_OCCUPIED_BY_ANOTHER_DEVICE"}'
+                        exit 1
+                    fi
+
+                    delete_fw_rule "nw_dmz" "redirect" # 删除残留数据
+                    [ -n "$ip" ] && [ "$ip" != "Unknown IP" ] && {
+                        uci add firewall redirect >/dev/null
+                        uci set firewall.@redirect[-1].name="nw_dmz_${mac_clean}"
+                        uci set firewall.@redirect[-1].src="wan"
+                        uci set firewall.@redirect[-1].dest="lan"
+                        uci set firewall.@redirect[-1].dest_ip="$ip"
+                        uci set firewall.@redirect[-1].proto="all"
+                        uci set firewall.@redirect[-1].target="DNAT"
+                        uci set firewall.@redirect[-1].enabled="1"
+                    }
+                else
+                    delete_fw_rule "nw_dmz_${mac_clean}" "redirect"
                 fi
 
                 uci commit firewall
                 /etc/init.d/firewall reload >/dev/null 2>&1
                 
-                # ★ 强制拔管机制：清理该 IP 的所有现有连接，让视频和游戏瞬间断开 ★
+                # 内存顶层断流
+                if [ "$blk_en" = "true" ] || [ "$blk_en" = "1" ]; then
+                    if command -v iptables >/dev/null 2>&1; then iptables -I FORWARD 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1; fi
+                    if command -v ip6tables >/dev/null 2>&1; then ip6tables -I FORWARD 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1; fi
+                fi
+                if [ "$iso_en" = "true" ] || [ "$iso_en" = "1" ]; then
+                    if command -v iptables >/dev/null 2>&1; then iptables -I FORWARD 1 -m mac --mac-source $mac -d 192.168.0.0/16 -j DROP >/dev/null 2>&1; fi
+                fi
+                
                 if command -v conntrack >/dev/null 2>&1; then
                     [ -n "$ip" ] && [ "$ip" != "Unknown IP" ] && conntrack -D -s "$ip" >/dev/null 2>&1
+                fi
+                if [ "$blk_en" = "true" ] || [ "$blk_en" = "1" ]; then
+                    uci add firewall rule >/dev/null
+                    uci set firewall.@rule[-1].name="nw_blk_${mac_clean}"
+                    uci set firewall.@rule[-1].src="lan"
+                    uci set firewall.@rule[-1].dest="wan"
+                    uci set firewall.@rule[-1].src_mac="$mac"
+                    uci set firewall.@rule[-1].family="any"
+                    uci set firewall.@rule[-1].target="DROP"
+                    uci set firewall.@rule[-1].enabled="1"
+                fi
+
+                delete_fw_rule "nw_iso_${mac_clean}"
+                if [ "$iso_en" = "true" ] || [ "$iso_en" = "1" ]; then
+                    uci add firewall rule >/dev/null
+                    uci set firewall.@rule[-1].name="nw_iso_${mac_clean}"
+                    uci set firewall.@rule[-1].src="lan"
+                    uci set firewall.@rule[-1].dest="lan"
+                    uci set firewall.@rule[-1].src_mac="$mac"
+                    uci set firewall.@rule[-1].family="any"
+                    uci set firewall.@rule[-1].target="DROP"
+                    uci set firewall.@rule[-1].enabled="1"
+                fi
+
+                uci commit firewall
+                
+                # 防死锁安全重载
+                /etc/init.d/firewall reload </dev/null >/dev/null 2>&1 &
+                
+                # 底层截断
+                if [ "$blk_en" = "true" ] || [ "$blk_en" = "1" ]; then
+                    if command -v nft >/dev/null 2>&1; then
+                        nft insert rule inet fw4 forward ether saddr $mac drop >/dev/null 2>&1
+                    elif command -v iptables >/dev/null 2>&1; then
+                        iptables -I FORWARD 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1
+                    fi
+                fi
+                
+                if [ "$iso_en" = "true" ] || [ "$iso_en" = "1" ]; then
+                    if command -v nft >/dev/null 2>&1; then
+                        nft insert rule inet fw4 forward ether saddr $mac ip daddr 192.168.0.0/16 drop >/dev/null 2>&1
+                    elif command -v iptables >/dev/null 2>&1; then
+                        iptables -I FORWARD 1 -m mac --mac-source $mac -d 192.168.0.0/16 -j DROP >/dev/null 2>&1
+                    fi
+                fi
+                
+                # 断开所有已存在的连接
+                if command -v conntrack >/dev/null 2>&1; then
+                    [ -n "$ip" ] && [ "$ip" != "Unknown IP" ] && conntrack -D -s "$ip" >/dev/null 2>&1
+                    [ -n "$ip" ] && [ "$ip" != "Unknown IP" ] && conntrack -D -d "$ip" >/dev/null 2>&1
                 fi
 
                 echo '{"result":0}'
@@ -363,8 +456,9 @@ case "$1" in
                 uci show dhcp | grep -i "\.mac=.*$mac" | cut -d'.' -f2 | while read -r h_idx; do uci delete dhcp.$h_idx 2>/dev/null; done
                 
                 mac_clean=$(echo "$mac" | tr -d ':' | tr 'a-z' 'A-Z')
-                delete_fw_rule "nw_blk_${mac_clean}"
-                delete_fw_rule "nw_iso_${mac_clean}"
+                delete_fw_rule "nw_blk_${mac_clean}" "rule"
+                delete_fw_rule "nw_iso_${mac_clean}" "rule"
+                delete_fw_rule "nw_dmz_${mac_clean}" "redirect"
                 uci commit firewall
                 /etc/init.d/firewall reload >/dev/null 2>&1
 
