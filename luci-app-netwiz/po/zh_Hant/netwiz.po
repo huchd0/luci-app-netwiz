@@ -583,8 +583,8 @@ msgstr "重新掃描網路"
 msgid "Refresh"
 msgstr "重新整理"
 
-msgid "Starting 3D radar detection..."
-msgstr "正在啟動三維雷達偵測..."
+msgid "Syncing underlying network data..."
+msgstr "正在同步底層網絡數據..."
 
 msgid "All"
 msgstr "全部"
