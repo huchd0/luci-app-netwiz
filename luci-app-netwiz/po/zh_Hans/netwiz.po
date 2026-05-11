@@ -844,8 +844,11 @@ msgstr "分组 "
 msgid "❌ Save Failed!\nReason: RPC interface unresponsive ({err})\nPlease run this command in router SSH to restart the service: /etc/init.d/rpcd restart"
 msgstr "❌ 保存失败！\n原因: 接口无响应 ({err})\n请在路由器 SSH 终端执行此命令重启服务: /etc/init.d/rpcd restart"
 
-msgid "❌ Subnet Conflict: IP ranges between groups cannot overlap!\nConflicting groups: "
-msgstr "❌ 网段冲突：不同分组间的 IP 范围不能有重叠！\n冲突组："
+msgid "❌ Subnet Conflict: IP ranges between groups cannot overlap!"
+msgstr "❌ 网段冲突：不同分组间的 IP 范围不能有重叠！"
+
+msgid "Conflicting groups: "
+msgstr "冲突组："
 
 msgid "❌ Save Failed: Group names cannot be duplicated!\nDuplicate name: "
 msgstr "❌ 保存失败：分组名称不能重复！\n重复名称："
