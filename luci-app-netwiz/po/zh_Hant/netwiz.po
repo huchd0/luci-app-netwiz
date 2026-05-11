@@ -998,7 +998,7 @@ msgid "Conns"
 msgstr "連接"
 
 msgid "❌ Invalid IP format! Please enter a valid IPv4 address (e.g., 192.168.1.50)"
-msgstr "❌ IP格式錯誤！請輸入合法的IPv4位址 (例如: 192.168.1.50)")
+msgstr "❌ IP格式錯誤！請輸入合法的IPv4位址 (例如: 192.168.1.50)"
 
 msgid "Public IPv6 (Click to copy):"
 msgstr "公網 IPv6 (點擊即可複製):"
