@@ -740,14 +740,13 @@ return view.extend({
             var activeRadio = modalOverlay.querySelector('input[name="single_strategy"]:checked');
             if(!activeRadio) return;
             var val = activeRadio.value;
+            
             var usedIps = [];
-                    var selectedMacs = selectedDevices.map(function(d) { return d.mac; });
-                    globalDevices.forEach(function(d) {
-                        if (selectedMacs.indexOf(d.mac) === -1) { 
-                            if (d.ip && d.ip !== 'Unknown IP') usedIps.push(d.ip);
-                            if (d.bound_ip && d.bound_ip !== 'Unknown IP') usedIps.push(d.bound_ip);
-                        }
-                    });
+            globalDevices.forEach(function(d) {
+                if (d.mac === currentSingleDev.mac) return; 
+                if (d.ip && d.ip !== 'Unknown IP') usedIps.push(d.ip);
+                if (d.bound_ip && d.bound_ip !== 'Unknown IP') usedIps.push(d.bound_ip);
+            });
 
             if (val === 'keep') {
                 mInpIp.value = currentOriginalIp;
@@ -1662,6 +1661,15 @@ return view.extend({
                 onOk: function(data) {
                     var strategy = data.strategy;
                     var dept_id = data.dept;
+                    
+                    var usedIps = [];
+                    var selectedMacs = selectedDevices.map(function(d) { return d.mac; });
+                    globalDevices.forEach(function(d) {
+                        if (selectedMacs.indexOf(d.mac) === -1) { 
+                            if (d.ip && d.ip !== 'Unknown IP') usedIps.push(d.ip);
+                            if (d.bound_ip && d.bound_ip !== 'Unknown IP') usedIps.push(d.bound_ip);
+                        }
+                    });
                     
                     if (strategy === 'seq') {
                         var suf = parseInt(data.startSuffix, 10);
