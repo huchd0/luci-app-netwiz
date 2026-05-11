@@ -447,7 +447,7 @@ case "$1" in
                 if [ -n "$dept" ] && [ "$dept" != "none" ]; then uci set dhcp.$new_sect.netwiz_dept="$dept"; fi
                 
                 uci commit dhcp
-                if [ "$no_reload" != "true" ] && [ "$no_reload" != "1" ]; then /etc/init.d/dnsmasq reload >/dev/null 2>&1; fi
+                [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ] && /etc/init.d/dnsmasq reload
                 echo '{"result":0}'
                 exit 0
                 ;;
