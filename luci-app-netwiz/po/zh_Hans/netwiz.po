@@ -970,18 +970,6 @@ msgstr "公网 IPv6 (点击即可复制):"
 msgid "IPv6 address copied successfully:"
 msgstr "IPv6 地址已成功复制："
 
-msgid "❌ Subnet Conflict: IP ranges between groups cannot overlap!"
-msgstr "❌ 网段冲突：不同分组间的 IP 范围不能有重叠！"
-
-msgid "Conflicting groups: {groups}"
-msgstr "冲突组：{groups}"
-
-msgid "❌ Save Failed: Group names cannot be duplicated!"
-msgstr "❌ 保存失败：分组名称不能重复！"
-
-msgid "Duplicate name: {name}"
-msgstr "重复名称：{name}"
-
 msgid "Export Config"
 msgstr "导出配置"
 
