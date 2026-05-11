@@ -719,10 +719,10 @@ msgid "Unknown Device"
 msgstr "未知设备"
 
 msgid "Unknown IP"
-msgstr "未知 IP (无外网)"
+msgstr "未知IP(无外网)"
 
 msgid "Terminal Addressed IP"
-msgstr "终端自签 IP (无外网)"
+msgstr "终端自签IP(无外网)"
 
 msgid "Edit Device Info"
 msgstr "修改设备信息"
