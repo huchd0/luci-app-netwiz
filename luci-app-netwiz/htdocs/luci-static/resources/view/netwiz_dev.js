@@ -470,7 +470,10 @@ return view.extend({
         }
 
         var savedStrategy = localStorage.getItem('nw_batch_strategy') || 'keep';
-        var savedRanges = {ms:30, me:69, ps:70, pe:109, is:110, ie:149, os:150, oe:199};
+        var defaultSmartRanges = {ms:30, me:69, ps:70, pe:109, is:110, ie:149, os:150, oe:199};
+        var cachedRangesStr = localStorage.getItem('nw_smart_ranges');
+        var savedRanges = cachedRangesStr ? JSON.parse(cachedRangesStr) : JSON.parse(JSON.stringify(defaultSmartRanges));
+        var needFetchSmart = !cachedRangesStr;
         var basePrefix = '192.168.1.';
         
         var smartFilterByIp = localStorage.getItem('nw_smart_filter') !== 'false'; 
@@ -936,7 +939,11 @@ return view.extend({
                             
                             if (JSON.stringify(nr) !== JSON.stringify(savedRanges)) {
                                 savedRanges = nr;
-                                callSaveSmartRanges(JSON.stringify(nr)).catch(function(e){ console.error('Save smart ranges fail', e); });
+                                localStorage.setItem('nw_smart_ranges', JSON.stringify(nr)); 
+                                needFetchSmart = false; 
+
+                                var dataToSend = (JSON.stringify(nr) === JSON.stringify(defaultSmartRanges)) ? "{}" : JSON.stringify(nr);
+                                callSaveSmartRanges(dataToSend).catch(function(e){ console.error('Save smart ranges fail', e); });
                             }
                         }
                         var resBatch = { strategy: activeStrategy, startSuffix: batchSuffixInput.value.trim(), ranges: savedRanges, dept: batchDeptId };
@@ -1757,19 +1764,27 @@ return view.extend({
             var showConnsCbEl = document.querySelector('#cb-show-conns');
             var isShowConns = showConnsCbEl ? showConnsCbEl.checked : false;
 
-            Promise.all([callDeviceList(isShowConns), callGetDepts(), callGetSmartRanges()]).then(function(results) {
+            // 本地有缓存，直接返回
+            var pSmart = needFetchSmart ? callGetSmartRanges() : Promise.resolve(null);
+
+            Promise.all([callDeviceList(isShowConns), callGetDepts(), pSmart]).then(function(results) {
                 loadingEl.style.display = 'none';
                 
                 var resList = results[0];
                 var resDepts = results[1];
                 var resSmart = results[2];
 
-                // 使用者设定过，就用设定值
+                // 发起请求且拿到了数据，写入本地缓存
                 if (resSmart && resSmart.ranges) {
                     var parsedR = typeof resSmart.ranges === 'string' ? JSON.parse(resSmart.ranges || '{}') : resSmart.ranges;
-                    if (Object.keys(parsedR).length > 0) {
+                    if (parsedR && Object.keys(parsedR).length > 0) {
                         savedRanges = parsedR;
+                    } else {
+                        // 为空，使用默认值
+                        savedRanges = JSON.parse(JSON.stringify(defaultSmartRanges));
                     }
+                    localStorage.setItem('nw_smart_ranges', JSON.stringify(savedRanges)); 
+                    needFetchSmart = false; 
                 }
 
                 globalDepartments = [];
