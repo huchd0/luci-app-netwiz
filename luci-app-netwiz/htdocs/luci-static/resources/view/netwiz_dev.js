@@ -95,7 +95,7 @@ var T = {
     'MSG_SCAN_FAIL': _('❌ Scan failed: Cannot retrieve underlying data'),
     'ERR_POOL_FULL': _('❌ The IP pool for this type is full. Please expand the range or choose another strategy!'),
     'ERR_IP_EMPTY': _('IP address cannot be empty!'),
-    'ERR_IP_CONFLICT': _('❌ IP Conflict Blocked!\n\nThe IP [{ip}] is occupied by device [{name}].\nPlease modify the strategy or enter a free IP!'),
+    'ERR_IP_CONFLICT': _('❌ IP Conflict Blocked!') + '\n\n' + _('The IP [{ip}] is occupied by device [{name}].') + '\n' + _('Please modify the strategy or enter a free IP!'),
     'TIP_NO_CHANGE': _('💡 Tip: The device is already fixed at this IP. No changes needed!'),
     'TIP_ALL_UNBOUND': _('💡 Tip: The {count} selected devices are all [Unbound]. No unbind action needed!'),
     'ERR_SUF_RANGE': _('Starting suffix must be between 2 and 254!'),
