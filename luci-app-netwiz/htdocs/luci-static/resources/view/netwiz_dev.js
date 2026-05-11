@@ -740,7 +740,12 @@ return view.extend({
             var activeRadio = modalOverlay.querySelector('input[name="single_strategy"]:checked');
             if(!activeRadio) return;
             var val = activeRadio.value;
-            var usedIps = globalDevices.map(function(d){return d.bound_ip || d.ip;});
+            var usedIps = [];
+            globalDevices.forEach(function(d) {
+                if (d.mac === currentSingleDev.mac) return; 
+                if (d.ip && d.ip !== 'Unknown IP') usedIps.push(d.ip);
+                if (d.bound_ip && d.bound_ip !== 'Unknown IP') usedIps.push(d.bound_ip);
+            });
 
             if (val === 'keep') {
                 mInpIp.value = currentOriginalIp;
