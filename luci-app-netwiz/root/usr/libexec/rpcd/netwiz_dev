@@ -504,7 +504,11 @@ case "$1" in
                 input=$(cat)
                 json_str=$(echo "$input" | jsonfilter -e '@.data')
                 uci -q set netwiz.smart=netwiz
-                uci -q set netwiz.smart.ranges_json="$json_str"
+                if [ "$json_str" = "{}" ] || [ -z "$json_str" ]; then
+                    uci -q delete netwiz.smart.ranges_json
+                else
+                    uci -q set netwiz.smart.ranges_json="$json_str"
+                fi
                 uci commit netwiz
                 echo '{"result":0}'
                 exit 0
