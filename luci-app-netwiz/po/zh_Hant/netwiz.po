@@ -905,7 +905,7 @@ msgid "Instantly cut off internet access. LAN communication remains normal."
 msgstr "立即斷開該設備訪問互聯網的權限。局域網內互通正常。"
 
 msgid "🛡️ LAN Isolation (Anti-snooping)"
-msgstr "🛡️ 局域網隔離 (接入下級交換機的設備失效)"
+msgstr "🛡️ 局域網隔離 (接下級交換機的設備失效)"
 
 msgid "Block internal network access for this device to prevent scanning and privacy leaks."
 msgstr "隔離該設備通過本路由器內網訪問權限，阻止內網掃描，防護隱私洩露。"
