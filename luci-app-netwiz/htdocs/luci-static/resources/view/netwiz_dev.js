@@ -110,7 +110,7 @@ var T = {
     'STRAT_DEPT_DESC': _('Assign free IPs automatically from the selected Target Group\'s specific IP range'),
     'TIT_MGR_DEPTS': _('Department Network Segments'),
     'BTN_ADD_DEPT': _('+ Add New Department'),
-    'ERR_DEPT_OVERLAP': _('❌ Subnet Conflict: IP ranges between groups cannot overlap!\nConflicting groups: '),
+    'ERR_DEPT_OVERLAP': _('❌ Subnet Conflict: IP ranges between groups cannot overlap!') + '\n' + _('Conflicting groups: '),
     'ERR_DEPT_NAME_DUP': _('❌ Save Failed: Group names cannot be duplicated!\nDuplicate name: '),
     'ERR_DEPT_INVALID': _('❌ Save Failed: IPs must be between 2-254 and format must be valid!'),
     'ERR_DEPT_POOL_FULL': _('❌ IP pool reached the end (254). Cannot auto-append. Please arrange subnets manually!'),
@@ -144,7 +144,7 @@ var T = {
     'BTN_EXPORT_DEPTS': _('导出配置'),
     'BTN_IMPORT_DEPTS': _('导入配置'),
     'MSG_IMPORT_SUCCESS': _('✅ 导入成功！\n请检查无误后，点击下方【保存】按钮生效。'),
-    'ERR_IMPORT_FAIL': _('❌ 导入失败！\n文件格式错误或已损坏，请选择正确的 JSON 备份文件。')
+    'ERR_IMPORT_FAIL': _('❌ 导入失败！\n文件格式错误或已损坏，请选择正确的 JSON 备份文件。'),
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns'], expect: { '': {} } });
@@ -155,6 +155,9 @@ var callApplyDhcp = rpc.declare({ object: 'netwiz_dev', method: 'apply_dhcp', ex
 var callGetDepts = rpc.declare({ object: 'netwiz_dev', method: 'get_depts', expect: { depts: [] } });
 var callSaveDepts = rpc.declare({ object: 'netwiz_dev', method: 'save_depts', params: ['data'], expect: { result: 0 } });
 var callV6KeepAlive = rpc.declare({ object: 'netwiz_dev', method: 'v6_keep_alive', params: ['mac'], expect: { result: 0 } });
+
+var callGetSmartRanges = rpc.declare({ object: 'netwiz_dev', method: 'get_smart_ranges', expect: { ranges: {} } });
+var callSaveSmartRanges = rpc.declare({ object: 'netwiz_dev', method: 'save_smart_ranges', params: ['data'], expect: { result: 0 } });
 
 return view.extend({
     handleSaveApply: null,
@@ -364,10 +367,10 @@ return view.extend({
             '                   </div>',
             '               </div>',
             '               <div id="nd-batch-smart-desc" style="display:none; font-size:13px; color:#64748b; background:#f8fafc; padding:0 3px; border-radius:10px; margin-bottom:5px; border:1px dashed #cbd5e1;">',
-            '                   <div class="nd-smart-row"><div class="nd-smart-label">🏷️ {{LBL_OTHERS}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-oth-s" class="nd-input-sm" value="50"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-oth-e" class="nd-input-sm" value="99"></div></div>',
-            '                   <div class="nd-smart-row"><div class="nd-smart-label">📱 {{LBL_MOBILE}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-mob-s" class="nd-input-sm" value="100"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-mob-e" class="nd-input-sm" value="149"></div></div>',
-            '                   <div class="nd-smart-row"><div class="nd-smart-label">💻 {{LBL_PC}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-pc-s" class="nd-input-sm" value="150"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-pc-e" class="nd-input-sm" value="199"></div></div>',
-            '                   <div class="nd-smart-row" style="margin-bottom:0; border-bottom:none; padding-bottom:0;"><div class="nd-smart-label">💡 {{LBL_IOT}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-iot-s" class="nd-input-sm" value="200"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-iot-e" class="nd-input-sm" value="250"></div></div>',
+            '                   <div class="nd-smart-row"><div class="nd-smart-label">📱 {{LBL_MOBILE}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-mob-s" class="nd-input-sm" value="30"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-mob-e" class="nd-input-sm" value="69"></div></div>',
+            '                   <div class="nd-smart-row"><div class="nd-smart-label">💻 {{LBL_PC}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-pc-s" class="nd-input-sm" value="70"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-pc-e" class="nd-input-sm" value="109"></div></div>',
+            '                   <div class="nd-smart-row"><div class="nd-smart-label">💡 {{LBL_IOT}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-iot-s" class="nd-input-sm" value="110"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-iot-e" class="nd-input-sm" value="149"></div></div>',
+            '                   <div class="nd-smart-row" style="margin-bottom:0; border-bottom:none; padding-bottom:0;"><div class="nd-smart-label">🏷️ {{LBL_OTHERS}}</div> <div class="nd-smart-inputs"><span class="nd-ip-prefix"></span><input type="number" id="sm-oth-s" class="nd-input-sm" value="150"> <span class="nd-smart-dash">-</span> <input type="number" id="sm-oth-e" class="nd-input-sm" value="199"></div></div>',
             '               </div>',
             '           </div>',
             '       </div>',
@@ -467,7 +470,7 @@ return view.extend({
         }
 
         var savedStrategy = localStorage.getItem('nw_batch_strategy') || 'keep';
-        var savedRanges = JSON.parse(localStorage.getItem('nw_smart_ranges') || '{"os":50,"oe":99,"ms":100,"me":149,"ps":150,"pe":199,"is":200,"ie":250}');
+        var savedRanges = {ms:30, me:69, ps:70, pe:109, is:110, ie:149, os:150, oe:199};
         var basePrefix = '192.168.1.';
         
         var smartFilterByIp = localStorage.getItem('nw_smart_filter') !== 'false'; 
@@ -484,10 +487,10 @@ return view.extend({
         }
 
         var rangeInputs = [
-            {s: '#sm-oth-s', e: '#sm-oth-e'},
             {s: '#sm-mob-s', e: '#sm-mob-e'},
             {s: '#sm-pc-s', e: '#sm-pc-e'},
-            {s: '#sm-iot-s', e: '#sm-iot-e'}
+            {s: '#sm-iot-s', e: '#sm-iot-e'},
+            {s: '#sm-oth-s', e: '#sm-oth-e'}
         ];
         function autoCascadeRanges() {
             var prevEnd = 1; 
@@ -612,10 +615,10 @@ return view.extend({
                 c.scrollTop = 0;
             };
 
-            // ================= 新版：极其稳定的导入导出逻辑 =================
+            // ================= 导入导出 =================
             modalOverlay.querySelector('#btn-export-depts').onclick = function() {
                 var currentData = saveDepartmentsFromDOM();
-                if (currentData === false) return; // 如果有错误（重叠或留空），由于已有 alert，这里直接退出
+                if (currentData === false) return; // 如果有错误（重叠或留空），退出
                 
                 var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentData, null, 2));
                 var dlNode = document.createElement('a');
@@ -623,7 +626,6 @@ return view.extend({
                 var dateStr = new Date().toISOString().slice(0,10).replace(/-/g,"");
                 dlNode.setAttribute("download", "netwiz_groups_" + dateStr + ".json");
                 
-                // 必须添加到 body 里再点，解决所有浏览器的拦截问题
                 document.body.appendChild(dlNode);
                 dlNode.click();
                 document.body.removeChild(dlNode);
@@ -645,7 +647,7 @@ return view.extend({
                             var importedData = JSON.parse(evt.target.result);
                             if (!Array.isArray(importedData)) throw new Error('Not an array');
                             
-                            // 导入成功，直接重新渲染面板
+                            // 导入成功
                             renderDeptManager(importedData);
                             alert(T['MSG_IMPORT_SUCCESS']);
                         } catch (err) {
@@ -655,7 +657,6 @@ return view.extend({
                     reader.readAsText(file);
                 };
                 
-                // 必须添加到 body 里再点，解决部分浏览器不弹文件选择框的问题
                 document.body.appendChild(fileInput); 
                 fileInput.click(); 
                 document.body.removeChild(fileInput);
@@ -927,13 +928,16 @@ return view.extend({
                         if (activeStrategy === 'smart') {
                             autoCascadeRanges(); 
                             var nr = {
-                                os: parseInt(modalOverlay.querySelector('#sm-oth-s').value), oe: parseInt(modalOverlay.querySelector('#sm-oth-e').value),
                                 ms: parseInt(modalOverlay.querySelector('#sm-mob-s').value), me: parseInt(modalOverlay.querySelector('#sm-mob-e').value),
                                 ps: parseInt(modalOverlay.querySelector('#sm-pc-s').value), pe: parseInt(modalOverlay.querySelector('#sm-pc-e').value),
-                                is: parseInt(modalOverlay.querySelector('#sm-iot-s').value), ie: parseInt(modalOverlay.querySelector('#sm-iot-e').value)
+                                is: parseInt(modalOverlay.querySelector('#sm-iot-s').value), ie: parseInt(modalOverlay.querySelector('#sm-iot-e').value),
+                                os: parseInt(modalOverlay.querySelector('#sm-oth-s').value), oe: parseInt(modalOverlay.querySelector('#sm-oth-e').value)
                             };
-                            localStorage.setItem('nw_smart_ranges', JSON.stringify(nr));
-                            savedRanges = nr;
+                            
+                            if (JSON.stringify(nr) !== JSON.stringify(savedRanges)) {
+                                savedRanges = nr;
+                                callSaveSmartRanges(JSON.stringify(nr)).catch(function(e){ console.error('Save smart ranges fail', e); });
+                            }
                         }
                         var resBatch = { strategy: activeStrategy, startSuffix: batchSuffixInput.value.trim(), ranges: savedRanges, dept: batchDeptId };
                         if (options.onOk) options.onOk(resBatch);
@@ -1334,7 +1338,7 @@ return view.extend({
                             }
                         };
 
-                        // 核心逻辑树：雷达真实 > L1缓存 > L2预测拼凑
+                        // 真实 > L1缓存 > L2预测拼凑
                         if (radarShortV6) {
                             localStorage.setItem(memKey, radarShortV6);
                             triggerKeepAlive();
@@ -1753,11 +1757,20 @@ return view.extend({
             var showConnsCbEl = document.querySelector('#cb-show-conns');
             var isShowConns = showConnsCbEl ? showConnsCbEl.checked : false;
 
-            Promise.all([callDeviceList(isShowConns), callGetDepts()]).then(function(results) {
+            Promise.all([callDeviceList(isShowConns), callGetDepts(), callGetSmartRanges()]).then(function(results) {
                 loadingEl.style.display = 'none';
                 
                 var resList = results[0];
                 var resDepts = results[1];
+                var resSmart = results[2];
+
+                // 使用者设定过，就用设定值
+                if (resSmart && resSmart.ranges) {
+                    var parsedR = typeof resSmart.ranges === 'string' ? JSON.parse(resSmart.ranges || '{}') : resSmart.ranges;
+                    if (Object.keys(parsedR).length > 0) {
+                        savedRanges = parsedR;
+                    }
+                }
 
                 globalDepartments = [];
                 if (Array.isArray(resDepts)) {
