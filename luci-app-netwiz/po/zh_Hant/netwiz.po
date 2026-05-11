@@ -722,7 +722,7 @@ msgid "Unknown IP"
 msgstr "未知IP(無外網)"
 
 msgid "Terminal Addressed IP"
-msgstr "終端自簽IP(無外網)"
+msgstr "終端自簽IP"
 
 msgid "Edit Device Info"
 msgstr "修改裝置資訊"
