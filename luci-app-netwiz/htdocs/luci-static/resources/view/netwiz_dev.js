@@ -140,7 +140,11 @@ var T = {
     'ERR_SAVE_FAIL_SHORT': _('❌ Save failed!\nReason: {err}\nPlease run `/etc/init.d/rpcd restart` in SSH'),
     'ERR_IP_FORMAT': _('❌ Invalid IP format! Please enter a valid IPv4 address (e.g., 192.168.1.50)'),
     'TIP_V6_COPY': _('Public IPv6 (Click to copy):'),
-    'MSG_V6_COPIED': _('IPv6 address copied successfully:')
+    'MSG_V6_COPIED': _('IPv6 address copied successfully:'),
+    'BTN_EXPORT_DEPTS': _('导出配置'),
+    'BTN_IMPORT_DEPTS': _('导入配置'),
+    'MSG_IMPORT_SUCCESS': _('✅ 导入成功！\n请检查无误后，点击下方【保存】按钮生效。'),
+    'ERR_IMPORT_FAIL': _('❌ 导入失败！\n文件格式错误或已损坏，请选择正确的 JSON 备份文件。')
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns'], expect: { '': {} } });
@@ -190,6 +194,10 @@ return view.extend({
             '  .nd-dept-col-name { display: flex; flex: 1 1 160px; gap: 6px; }', 
             '  .nd-dept-col-ip { display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 8px; flex: 0 0 auto; }',
             '  .nd-dept-col-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }',
+            '  .nd-dept-ctrl-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px 5px 12px 5px; margin-top: -5px; border-bottom: 1px dashed #cbd5e1; position: sticky; top: -5px; background: #fff; z-index: 10; gap: 10px; }',
+            '  .nd-dept-io-group { display: flex; gap: 10px; }',
+            '  .nd-dept-ctrl-bar .nd-btn { padding: 6px 12px; font-size: 13px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }',
+            '  .nd-dept-ctrl-bar #btn-add-dept { box-shadow: 0 2px 4px rgba(59,130,246,0.2); }',
 
             '  @media screen and (max-width: 768px) {',
             '    .nd-batch-bar.show { padding-right: 15px !important; }',
@@ -198,6 +206,10 @@ return view.extend({
             '    .nd-dept-col-name { grid-column: 1 / 2; grid-row: 1 / 2; }',
             '    .nd-dept-col-actions { grid-column: 2 / 3; grid-row: 1 / 2; }',
             '    .nd-dept-col-ip { grid-column: 1 / 3; grid-row: 2 / 3; width: 100%; box-sizing: border-box; }',
+            '    .nd-dept-ctrl-bar { flex-direction: column; align-items: flex-end; gap: 12px; padding-top: 0; }',
+            '    .nd-dept-io-group { width: 100%; justify-content: center; gap: 15px; }',
+            '    .nd-dept-io-group .nd-btn { flex: 0 0 auto; min-width: 110px; padding: 6px 12px !important;}',
+            '    .nd-dept-ctrl-bar #btn-add-dept { width: auto; padding: 8px 20px; font-size: 14px; align-self: flex-end; }',
             '  }',
             '</style>',
             '<div class="nw-wrapper">',
@@ -262,8 +274,14 @@ return view.extend({
             '       <div id="nd-m-content" style="color:#475569; font-size:15px; margin-bottom:10px; text-align:left; line-height:1.2;"></div>',
             
             '       <div id="nd-m-dept-mgr" class="nd-dept-mgr-wrap" style="display:none;">',
+            '           <div class="nd-dept-ctrl-bar">',
+            '               <div class="nd-dept-io-group">',
+            '                   <button id="btn-import-depts" class="nd-btn nd-btn-gray">📂 {{BTN_IMPORT_DEPTS}}</button>',
+            '                   <button id="btn-export-depts" class="nd-btn nd-btn-gray">💾 {{BTN_EXPORT_DEPTS}}</button>',
+            '               </div>',
+            '               <button id="btn-add-dept" class="nd-btn nd-btn-blue">+ {{BTN_ADD_DEPT}}</button>',
+            '           </div>',
             '           <div id="dept-list-container"></div>',
-            '           <button id="btn-add-dept" class="nd-btn-add-dept">{{BTN_ADD_DEPT}}</button>',
             '       </div>',
 
             '       <div id="nd-m-fw-panel" style="display:none; text-align:left;">',
@@ -519,10 +537,10 @@ return view.extend({
             if(batchTagSelect) batchTagSelect.innerHTML = html;
         }
 
-        function renderDeptManager() {
+        function renderDeptManager(overrideDepts) {
             var c = modalOverlay.querySelector('#dept-list-container');
             c.innerHTML = '';
-            var tempDepts = JSON.parse(JSON.stringify(globalDepartments));
+            var tempDepts = overrideDepts ? overrideDepts : JSON.parse(JSON.stringify(globalDepartments));
             
             function renderRow(d, idx) {
                 var el = document.createElement('div');
@@ -592,9 +610,65 @@ return view.extend({
                 if (newEnd > 254) newEnd = 254;
 
                 var newId = 'dept_' + Math.random().toString(36).substring(2,8);
-                c.appendChild(renderRow({id: newId, icon: '🏷️', name: '', start: newStart, end: newEnd, color: '#64748b'}, currentRows.length));
-                c.scrollTop = c.scrollHeight;
+                var newRow = renderRow({id: newId, icon: '🏷️', name: '', start: newStart, end: newEnd, color: '#64748b'}, currentRows.length);
+                if (c.firstChild) {
+                    c.insertBefore(newRow, c.firstChild);
+                } else {
+                    c.appendChild(newRow);
+                }
+                c.scrollTop = 0;
             };
+
+            // ================= 新版：极其稳定的导入导出逻辑 =================
+            modalOverlay.querySelector('#btn-export-depts').onclick = function() {
+                var currentData = saveDepartmentsFromDOM();
+                if (currentData === false) return; // 如果有错误（重叠或留空），由于已有 alert，这里直接退出
+                
+                var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentData, null, 2));
+                var dlNode = document.createElement('a');
+                dlNode.setAttribute("href", dataStr);
+                var dateStr = new Date().toISOString().slice(0,10).replace(/-/g,"");
+                dlNode.setAttribute("download", "netwiz_groups_" + dateStr + ".json");
+                
+                // 必须添加到 body 里再点，解决所有浏览器的拦截问题
+                document.body.appendChild(dlNode);
+                dlNode.click();
+                document.body.removeChild(dlNode);
+            };
+
+            modalOverlay.querySelector('#btn-import-depts').onclick = function() {
+                var fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.json';
+                fileInput.style.display = 'none'; // 保持隐藏
+                
+                fileInput.onchange = function(e) {
+                    var file = e.target.files[0];
+                    if (!file) return;
+                    
+                    var reader = new FileReader();
+                    reader.onload = function(evt) {
+                        try {
+                            var importedData = JSON.parse(evt.target.result);
+                            if (!Array.isArray(importedData)) throw new Error('Not an array');
+                            
+                            // 导入成功，直接重新渲染面板
+                            renderDeptManager(importedData);
+                            alert(T['MSG_IMPORT_SUCCESS']);
+                        } catch (err) {
+                            alert(T['ERR_IMPORT_FAIL']);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                
+                // 必须添加到 body 里再点，解决部分浏览器不弹文件选择框的问题
+                document.body.appendChild(fileInput); 
+                fileInput.click(); 
+                document.body.removeChild(fileInput);
+            };
+            // ================================================================
+
         }
 
         function saveDepartmentsFromDOM() {
