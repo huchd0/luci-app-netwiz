@@ -14,14 +14,9 @@ EOF
 delete_fw_rule() {
     local target_name="$1"
     local sec_type="${2:-rule}"
-    local idx=0
-    while uci -q get firewall.@${sec_type}[$idx] >/dev/null; do
-        local name=$(uci -q get firewall.@${sec_type}[$idx].name)
-        if [ -n "$name" ] && [ "${name#$target_name}" != "$name" ]; then
-            uci delete firewall.@${sec_type}[$idx]
-            continue
-        fi
-        idx=$((idx+1))
+    local matches=$(uci -q show firewall 2>/dev/null | grep "^firewall\.@${sec_type}\[[0-9]*\]\.name=.*$target_name" | cut -d'.' -f2 | sed 's/[^0-9]//g' | sort -rn)
+    for idx in $matches; do
+        uci -q delete firewall.@${sec_type}[$idx]
     done
 }
 
@@ -430,8 +425,8 @@ case "$1" in
                 fi
                 name="$safe_name"
 
-                uci show dhcp | grep -i "\.mac=.*$mac" | cut -d'.' -f2 | while read -r h_idx; do uci delete dhcp.$h_idx 2>/dev/null; done
-                uci show dhcp | grep "\.ip='$ip'" | cut -d'.' -f2 | while read -r h_idx; do uci delete dhcp.$h_idx 2>/dev/null; done
+                matches=$(uci -q show dhcp 2>/dev/null | grep -i -e "\.mac=.*$mac" -e "\.ip=.*$ip" | cut -d'.' -f2 | sed 's/[^0-9]//g' | sort -rn | uniq)
+                for idx in $matches; do uci -q delete dhcp.@host[$idx]; done
                 
                 new_sect=$(uci add dhcp host)
                 uci set dhcp.$new_sect.name="$name"
@@ -445,9 +440,14 @@ case "$1" in
                 fi
                 
                 if [ -n "$dept" ] && [ "$dept" != "none" ]; then uci set dhcp.$new_sect.netwiz_dept="$dept"; fi
-                
-                uci commit dhcp
-                [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ] && /etc/init.d/dnsmasq reload
+
+                if [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ]; then
+                    # 批量操作
+                    uci commit dhcp
+                    uci commit firewall
+                    /etc/init.d/dnsmasq reload
+                    /etc/init.d/firewall reload >/dev/null 2>&1 &
+                fi
                 echo '{"result":0}'
                 exit 0
                 ;;
@@ -457,22 +457,28 @@ case "$1" in
                 no_reload=$(echo "$input" | jsonfilter -e '@.no_reload')
                 [ -z "$mac" ] && exit 0
                 
-                uci show dhcp | grep -i "\.mac=.*$mac" | cut -d'.' -f2 | while read -r h_idx; do uci delete dhcp.$h_idx 2>/dev/null; done
+                matches=$(uci -q show dhcp 2>/dev/null | grep -i "\.mac=.*$mac" | cut -d'.' -f2 | sed 's/[^0-9]//g' | sort -rn)
+                for idx in $matches; do uci -q delete dhcp.@host[$idx]; done
                 
                 mac_clean=$(echo "$mac" | tr -d ':' | tr 'a-z' 'A-Z')
                 delete_fw_rule "nw_blk_${mac_clean}" "rule"
                 delete_fw_rule "nw_iso_${mac_clean}" "rule"
                 delete_fw_rule "nw_dmz_${mac_clean}" "redirect"
-                uci commit firewall
-                /etc/init.d/firewall reload >/dev/null 2>&1
-
-                uci commit dhcp
-                if [ "$no_reload" != "true" ] && [ "$no_reload" != "1" ]; then /etc/init.d/dnsmasq reload >/dev/null 2>&1; fi
+                if [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ]; then
+                    uci commit dhcp
+                    uci commit firewall
+                    /etc/init.d/dnsmasq reload >/dev/null 2>&1
+                    /etc/init.d/firewall reload >/dev/null 2>&1 &
+                fi
                 echo '{"result":0}'
                 exit 0
                 ;;
             apply_dhcp)
-                /etc/init.d/dnsmasq reload >/dev/null 2>&1
+                # 写入 Flash
+                uci commit dhcp
+                uci commit firewall
+                /etc/init.d/dnsmasq reload
+                /etc/init.d/firewall reload >/dev/null 2>&1 &
                 echo '{"result":0}'
                 exit 0
                 ;;
