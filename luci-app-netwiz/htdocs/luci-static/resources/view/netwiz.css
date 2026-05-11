@@ -135,6 +135,7 @@ body {
 .nd-badge-local { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
 .nd-badge-visitor { background: #fae8ff !important; color: #86198f !important; border-color: #f0abfc !important; }
 .nd-badge-pending { background: #fffbeb !important; color: #d97706 !important; border-color: #fde68a !important; }
+
 /* ---------------------------------------------------------
    5. 表单控件与按钮
 --------------------------------------------------------- */
@@ -327,10 +328,6 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nd-batch-actions button { flex: 1; }
 
 /* ======== 批量分配与分段组件 ======== */
-.nd-input-sm { width: 60px !important; text-align: center !important; border: 1px solid #cbd5e1 !important; border-radius: 6px !important; padding: 4px !important; font-size: 14px !important; color: #0f172a !important; background-color: #ffffff !important; box-sizing: border-box !important; outline: none !important; transition: border-color 0.2s !important; }
-.nd-input-sm:focus { border-color: #3b82f6 !important; }
-.nd-ip-prefix { font-family: monospace !important; color: #64748b !important; margin-right: 0 !important; font-size: 14px !important; }
-
 .nd-category-tabs { display: flex; gap: 10px; width: 100%; max-width: 860px; margin: 15px auto 25px auto; flex-wrap: wrap; justify-content: center; padding-bottom: 5px; align-items: center; }
 .nd-cat-btn { white-space: nowrap; padding: 8px 14px; margin: 1px; border-radius: 20px; background: #fff; border: 1px solid #cbd5e1; color: #64748b; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px; }
 .nd-cat-btn:hover { background: #f8fafc; border-color: #94a3b8; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
@@ -340,11 +337,14 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nd-strategy-card:hover { border-color: #94a3b8; }
 .nd-strategy-card.active { border-color: #3b82f6; background: #eff6ff; color: #1e3a8a; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
 
+/* 修复后的智能分段布局：全局强制单行并排 */
 .nd-smart-row { flex-direction: column !important; align-items: flex-start !important; padding-bottom: 5px !important; margin: 5px 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
-.nd-smart-label { width: 100% !important; margin-bottom: 3px !important; font-size: 14.5px !important; }
-.nd-smart-inputs { align-items: center; width: 100% !important; max-width: 100% !important; background: #f8fafc !important; padding: 6px !important; box-sizing: border-box !important; display: flex !important; }
-.nd-ip-prefix { flex-shrink: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-.nd-input-sm { flex: 1 !important; min-width: 0 !important; padding: 8px 2px !important; background-color: #ffffff !important; color: #0f172a !important; box-sizing: border-box !important; }
+    .nd-smart-label { width: 100% !important; margin-bottom: 3px !important; font-size: 14.5px !important; }
+    .nd-smart-inputs { align-items: center; gap: 4px; width: 100% !important; max-width: 100% !important; background: #f8fafc !important; padding: 6px !important; box-sizing: border-box !important; display: flex !important; }
+    .nd-ip-prefix {letter-spacing: 1px; margin-right: auto !important; font-size: 18px !important; flex-shrink: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;}
+    .nd-input-sm { flex: 1 !important; min-width: 0 !important;  padding: 8px 2px !important; box-sizing: border-box !important; text-align: CENTER; border: 1px solid #cbd5e1 !important;border-radius: 8px !important;font-size: 14px !important;outline: none !important;background: #f8fafc !important;color: #0f172a !important; line-height: 1.5 !important;transition: all 0.2s ease !important;font-family: inherit;resize: none;word-break: break-all;}
+    .nd-input-sm:focus { border-color: #3b82f6 !important; }
+.nd-smart-dash { color: #cbd5e1 !important; font-weight: bold !important; padding: 0 4px !important; }
 
 /* ======== 入场动画 ======== */
 @keyframes nwPageFadeIn {
@@ -521,7 +521,8 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 }
 
 /* =========================================================
-   12. 手机端响应式适配 (Mobile)
+   12. 手机端响应式适配 (Mobile) 
+   (已将原文件中的两段 @media 完美合并，并剔除了错误代码)
 ========================================================= */
 @media screen and (max-width: 768px) {
     #maincontent, .main, .main-right { padding-bottom: 40px !important; height: auto !important; overflow: visible !important; }
@@ -617,11 +618,11 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     .nd-batch-actions { width: 100% !important; justify-content: space-between !important; display: flex !important; gap: 10px !important; }
     .nd-batch-actions button { flex: 1 !important; }
 
-    .nd-smart-row { flex-direction: column !important; align-items: flex-start !important; padding-bottom: 5px !important; margin: 5px 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
-    .nd-smart-label { width: 100% !important; margin-bottom: 3px !important; font-size: 14.5px !important; }
-    .nd-smart-inputs { width: 100% !important; max-width: 100% !important; background: #f8fafc !important; padding: 6px !important; box-sizing: border-box !important; display: flex !important; }
-    .nd-ip-prefix { margin-right: auto !important; font-size: 13.5px !important; flex-shrink: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-    .nd-input-sm { flex: 1 !important; min-width: 0 !important; max-width: 70px !important; padding: 8px 2px !important; background-color: #ffffff !important; color: #0f172a !important; box-sizing: border-box !important; }
+    /* 手机端智能分段：隐藏前缀以腾出空间，并继承电脑端的同行排版 */
+    .nd-smart-row { padding: 10px 4px !important; }
+    .nd-smart-label { font-size: 13px !important; }
+    .nd-input-sm { width: 60px !important; flex: 0 0 60px !important; font-size: 13.5px !important; padding: 6px 0 !important; }
+
     #nd-m-form { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; box-sizing: border-box !important; }
     .nd-modal-box { width: 100% !important; max-width: calc(100% - 20px) !important; box-sizing: border-box !important; margin: 0 auto !important; }
     .nw-form-area { padding: 30px 10px !important; }
@@ -630,4 +631,4 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     /* .nw-switch span{color: transparent !important; font-size: 0 !important; }  */
     .nd-modal-box .nd-modal-title { font-size: 18px !important; } 
     .nd-cb-refresh {padding: 6px 5px;}
-} 
+}
