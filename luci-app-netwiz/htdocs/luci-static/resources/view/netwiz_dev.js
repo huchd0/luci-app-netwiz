@@ -1175,18 +1175,17 @@ return view.extend({
                 deptBtns += '<button class="nd-cat-btn '+(currentFilter===d.id?'active':'')+'" data-cat="'+d.id+'" style="color:'+d.color+'; border-color:'+d.color+'40; '+activeStyle+displayStyle+'">'+d.icon+' '+d.name+' ('+count+')</button>';
             });
             var btnDeptOth = '<button class="nd-cat-btn '+(currentFilter==='dept_other'?'active':'')+'" data-cat="dept_other" style="border-color:#cbd5e1; color:#64748b; '+(cDeptOth===0?'display:none;':'')+'">❔ '+T['TAB_DEPT_OTHER']+' (<span id="cnt-dept-other">'+cDeptOth+'</span>)</button>';
-            var btnMgr = '<button class="nd-cat-btn" id="btn-manage-depts" style="border-style:dashed; border-color:#cbd5e1; color:#64748b;">⚙️ '+T['BTN_MANAGE_DEPTS']+'</button>';
+            var btnMgr = '<button class="nd-cat-btn" id="btn-manage-depts" style="border-style:dashed; border-color:#cbd5e1; color:#64748b;">⚙️ '+ T['LBL_ROW_CUSTOM'] +'</button>';
 
             var tabsHtml = '';
             
             var row1Title = smartFilterByIp ? T['LBL_ROW_TYPE_SMART'] : T['LBL_ROW_TYPE_NAME'];
             tabsHtml += '<div style="display:flex; gap:8px; width:max-content; align-items:center; margin-bottom:10px;">';
-            tabsHtml += '<div style="font-size:14px; font-weight:bold; color:#3b82f6 ; background:#f1f5f9; padding:5px 10px; border-radius:6px; margin-right:4px; border: 1px solid #3b82f6;">' + row1Title + '</div>';
             tabsHtml += btnAll + btnMob + btnPc + btnIot + btnTypeOth;
             tabsHtml += '</div>';
 
             tabsHtml += '<div style="display:flex; gap:8px; width:max-content; align-items:center;">';
-            tabsHtml += '<div style="font-size:14px; font-weight:bold; color:#3b82f6; background:#f1f5f9; padding:5px 10px; border-radius:6px; margin-right:4px; border: 1px solid #3b82f6;">' + T['LBL_ROW_CUSTOM'] + '</div>';
+
             tabsHtml += deptBtns + btnDeptOth + btnMgr;
             tabsHtml += '</div>';
             
