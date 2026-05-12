@@ -1020,3 +1020,6 @@ msgstr "❌ 匯入失敗！"
 
 msgid "Invalid or corrupted file format. Please select a valid JSON backup file."
 msgstr "檔案格式錯誤或已損壞，請選擇正確的 JSON 備份檔。"
+
+msgid "Suspected Spoofed Device"
+msgstr "疑似偽裝設備"
