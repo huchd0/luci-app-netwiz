@@ -147,7 +147,19 @@ var T = {
     'BTN_RESET_ALL': _('Factory Reset'),
     'TIT_RESET_ALL': _('⚠️ Danger: Restore Default Network'),
     'MSG_RESET_CONFIRM': _('Are you sure you want to clear all static IPs and firewall rules set by Netwiz?<br><br><span style="color:#ef4444; font-weight:bold;">This operation will delete all groups, blacklists, isolations, and DMZ settings, and restart network services.</span>'),
-    'MSG_RESETTING': _('Cleaning up and restarting network services...')
+    'MSG_RESETTING': _('Cleaning up and restarting network services...'),
+    'TIT_CONN_RADAR': _('⚡ Connection Radar Analysis'),
+    'MSG_DIVE_KERNEL': _('Diving into system kernel to capture connection records...'),
+    'LBL_CONN_WEB': _('Web/HTTPS'),
+    'LBL_CONN_DNS': _('DNS/NTP'),
+    'LBL_CONN_UDP': _('UDP Stream/Game'),
+    'LBL_CONN_P2P': _('P2P/High Ports'),
+    'LBL_CONN_OTH': _('Others/Unknown'),
+    'MSG_CONN_TOTAL': _('# Successfully parsed {total} source connection records...'),
+    'MSG_CONN_CMD': _('root@OpenWrt:~# cat /proc/net/nf_conntrack | awk \'...\' # (Filtering src={ip})'),
+    'MSG_CONN_EMPTY': _('[ No active connection records ]'),
+    'MSG_CONN_TRUNC': _('... (First 50 records shown for performance) ...'),
+    'MSG_CONN_ANALYZE_FAIL': _('Analysis failed: {err}')
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns'], expect: { '': {} } });
@@ -162,6 +174,7 @@ var callV6KeepAlive = rpc.declare({ object: 'netwiz_dev', method: 'v6_keep_alive
 var callGetSmartRanges = rpc.declare({ object: 'netwiz_dev', method: 'get_smart_ranges', expect: { ranges: {} } });
 var callSaveSmartRanges = rpc.declare({ object: 'netwiz_dev', method: 'save_smart_ranges', params: ['data'], expect: { result: 0 } });
 var callResetAll = rpc.declare({ object: 'netwiz_dev', method: 'reset_all', expect: { result: 0 } });
+var callAnalyzeConns = rpc.declare({ object: 'netwiz_dev', method: 'analyze_conns', params: ['ip'], expect: { '': {} } });
 
 return view.extend({
     handleSaveApply: null,
@@ -902,8 +915,9 @@ return view.extend({
             
             mBtnOk.className = 'nd-btn ' + (options.danger ? 'nd-btn-red' : 'nd-btn-blue');
             mBtnOk.innerText = options.okText || T['BTN_OK'];
+            mBtnCancel.style.display = options.hideCancel ? 'none' : '';
             
-            mBtnOk.onclick = function() { 
+            mBtnOk.onclick = function() {
                 if (options.isDeptMgr) {
                     var finalDepts = saveDepartmentsFromDOM();
                     if(finalDepts !== false) {
@@ -1330,8 +1344,47 @@ return view.extend({
                 var showConns = showConnsCbEl ? showConnsCbEl.checked : false;
                 var connHtml = '';
                 if (showConns && dev.conn_count !== undefined) {
-                    var connColor = dev.conn_count > 500 ? '#ef4444' : '#64748b';
-                    connHtml = '<div style="font-size:12px; color:'+connColor+'; font-family:monospace; margin-top:2px; font-weight:bold;">⚡ ' + dev.conn_count + ' ' + T['LBL_CONN_COUNT'] + '</div>';
+                    var connColor = dev.conn_count > 500 ? '#ef4444' : '#3b82f6';
+                    var safeName = (dev.name || '').replace(/(<([^>]+)>)/gi, "").replace(/"/g, '&quot;');
+                    
+                    var t = dev.conn_count;
+                    var pWeb = t ? (dev.conn_web / t * 100) : 0;
+                    var pDns = t ? (dev.conn_dns / t * 100) : 0;
+                    var pUdp = t ? (dev.conn_udp / t * 100) : 0;
+                    var pP2p = t ? (dev.conn_p2p / t * 100) : 0;
+                    
+                    // 圆饼图
+                    var deg1 = pWeb, deg2 = deg1 + pDns, deg3 = deg2 + pUdp, deg4 = deg3 + pP2p;
+                    var gradient = t ? 'conic-gradient(#3b82f6 0% '+deg1+'%, #10b981 '+deg1+'% '+deg2+'%, #8b5cf6 '+deg2+'% '+deg3+'%, #ef4444 '+deg3+'% '+deg4+'%, #64748b '+deg4+'% 100%)' : 'conic-gradient(#64748b 0% 100%)';
+                    
+                    var tooltipHtml = '<div class="nd-conn-tooltip">' +
+                        '<div class="nd-pie-chart" style="background: '+gradient+';"></div>';
+
+                    if (dev.conn_web > 0) {
+                        tooltipHtml += '<div class="nd-legend-item"><span style="color:#94a3b8;"><span class="nd-legend-color" style="background:#3b82f6;"></span>' + T['LBL_CONN_WEB'] + '</span> <b>' + dev.conn_web + '</b></div>';
+                    }
+                    if (dev.conn_dns > 0) {
+                        tooltipHtml += '<div class="nd-legend-item"><span style="color:#94a3b8;"><span class="nd-legend-color" style="background:#10b981;"></span>' + T['LBL_CONN_DNS'] + '</span> <b>' + dev.conn_dns + '</b></div>';
+                    }
+                    if (dev.conn_udp > 0) {
+                        tooltipHtml += '<div class="nd-legend-item"><span style="color:#94a3b8;"><span class="nd-legend-color" style="background:#8b5cf6;"></span>' + T['LBL_CONN_UDP'] + '</span> <b>' + dev.conn_udp + '</b></div>';
+                    }
+                    if (dev.conn_p2p > 0) {
+                        // P2P  > 50 時显示数字
+                        var p2pValStyle = dev.conn_p2p > 50 ? 'color:#ef4444;' : '#f8fafc';
+                        tooltipHtml += '<div class="nd-legend-item"><span style="color:#94a3b8;"><span class="nd-legend-color" style="background:#ef4444;"></span>' + T['LBL_CONN_P2P'] + '</span> <b style="color:' + p2pValStyle + '">' + dev.conn_p2p + '</b></div>';
+                    }
+                    if (dev.conn_oth > 0) {
+                        tooltipHtml += '<div class="nd-legend-item"><span style="color:#94a3b8;"><span class="nd-legend-color" style="background:#64748b;"></span>' + T['LBL_CONN_OTH'] + '</span> <b>' + dev.conn_oth + '</b></div>';
+                    }
+
+                    if (t === 0) {
+                        tooltipHtml += '<div style="text-align:center; color:#64748b; font-size:11.5px;">' + T['MSG_CONN_EMPTY'] + '</div>';
+                    }
+
+                    tooltipHtml += '</div>';
+
+                    connHtml = '<div class="nd-conn-badge" data-ip="'+dev.ip+'" data-name="'+safeName+'" style="font-size:12px; color:'+connColor+'; font-family:monospace; margin-top:2px; font-weight:bold; cursor:pointer; padding:2px 6px; border-radius:6px; border:1px solid '+connColor+'50; background:'+connColor+'10; display:inline-block; transition:all 0.2s;" onmouseover="this.style.background=\''+connColor+'25\'" onmouseout="this.style.background=\''+connColor+'10\'">⚡ ' + dev.conn_count + ' ' + T['LBL_CONN_COUNT'] + tooltipHtml + '</div>';
                 }
 
                 // 只保留 2 或 3 开头的公网 IP，屏蔽 fd/fe 等内网 IP
@@ -1470,7 +1523,83 @@ return view.extend({
             });
 
             listEl.innerHTML = html;
+
+            // 綁定分析面板点击事件
+            container.querySelectorAll('.nd-conn-badge').forEach(function(badge) {
+    badge.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var ip = this.getAttribute('data-ip');
+        var name = this.getAttribute('data-name');
+        if (!ip || ip === 'Unknown IP') return;
+        
+        // 1. 彈出 Loading 畫面 (使用變量)
+        openModal({ 
+            title: T['TIT_CONN_RADAR'] + ' - ' + name, 
+            content: '<div style="text-align:center; padding:30px 0; color:#64748b;"><div class="nd-spinner" style="margin:0 auto 15px auto;"></div>' + T['MSG_DIVE_KERNEL'] + '</div>', 
+            okText: T['BTN_OK'], // 通常使用統一的“確定”或“關閉”
+            hideCancel: true
+        });
+        
+        // 2. 呼叫後端執行抓包
+        callAnalyzeConns(ip).then(function(res) {
+            var s = res.stats || {};
+            var pctWeb = s.total ? (s.web / s.total * 100).toFixed(1) : 0;
+            var pctDns = s.total ? (s.dns / s.total * 100).toFixed(1) : 0;
+            var pctUdp = s.total ? (s.udp_media / s.total * 100).toFixed(1) : 0;
+            var pctP2p = s.total ? (s.p2p / s.total * 100).toFixed(1) : 0;
+            var pctOth = s.total ? (s.other / s.total * 100).toFixed(1) : 0;
             
+            var p2pStyle = s.p2p > 50 ? 'color:#ef4444; font-weight:bold; background:#fef2f2; padding:2px 4px; border-radius:4px;' : '';
+
+            // 3. 拼裝統計面板 (使用分類變量)
+            var html = '<div style="margin-bottom:15px; font-size:13.5px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">' +
+                '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; padding-bottom:8px;">' +
+                    '<span><span style="color:#3b82f6;">🌐 ' + T['LBL_CONN_WEB'] + ':</span> <b>'+s.web+'</b> <span style="font-size:11px;color:#94a3b8;">('+pctWeb+'%)</span></span>' +
+                    '<span><span style="color:#10b981;">🔍 ' + T['LBL_CONN_DNS'] + ':</span> <b>'+s.dns+'</b> <span style="font-size:11px;color:#94a3b8;">('+pctDns+'%)</span></span>' +
+                '</div>' +
+                '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed #cbd5e1; padding-bottom:8px;">' +
+                    '<span><span style="color:#8b5cf6;">🎮 ' + T['LBL_CONN_UDP'] + ':</span> <b>'+s.udp_media+'</b> <span style="font-size:11px;color:#94a3b8;">('+pctUdp+'%)</span></span>' +
+                    '<span style="'+p2pStyle+'"><span style="color:#ef4444;">🚀 ' + T['LBL_CONN_P2P'] + ':</span> <b>'+s.p2p+'</b> <span style="font-size:11px;">('+pctP2p+'%)</span></span>' +
+                '</div>' +
+                '<div style="display:flex; justify-content:space-between;">' +
+                    '<span><span style="color:#64748b;">🏷️ ' + T['LBL_CONN_OTH'] + ':</span> <b>'+s.other+'</b> <span style="font-size:11px;color:#94a3b8;">('+pctOth+'%)</span></span>' +
+                '</div>' +
+            '</div>';
+                
+            // 4. 終端機黑框 (使用帶佔位符的變量)
+            html += '<div style="background:#0f172a; color:#10b981; font-family:monospace; font-size:11px; line-height:1.4; padding:12px; border-radius:8px; max-height:280px; min-height:60px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; box-shadow:inset 0 0 10px rgba(0,0,0,0.5);">';
+            
+            // 替換總數佔位符 {total}
+            var msgTotal = T['MSG_CONN_TOTAL'].replace('{total}', s.total || 0);
+            html += '<span style="color:#94a3b8;">' + msgTotal + '</span>\n';
+            
+            // 替換命令行中的 IP 佔位符 {ip}
+            var msgCmd = T['MSG_CONN_CMD'].replace('{ip}', ip);
+            html += '<span style="color:#fbbf24;">' + msgCmd + '</span>\n\n';
+            
+            if (res.raw && res.raw.length > 0) {
+                html += res.raw.join('\n');
+                if (s.total > 50) {
+                    html += '\n\n<span style="color:#64748b;">' + T['MSG_CONN_TRUNC'] + '</span>';
+                }
+            } else {
+                html += '<span style="color:#64748b;">' + T['MSG_CONN_EMPTY'] + '</span>';
+            }
+            html += '</div>';
+            
+            // 替換彈窗內容
+            var contentEl = document.querySelector('#nd-m-content');
+            if (contentEl) contentEl.innerHTML = html;
+        }).catch(function(e) {
+            var contentEl = document.querySelector('#nd-m-content');
+            // 替換錯誤信息佔位符 {err}
+            var msgFail = T['MSG_CONN_ANALYZE_FAIL'].replace('{err}', e);
+            if (contentEl) contentEl.innerHTML = '<div style="color:#ef4444; text-align:center; padding:20px;">' + msgFail + '</div>';
+        });
+    });
+});      
+
+
             container.querySelectorAll('.nd-ipv6-badge').forEach(function(badge) {
                 badge.addEventListener('click', function(e) {
                     e.stopPropagation(); // 阻止点击事件穿透
@@ -1838,7 +1967,7 @@ return view.extend({
             selectAllCb.checked = false;
             updateBatchBar();
             
-            var showConnsCbEl = document.querySelector('#cb-show-conns');
+            var showConnsCbEl = container.querySelector('#cb-show-conns');
             var isShowConns = showConnsCbEl ? showConnsCbEl.checked : false;
 
             // 本地有缓存，直接返回
