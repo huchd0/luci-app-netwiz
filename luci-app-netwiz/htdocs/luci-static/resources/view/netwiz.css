@@ -598,7 +598,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     .nd-card-right { width: 100% !important; margin-top: 4px !important; }
     .nd-btn { flex: 1 !important; padding: 9px 0 !important; font-size: 14px !important; }
     
-    .nw-top-back { top: 12px; left: 12px; width: 30px; height: 30px; }
+    .nw-top-back { top: 12px; left: 12px; width: 40px; height: 40px; }
     .nw-radio-group { flex-wrap: wrap; gap: 10px; }
     .nw-wiz-header-responsive { flex-wrap: wrap; padding: 12px 15px !important; }
     .nw-wiz-title-responsive { flex: 1; text-align: center; font-size: 16px; order: 1; }
