@@ -108,7 +108,7 @@ case "$1" in
                                 if(ipv6_map[mac]=="") ipv6_map[mac] = v6_ip;
                                 else if(index(ipv6_map[mac], v6_ip) == 0) ipv6_map[mac] = ipv6_map[mac] " " v6_ip;
                                 all_macs[mac]=1;
-                                if(state_str ~ /REACHABLE|DELAY|PROBE|STALE|router/) arp_online[mac]=1;
+                                if(state_str ~ /REACHABLE|DELAY|PROBE|router/) arp_online[mac]=1;
                             }
                         }
                     }
@@ -128,7 +128,7 @@ case "$1" in
                                 } else {
                                     arp_ip[mac] = f[1];
                                 }
-                                if(state_str ~ /REACHABLE|DELAY|PROBE|STALE|0x2/) arp_online[mac]=1;
+                                if(state_str ~ /REACHABLE|DELAY|PROBE|0x2/) arp_online[mac]=1;
                                 all_macs[mac]=1;
                             }
                         }
@@ -320,9 +320,18 @@ case "$1" in
                         f_dmz = (fw_dmz[mac]==1) ? "true" : "false";
 
                         if(!first) printf ", ";
+             
                         is_pc_flag = (is_pc_v6_map[mac] == 1) ? "true" : "false";
              
-                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\", \"conn_count\": %d, \"fw_block\": %s, \"fw_isolate\": %s, \"fw_dmz\": %s, \"ipv6\": \"%s\", \"is_pc_v6\": %s}", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time, c_count, f_blk, f_iso, f_dmz, v6_val, is_pc_flag;
+                        # 判断是否未知新设备
+                        # 1. 在线; 2. 未绑定靜态IP; 3.设备名为 Unknown
+                        is_new_unknown = "false";
+                        if (is_online == 1 && is_static_mac[mac] != 1 && name == "Unknown" && is_local == "false" && is_gw == "false") {
+                            is_new_unknown = "true";
+                        }
+             
+                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\", \"conn_count\": %d, \"fw_block\": %s, \"fw_isolate\": %s, \"fw_dmz\": %s, \"ipv6\": \"%s\", \"is_pc_v6\": %s, \"is_new_unknown\": %s}", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, 
+is_visitor, l_time, c_count, f_blk, f_iso, f_dmz, v6_val, is_pc_flag, is_new_unknown;
                         first=0;
                     }
                     printf "]}";
@@ -377,12 +386,22 @@ case "$1" in
 
                 [ -z "$mac" ] && exit 0
 
-                delete_fw_rule "nw_blk_${mac_clean}" "rule"
+               delete_fw_rule "nw_blk_${mac_clean}" "rule"
                 if [ "$blk_en" = "true" ] || [ "$blk_en" = "1" ]; then
+                    # 阻断外网转发
                     uci add firewall rule >/dev/null
                     uci set firewall.@rule[-1].name="nw_blk_${mac_clean}"
                     uci set firewall.@rule[-1].src="lan"
                     uci set firewall.@rule[-1].dest="wan"
+                    uci set firewall.@rule[-1].src_mac="$mac"
+                    uci set firewall.@rule[-1].family="any"
+                    uci set firewall.@rule[-1].target="DROP"
+                    uci set firewall.@rule[-1].enabled="1"
+
+                    # 阻断透明代理劫持和路由器 DNS
+                    uci add firewall rule >/dev/null
+                    uci set firewall.@rule[-1].name="nw_blk_${mac_clean}_in"
+                    uci set firewall.@rule[-1].src="lan"
                     uci set firewall.@rule[-1].src_mac="$mac"
                     uci set firewall.@rule[-1].family="any"
                     uci set firewall.@rule[-1].target="DROP"
@@ -420,22 +439,44 @@ case "$1" in
                 fi
 
                 uci commit firewall
-                /etc/init.d/firewall reload </dev/null >/dev/null 2>&1 &
                 
-                if [ "$blk_en" = "true" ] || [ "$blk_en" = "1" ]; then
-                    if command -v iptables >/dev/null 2>&1; then iptables -I FORWARD 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1; fi
-                    if command -v ip6tables >/dev/null 2>&1; then ip6tables -I FORWARD 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1; fi
-                    if command -v nft >/dev/null 2>&1; then nft insert rule inet fw4 forward ether saddr $mac drop >/dev/null 2>&1; fi
-                fi
-                if [ "$iso_en" = "true" ] || [ "$iso_en" = "1" ]; then
-                    if command -v iptables >/dev/null 2>&1; then iptables -I FORWARD 1 -m mac --mac-source $mac -d 192.168.0.0/16 -j DROP >/dev/null 2>&1; fi
-                    if command -v nft >/dev/null 2>&1; then nft insert rule inet fw4 forward ether saddr $mac ip daddr 192.168.0.0/16 drop >/dev/null 2>&1; fi
-                fi
-                
+                # 清空连线
                 if command -v conntrack >/dev/null 2>&1; then
                     [ -n "$ip" ] && [ "$ip" != "Unknown IP" ] && conntrack -D -s "$ip" >/dev/null 2>&1
+                    v6_ips=$(ip -6 neigh show 2>/dev/null | grep -i "$mac" | awk '{print $1}')
+                    for v6 in $v6_ips; do
+                        conntrack -D -s "$v6" >/dev/null 2>&1
+                    done
                 fi
                 for vap in $(ubus list | grep hostapd); do ubus call "$vap" del_client '{"addr":"'"$mac"'", "reason":5, "deauth":true, "ban_time":0}' >/dev/null 2>&1; done
+
+                # 防火墙重载再中断
+                (
+
+                    /etc/init.d/firewall reload >/dev/null 2>&1
+
+                    if [ "$blk_en" = "true" ] || [ "$blk_en" = "1" ]; then
+                        if command -v iptables >/dev/null 2>&1; then 
+                            iptables -I FORWARD 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1
+                            iptables -I INPUT 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1
+                            iptables -t mangle -I PREROUTING 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1
+                        fi
+                        if command -v ip6tables >/dev/null 2>&1; then 
+                            ip6tables -I FORWARD 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1
+                            ip6tables -I INPUT 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1
+                            ip6tables -t mangle -I PREROUTING 1 -m mac --mac-source $mac -j DROP >/dev/null 2>&1
+                        fi
+                        if command -v nft >/dev/null 2>&1; then 
+                            nft insert rule inet fw4 forward ether saddr $mac drop >/dev/null 2>&1
+                            nft insert rule inet fw4 input ether saddr $mac drop >/dev/null 2>&1
+                            nft insert rule inet fw4 mangle_prerouting ether saddr $mac drop >/dev/null 2>&1 || true
+                        fi
+                    fi
+                    if [ "$iso_en" = "true" ] || [ "$iso_en" = "1" ]; then
+                        if command -v iptables >/dev/null 2>&1; then iptables -I FORWARD 1 -m mac --mac-source $mac -d 192.168.0.0/16 -j DROP >/dev/null 2>&1; fi
+                        if command -v nft >/dev/null 2>&1; then nft insert rule inet fw4 forward ether saddr $mac ip daddr 192.168.0.0/16 drop >/dev/null 2>&1; fi
+                    fi
+                ) &
 
                 echo '{"result":0}'
                 exit 0
@@ -582,7 +623,7 @@ case "$1" in
                 UPDATE_THRESHOLD=604800 # 写入阈值：7天
                 EXP_TIME=2592000 # 过期时间：30天
 
-                # 1、清理所有超过 30 天没更新的旧设备
+                # 清理所有超过 30 天没更新的旧设备
                 uci -q show netwiz | grep '=v6_pc' | while read -r line; do
                     sec=$(echo "$line" | cut -d'.' -f2 | cut -d'=' -f1)
                     ts=$(uci -q get netwiz."$sec".ts)
@@ -591,7 +632,7 @@ case "$1" in
                     fi
                 done
 
-                # 2、时间戳更新
+                # 时间戳更新
                 OLD_TS=$(uci -q get netwiz.v6pc_$MAC_SAFE.ts)
                 # 没记录过，或上次记录已经是 7 天前，才写入
                 if [ -z "$OLD_TS" ] || [ $((NOW - OLD_TS)) -gt $UPDATE_THRESHOLD ]; then
