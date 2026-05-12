@@ -235,7 +235,7 @@ return view.extend({
             '  .nw-top-back svg { width: 25px; height: 25px; }',
             '  .nw-step-line svg { width: 20px; height: 20px; display: block; }',
             '  body #view #netwiz-container #wiz-step-indicator .nw-step-line svg, body #maincontent #netwiz-container #wiz-step-indicator .nw-step-line svg { background: transparent !important; background-color: transparent !important; border: none !important; box-shadow: none !important; }',
-            ' @media screen and (max-width: 768px) { .nw-top-back svg { width: 16px; height: 16px; } }',
+            ' @media screen and (max-width: 768px) {  }',
             '</style>',
 
             '<div class="nw-wrapper">',
