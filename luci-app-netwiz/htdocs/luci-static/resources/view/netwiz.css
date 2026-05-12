@@ -526,6 +526,15 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     100% { opacity: 1; }
 }
 
+.nd-conn-badge { position: relative; }
+.nd-conn-tooltip { visibility: hidden; opacity: 0; position: absolute; bottom: 135%; left: 50%; transform: translateX(-50%); background: #0f172a; color: #f8fafc; padding: 12px; border-radius: 12px; width: 170px; z-index: 999; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; text-align: left; }
+.nd-conn-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; border-width: 6px; border-style: solid; border-color: #0f172a transparent transparent transparent; }
+.nd-conn-badge:hover .nd-conn-tooltip { visibility: visible; opacity: 1; bottom: 125%; }
+.nd-pie-chart { width: 75px; height: 75px; border-radius: 50%; margin: 0 auto 12px auto; box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
+.nd-legend-item { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 5px; line-height: 1; align-items: center; }
+.nd-legend-color { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+
 /* =========================================================
    12. 手机端响应式适配
 ========================================================= */
