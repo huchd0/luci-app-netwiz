@@ -1023,3 +1023,15 @@ msgstr "文件格式错误或已损坏，请选择正确的 JSON 备份文件。
 
 msgid "Suspected Spoofed Device"
 msgstr "疑似伪装设备"
+
+msgid "Factory Reset"
+msgstr "恢复出厂"
+
+msgid "⚠️ Danger: Restore Default Network"
+msgstr "⚠️ 危险操作：恢复初始网络"
+
+msgid "Are you sure you want to clear all static IPs and firewall rules set by Netwiz?<br><br><span style=\"color:#ef4444; font-weight:bold;\">This operation will delete all groups, blacklists, isolations, and DMZ settings, and restart network services.</span>"
+msgstr "确定要清空所有由 Netwiz 网络管家设置的静态 IP 和防火墙规则吗？<br><br><span style=\"color:#ef4444; font-weight:bold;\">此操作将删除所有分组、黑名单、隔离和 DMZ 设置，并重启网络服务。</span>"
+
+msgid "Cleaning up and restarting network services..."
+msgstr "正在大扫除并重启网络服务..."
