@@ -339,9 +339,9 @@ is_visitor, l_time, c_count, f_blk, f_iso, f_dmz, v6_val, is_pc_flag, is_new_unk
                 # --- 靜默清理 ---
                 (
                     NOW=$(date +%s)
-                    EXP_TIME=2592000 # 30 天過期時間 (秒)
+                    EXP_TIME=2592000 # 30 天
 
-                    # 1. 活躍時間戳
+                    # 1. 活躍時间戳
                     cat /proc/net/arp 2>/dev/null | grep -v IP | awk '{print $4}' | while read mac; do
                         [ -z "$mac" ] || [ "$mac" = "00:00:00:00:00:00" ] && continue
                         MAC_SAFE=$(echo "$mac" | tr -d ':' | tr 'a-z' 'A-Z')
@@ -354,13 +354,16 @@ is_visitor, l_time, c_count, f_blk, f_iso, f_dmz, v6_val, is_pc_flag, is_new_unk
                     uci -q show netwiz | grep '=netwiz_dev' | grep 'seen_' | while read line; do
                         sec=$(echo "$line" | cut -d'=' -f1 | cut -d'.' -f2)
                         mac_safe=$(echo "$sec" | cut -d'_' -f2)
+                        
+                        mac_lower=$(echo "$mac_safe" | tr 'A-Z' 'a-z')
+                        
                         ts=$(uci -q get netwiz."$sec".ts)
                         
                         if [ -n "$ts" ] && [ $((NOW - ts)) -gt $EXP_TIME ]; then
-                            # 殭屍设备，清理防火牆和 DMZ 规则
-                            delete_fw_rule "nw_blk_${mac_safe}" "rule"
-                            delete_fw_rule "nw_iso_${mac_safe}" "rule"
-                            delete_fw_rule "nw_dmz_${mac_safe}" "redirect"
+                            # 殭屍设备，清理防火牆和 DMZ 规则 
+                            delete_fw_rule "nw_blk_${mac_lower}" "rule"
+                            delete_fw_rule "nw_iso_${mac_lower}" "rule"
+                            delete_fw_rule "nw_dmz_${mac_lower}" "redirect"
 
                             # 刪除時间戳
                             uci -q delete netwiz."$sec"
@@ -368,6 +371,7 @@ is_visitor, l_time, c_count, f_blk, f_iso, f_dmz, v6_val, is_pc_flag, is_new_unk
                         fi
                     done
                     uci commit firewall
+                    uci commit netwiz  # 時間戳写入
                     /etc/init.d/firewall reload >/dev/null 2>&1
                 ) &
                 # ----------------------------------------------------
