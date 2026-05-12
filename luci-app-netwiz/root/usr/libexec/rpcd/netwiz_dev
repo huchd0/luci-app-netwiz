@@ -45,7 +45,7 @@ wakeup_apps() {
 
 case "$1" in
     list)
-        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "get_smart_ranges": {}, "save_smart_ranges": { "data": "string" }, "v6_keep_alive": { "mac": "string" }, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean", "dmz_en": "boolean" } }'
+        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "get_smart_ranges": {}, "save_smart_ranges": { "data": "string" }, "v6_keep_alive": { "mac": "string" }, "reset_all": {}, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean", "dmz_en": "boolean" } }'
         exit 0
         ;;
     call)
@@ -550,7 +550,7 @@ is_visitor, l_time, c_count, f_blk, f_iso, f_dmz, v6_val, is_pc_flag, is_new_unk
                     uci commit firewall
                     /etc/init.d/dnsmasq reload >/dev/null 2>&1
                     /etc/init.d/firewall reload >/dev/null 2>&1 &
-                    # 檢查 dnsmasq
+                    # 检查 dnsmasq
                     sleep 2
                     if ! pgrep dnsmasq > /dev/null; then
                         logger -t Netwiz "⚠️ DNSMasq crashed after bind! Auto-restarting..."
@@ -676,6 +676,43 @@ is_visitor, l_time, c_count, f_blk, f_iso, f_dmz, v6_val, is_pc_flag, is_new_unk
                 
                 # 提交
                 uci commit netwiz
+                echo '{"result":0}'
+                exit 0
+                ;;
+                
+                reset_all)
+                # 1. 淨化防火牆
+                for rule in $(uci -q show firewall | grep -E "\.name='nw_" | cut -d'.' -f2 | sed "s/\[//g; s/\]//g" | sort -rn); do 
+                    uci -q delete firewall.@rule[$rule]
+                done
+                for redir in $(uci -q show firewall | grep -E "\.name='nw_dmz_" | cut -d'.' -f2 | sed "s/\[//g; s/\]//g" | sort -rn); do 
+                    uci -q delete firewall.@redirect[$redir]
+                done
+                uci commit firewall
+
+                # 2. 淨化 DHCP
+                for host in $(uci -q show dhcp | grep "=host" | cut -d'.' -f2 | sed "s/\[//g; s/\]//g" | sort -rn); do
+                    uci -q delete dhcp.@host[$host]
+                done
+                uci commit dhcp
+
+                # 3. 淨化 Netwiz 配置
+                rm -f /etc/config/netwiz
+                touch /etc/config/netwiz
+                uci -q batch <<EOF
+                    set netwiz.global=netwiz
+                    set netwiz.smart=netwiz
+                    commit netwiz
+EOF
+
+                # 4. 重启服务
+                /etc/init.d/dnsmasq restart >/dev/null 2>&1
+                /etc/init.d/firewall reload >/dev/null 2>&1
+                
+                # 启用高级应用
+                sleep 2
+                wakeup_apps
+                
                 echo '{"result":0}'
                 exit 0
                 ;;
