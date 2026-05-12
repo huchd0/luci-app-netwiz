@@ -1384,7 +1384,7 @@ return view.extend({
 
                     tooltipHtml += '</div>';
 
-                    connHtml = '<div class="nd-conn-badge" data-ip="'+dev.ip+'" data-name="'+safeName+'" style="font-size:12px; color:'+connColor+'; font-family:monospace; margin-top:2px; font-weight:bold; cursor:pointer; padding:2px 6px; border-radius:6px; border:1px solid '+connColor+'50; background:'+connColor+'10; display:inline-block; transition:all 0.2s;" onmouseover="this.style.background=\''+connColor+'25\'" onmouseout="this.style.background=\''+connColor+'10\'">⚡ ' + dev.conn_count + ' ' + T['LBL_CONN_COUNT'] + tooltipHtml + '</div>';
+                    connHtml = '<div class="nd-conn-badge" data-ip="'+dev.ip+'" data-name="'+safeName+'" style="font-size:12px; color:'+connColor+'; font-family:monospace; margin-top:2px; font-weight:bold; cursor:pointer; padding:2px 6px; border-radius:6px; border:1px solid '+connColor+'50; background:'+connColor+'10; display:inline-block; transition:all 0.2s;" onmouseover="this.style.background=\''+connColor+'25\'" onmouseout="this.style.background=\''+connColor+'10\'">⚡' + dev.conn_count + ' ' + T['LBL_CONN_COUNT'] + tooltipHtml + '</div>';
                 }
 
                 // 只保留 2 或 3 开头的公网 IP，屏蔽 fd/fe 等内网 IP
@@ -1534,7 +1534,7 @@ return view.extend({
         
         // 1. 彈出 Loading 畫面 (使用變量)
         openModal({ 
-            title: T['TIT_CONN_RADAR'] + ' - ' + name, 
+            title: T['TIT_CONN_RADAR'] + ' - NetWiz',
             content: '<div style="text-align:center; padding:30px 0; color:#64748b;"><div class="nd-spinner" style="margin:0 auto 15px auto;"></div>' + T['MSG_DIVE_KERNEL'] + '</div>', 
             okText: T['BTN_OK'], // 通常使用統一的“確定”或“關閉”
             hideCancel: true
