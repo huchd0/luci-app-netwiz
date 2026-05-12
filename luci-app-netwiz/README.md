@@ -80,46 +80,46 @@ chmod +x luci-app-netwiz/root/etc/hotplug.d/dhcp/99-netwiz-guard
 
 ```bash
 luci-app-netwiz/
-├── README.md                   # 项目说明书 (功能介绍、安装说明、更新日志)
-├── LICENSE                     # 开源许可证
-├── Makefile                    # OpenWrt 标准 Makefile (包定义、依赖关系)
+├── README.md                   # Project documentation (Features, Installation, Changelog)
+├── LICENSE                     # Open source license
+├── Makefile                    # OpenWrt standard Makefile (Package definition, Dependencies)
 │
-├── htdocs/                     # 🌐 前端 UI 层 (纯静态资源)
+├── htdocs/                     # 🌐 Frontend UI Layer (Static resources)
 │   └── luci-static/resources/view/
-│       ├── netwiz.css          # 全局公共样式表 (弹窗、响应式、UI 美化)
-│       ├── netwiz.js           # 前端核心 1：向导引擎 (网络大动脉配置、异步拨号)
-│       └── netwiz_dev.js       # 前端核心 2：管家引擎 (设备雷达、智能分段、UI 交互)
+│       ├── netwiz.css          # Global stylesheet (Modals, Responsive design, UI polishing)
+│       ├── netwiz.js           # Frontend Core 1: Wizard Engine (Network topology config, Async dialing)
+│       └── netwiz_dev.js       # Frontend Core 2: Manager Engine (Device radar, Smart subnetting, UI interactions)
 │
-├── po/                         # 🌍 多语言国际化
-│   ├── zh_Hans/netwiz.po       # 简体中文翻译字典
-│   └── zh_Hant/netwiz.po       # 繁体中文翻译字典
+├── po/                         # 🌍 i18n (Internationalization)
+│   ├── zh_Hans/netwiz.po       # Simplified Chinese dictionary
+│   └── zh_Hant/netwiz.po       # Traditional Chinese dictionary
 │
-└── root/                       # ⚙️ 后端系统层 (打包时映射到路由器根目录 /)
+└── root/                       # ⚙️ Backend System Layer (Mapped to router's / directory upon installation)
     ├── etc/
     │   ├── config/
-    │   │   └── netwiz          # 底层配置库 (保存向导状态、管家分组与设备活跃时间戳)
+    │   │   └── netwiz          # Underlying config store (Wizard states, Manager groups, Device timestamps)
     │   │
-    │   ├── init.d/             # [向导引擎 守护模块]
-    │   │   ├── netwiz-monitor  # 常驻监视守护服务 (启动/停止监控引擎)
-    │   │   └── netwiz-recovery # 断电自动恢复服务 (START=15，确保改网失败不失联)
+    │   ├── init.d/             # [Wizard Engine Daemon Modules]
+    │   │   ├── netwiz-monitor  # Resident monitor daemon (Starts/Stops monitoring engine)
+    │   │   └── netwiz-recovery # Power-loss auto-recovery service (START=15, Prevents disconnects on failed configs)
     │   │
-    │   └── hotplug.d/dhcp/     # 🛡️ [管家引擎 隐形守卫模块] (NEW!)
-    │       └── 99-netwiz-guard # MAC 防伪装触发器 (基于事件驱动的微秒级拦截，零后台损耗)
+    │   └── hotplug.d/dhcp/     # 🛡️ [Manager Engine Stealth Guard Module]
+    │       └── 99-netwiz-guard # Anti-MAC-spoofing trigger (Event-driven microsecond interception)
     │
     └── usr/
         ├── libexec/
-        │   ├── netwiz-autodetect.sh   # WAN 协议自动检测引擎
-        │   ├── netwiz-monitor-loop.sh # 向导防抖与回退循环逻辑
+        │   ├── netwiz-autodetect.sh   # WAN protocol auto-detection engine
+        │   ├── netwiz-monitor-loop.sh # Wizard debounce and fallback loop logic
         │   │
-        │   └── rpcd/           # 🔌 RPC 接口层 (前后端数据通信桥梁)
-        │       ├── netwiz      # 后端接口 1：向导专用 (处理底层网络协议修改)
-        │       └── netwiz_dev  # 后端接口 2：管家专用 (ARP/DHCP存取、包含崩溃自救与静默清理机制) (UPDATED!)
+        │   └── rpcd/           # 🔌 RPC Interface Layer (Frontend-Backend communication bridge)
+        │       ├── netwiz      # Backend API 1: Wizard dedicated (Handles underlying network protocol mods)
+        │       └── netwiz_dev  # Backend API 2: Manager dedicated (ARP/DHCP ops, Crash self-rescue, Silent cleanup) (UPDATED!)
         │
         └── share/
             ├── luci/menu.d/
-            │   └── luci-app-netwiz.json # 系统菜单入口注册
+            │   └── luci-app-netwiz.json # System menu entry registration
             └── rpcd/acl.d/
-                └── luci-app-netwiz.json # UBUS 权限控制列表 (授权前端访问后端接口)
+                └── luci-app-netwiz.json # UBUS Access Control List (Authorizes frontend to access backend APIs)
 ```
 ---
 
