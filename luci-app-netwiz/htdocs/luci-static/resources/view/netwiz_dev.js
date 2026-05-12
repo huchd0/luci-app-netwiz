@@ -142,7 +142,8 @@ var T = {
     'BTN_EXPORT_DEPTS': _('Export Config'),
     'BTN_IMPORT_DEPTS': _('Import Config'),
     'MSG_IMPORT_SUCCESS': _('✅ Import successful!') + '\n' + _('Please verify and click [Save] below to apply.'),
-    'ERR_IMPORT_FAIL': _('❌ Import failed!') + '\n' + _('Invalid or corrupted file format. Please select a valid JSON backup file.')
+    'ERR_IMPORT_FAIL': _('❌ Import failed!') + '\n' + _('Invalid or corrupted file format. Please select a valid JSON backup file.'),
+    'BDG_NEW_UNKNOWN': _('疑似伪裝新设备')
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns'], expect: { '': {} } });
@@ -1415,8 +1416,15 @@ return view.extend({
                     ipText = '<span style="text-decoration:line-through; color:#94a3b8; font-size:12.5px; margin-right:5px;">' + dev.ip + '</span><span style="color:#d97706; font-weight:bold;">➜ ' + dev.bound_ip + '</span>';
                 }
 
-                html += '<div class="nd-card"><div class="nd-card-left"><div style="display:flex; align-items:center;">';
+                var isNewUnknown = (dev.is_new_unknown === 'true' || dev.is_new_unknown === true);
+                var cardClass = isNewUnknown ? "nd-card nd-card-warning" : "nd-card";
                 
+                var warningBadge = isNewUnknown ? '<div style="position:absolute; top:-12px; left:16px; background-color:#ff4d4f; color:white; font-size:12px; font-weight:bold; padding:2px 8px; border-radius:12px; z-index:10;">⚠️ ' + (T['BDG_NEW_UNKNOWN'] || '疑似偽裝設備') + '</div>' : '';
+
+                var handStyle = isNewUnknown ? 'font-size:1.5em; color:#ff4d4f; margin-left:4px; vertical-align:middle; animation:blink-warning 1.2s infinite;' : 'font-size:1.2em; color:#94a3b8; margin-left:4px; vertical-align:middle;';
+
+                html += '<div class="' + cardClass + '" style="position:relative;">' + warningBadge + '<div class="nd-card-left"><div style="display:flex; align-items:center;">';
+
                 if (noCheckbox) {
                     html += '<div style="width: 33px; flex-shrink: 0; margin-right: 15px;"></div>';
                 } else {
@@ -1429,7 +1437,7 @@ return view.extend({
                     '               ' + statusBadgesHtml, 
                     '           </div>',
                     '       </div>',
-                    '       <div class="nd-card-mac btn-fw-mac" title="' + T['TIP_MAC_CTRL'] + '" data-mac="'+dev.mac+'" data-ip="'+(dev.bound_ip || dev.ip)+'" style="margin-left:50px; display:flex; align-items:center;">' + (dev.mac).toUpperCase() + ' <span style="font-size:1.2em; color:#94a3b8; margin-left:4px; vertical-align:middle;">👈</span></div>',
+                    '       <div class="nd-card-mac btn-fw-mac" title="' + T['TIP_MAC_CTRL'] + '" data-mac="'+dev.mac+'" data-ip="'+(dev.bound_ip || dev.ip)+'" style="margin-left:50px; display:flex; align-items:center; cursor:pointer;">' + (dev.mac).toUpperCase() + ' <span style="' + handStyle + '">👈</span></div>',
                     '   </div>',
                     '   <div class="nd-card-mid">',
                     '       <div style="display:flex; flex-direction:column; align-items:flex-start; min-width:0;">',
@@ -1875,6 +1883,9 @@ return view.extend({
 
                 globalDevices.sort(function(a, b) {
                     var getWeight = function(d) {
+
+                        if (d.is_new_unknown === 'true' || d.is_new_unknown === true) return 200;
+                        
                         if (d.is_gw === true || d.is_gw === 'true') return 100;
                         if (d.is_local === true || d.is_local === 'true') return 90;
                         if (d.is_visitor === true || d.is_visitor === 'true') return 80;
