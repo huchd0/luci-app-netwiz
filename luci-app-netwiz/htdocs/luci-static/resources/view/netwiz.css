@@ -520,6 +520,18 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     transform: scale(0.95) !important;
 }
 
+.nd-card-warning { border: 2px solid #ff4d4f !important; background-color: #fff1f0 !important; box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2) !important; margin-top: 15px !important; }
+@keyframes blink-warning { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } 
+
+}
+
+/* 呼吸灯闪烁动画 */
+@keyframes blink-warning {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
 /* =========================================================
    12. 手机端响应式适配 (Mobile) 
    (已将原文件中的两段 @media 完美合并，并剔除了错误代码)
