@@ -892,9 +892,6 @@ msgstr "自定義分組IP自動選號池"
 msgid "+ Add New Department"
 msgstr "+ 新建分組"
 
-msgid "Manage Groups"
-msgstr "管理分組"
-
 msgid "Group Pool (Auto Assign)"
 msgstr "自定義分組網段 (自動發號)"
 
