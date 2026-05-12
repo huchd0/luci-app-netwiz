@@ -327,6 +327,42 @@ case "$1" in
                     }
                     printf "]}";
                 }')
+                # --- 靜默清理 ---
+                (
+                    NOW=$(date +%s)
+                    EXP_TIME=2592000 # 30 天過期時間 (秒)
+
+                    # 1. 活躍時間戳
+                    cat /proc/net/arp 2>/dev/null | grep -v IP | awk '{print $4}' | while read mac; do
+                        [ -z "$mac" ] || [ "$mac" = "00:00:00:00:00:00" ] && continue
+                        MAC_SAFE=$(echo "$mac" | tr -d ':' | tr 'a-z' 'A-Z')
+                        uci -q set netwiz.seen_${MAC_SAFE}="netwiz_dev"
+                        uci -q set netwiz.seen_${MAC_SAFE}.ts="$NOW"
+                    done
+                    uci commit netwiz
+
+                    # 2. 30 天没上线
+                    uci -q show netwiz | grep '=netwiz_dev' | grep 'seen_' | while read line; do
+                        sec=$(echo "$line" | cut -d'=' -f1 | cut -d'.' -f2)
+                        mac_safe=$(echo "$sec" | cut -d'_' -f2)
+                        ts=$(uci -q get netwiz."$sec".ts)
+                        
+                        if [ -n "$ts" ] && [ $((NOW - ts)) -gt $EXP_TIME ]; then
+                            # 殭屍设备，清理防火牆和 DMZ 规则
+                            delete_fw_rule "nw_blk_${mac_safe}" "rule"
+                            delete_fw_rule "nw_iso_${mac_safe}" "rule"
+                            delete_fw_rule "nw_dmz_${mac_safe}" "redirect"
+                            c
+                            # 刪除時间戳
+                            uci -q delete netwiz."$sec"
+                            logger -t Netwiz "🧹 Garbage Collection: Cleared old rules for $mac_safe"
+                        fi
+                    done
+                    uci commit firewall
+                    /etc/init.d/firewall reload >/dev/null 2>&1
+                ) &
+                # ----------------------------------------------------
+
                 echo "$json_data"
                 exit 0
                 ;;
@@ -442,11 +478,16 @@ case "$1" in
                 if [ -n "$dept" ] && [ "$dept" != "none" ]; then uci set dhcp.$new_sect.netwiz_dept="$dept"; fi
 
                 if [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ]; then
-                    # 批量操作
                     uci commit dhcp
                     uci commit firewall
-                    /etc/init.d/dnsmasq reload
+                    /etc/init.d/dnsmasq reload >/dev/null 2>&1
                     /etc/init.d/firewall reload >/dev/null 2>&1 &
+                    # 檢查 dnsmasq
+                    sleep 2
+                    if ! pgrep dnsmasq > /dev/null; then
+                        logger -t Netwiz "⚠️ DNSMasq crashed after bind! Auto-restarting..."
+                        /etc/init.d/dnsmasq restart >/dev/null 2>&1
+                    fi
                 fi
                 echo '{"result":0}'
                 exit 0
@@ -469,16 +510,27 @@ case "$1" in
                     uci commit firewall
                     /etc/init.d/dnsmasq reload >/dev/null 2>&1
                     /etc/init.d/firewall reload >/dev/null 2>&1 &
+                    # 检查 dnsmasq
+                    sleep 2
+                    if ! pgrep dnsmasq > /dev/null; then
+                        logger -t Netwiz "⚠️ DNSMasq crashed after unbind! Auto-restarting..."
+                        /etc/init.d/dnsmasq restart >/dev/null 2>&1
+                    fi
                 fi
                 echo '{"result":0}'
                 exit 0
                 ;;
             apply_dhcp)
-                # 写入 Flash
                 uci commit dhcp
                 uci commit firewall
-                /etc/init.d/dnsmasq reload
+                /etc/init.d/dnsmasq reload >/dev/null 2>&1
                 /etc/init.d/firewall reload >/dev/null 2>&1 &
+                # 檢查 dnsmasq
+                sleep 2
+                if ! pgrep dnsmasq > /dev/null; then
+                    logger -t Netwiz "⚠️ DNSMasq crashed after reload! Auto-restarting..."
+                    /etc/init.d/dnsmasq restart >/dev/null 2>&1
+                fi
                 echo '{"result":0}'
                 exit 0
                 ;;
