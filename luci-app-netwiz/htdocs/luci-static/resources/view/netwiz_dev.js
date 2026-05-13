@@ -2050,18 +2050,26 @@ return view.extend({
                 devices.forEach(function(d) {
                     if (d.ip === currentHostIp) d.is_local = true;
                     
-                    if (d.is_new_unknown === 'true' || d.is_new_unknown === true) {
-                        var ts = localStorage.getItem('nw_unk_ts_' + d.mac);
-                        // 记录时间
+                    var cacheKey = 'nw_unk_ts_' + d.mac;
+                    
+                    // 设备绑定静态ip，才清理它的計時器快取
+                    if (d.is_static === true || d.is_static === 'true') {
+                        localStorage.removeItem(cacheKey);
+                    }
+                    // 如果它是未綁定的在线新设备
+                    else if (d.is_new_unknown === 'true' || d.is_new_unknown === true) {
+                        var ts = localStorage.getItem(cacheKey);
+                        
                         if (!ts) {
                             ts = nowTs;
-                            localStorage.setItem('nw_unk_ts_' + d.mac, ts);
+                            localStorage.setItem(cacheKey, ts);
                         }
-                        d.unk_ts = parseInt(ts, 10);
                         
-                        // 超24 小時
-                        if (nowTs - d.unk_ts > 86400000) {
-                            d.is_new_unknown = false;
+                        // 檢查是否已安分守己超過 24 小時
+                        if (nowTs - parseInt(ts, 10) > 86400000) {
+                            d.is_new_unknown = false; // 超時
+                        } else {
+                            d.is_new_unknown = true;  // 24小時內，亮紅燈
                         }
                     }
                 });
