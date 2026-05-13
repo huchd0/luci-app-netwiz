@@ -546,16 +546,18 @@ case "$1" in
                 if [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ]; then
                     uci commit dhcp
                     uci commit firewall
-                    /etc/init.d/dnsmasq reload >/dev/null 2>&1
-                    /etc/init.d/firewall reload >/dev/null 2>&1 &
-                    # 檢查 dnsmasq
-                    sleep 2
-                    if ! pgrep dnsmasq > /dev/null; then
-                        logger -t Netwiz "⚠️ DNSMasq crashed after bind! Auto-restarting..."
-                        /etc/init.d/dnsmasq restart >/dev/null 2>&1
+                    (
+                        /etc/init.d/dnsmasq reload
+                        /etc/init.d/firewall reload
+                        # 检查 dnsmasq
                         sleep 2
-                        wakeup_apps  # 喚醒函數
-                    fi
+                        if ! pgrep dnsmasq > /dev/null; then
+                            logger -t Netwiz "⚠️ DNSMasq crashed! Auto-restarting..."
+                            /etc/init.d/dnsmasq restart
+                            sleep 2
+                            wakeup_apps  # 喚醒函數
+                        fi
+                    ) >/dev/null 2>&1 &
                 fi
                 echo '{"result":0}'
                 exit 0
@@ -576,16 +578,18 @@ case "$1" in
                 if [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ]; then
                     uci commit dhcp
                     uci commit firewall
-                    /etc/init.d/dnsmasq reload >/dev/null 2>&1
-                    /etc/init.d/firewall reload >/dev/null 2>&1 &
-                    # 检查 dnsmasq
-                    sleep 2
-                    if ! pgrep dnsmasq > /dev/null; then
-                        logger -t Netwiz "⚠️ DNSMasq crashed after unbind! Auto-restarting..."
-                        /etc/init.d/dnsmasq restart >/dev/null 2>&1
+                    (
+                        /etc/init.d/dnsmasq reload
+                        /etc/init.d/firewall reload
+                        # 检查 dnsmasq
                         sleep 2
-                        wakeup_apps  # 喚醒函數
-                    fi
+                        if ! pgrep dnsmasq > /dev/null; then
+                            logger -t Netwiz "⚠️ DNSMasq crashed! Auto-restarting..."
+                            /etc/init.d/dnsmasq restart
+                            sleep 2
+                            wakeup_apps  # 喚醒函數
+                        fi
+                    ) >/dev/null 2>&1 &
                 fi
                 echo '{"result":0}'
                 exit 0
@@ -593,15 +597,18 @@ case "$1" in
             apply_dhcp)
                 uci commit dhcp
                 uci commit firewall
-                /etc/init.d/dnsmasq reload >/dev/null 2>&1
-                /etc/init.d/firewall reload >/dev/null 2>&1 &
-                # 检查 dnsmasq
-                sleep 2
-                if ! pgrep dnsmasq > /dev/null; then
-                    logger -t Netwiz "⚠️ DNSMasq crashed after reload! Auto-restarting..."
-                    /etc/init.d/dnsmasq restart >/dev/null 2>&1
-                    sleep 2
-                    wakeup_apps  # 喚醒函數
+                (
+                        /etc/init.d/dnsmasq reload
+                        /etc/init.d/firewall reload
+                        # 检查 dnsmasq
+                        sleep 2
+                        if ! pgrep dnsmasq > /dev/null; then
+                            logger -t Netwiz "⚠️ DNSMasq crashed! Auto-restarting..."
+                            /etc/init.d/dnsmasq restart
+                            sleep 2
+                            wakeup_apps  # 喚醒函數
+                        fi
+                    ) >/dev/null 2>&1 &
                 fi
                 echo '{"result":0}'
                 exit 0
@@ -704,14 +711,20 @@ case "$1" in
 EOF
 
                 # 4. 重启
-                /etc/init.d/dnsmasq restart >/dev/null 2>&1
-                /etc/init.d/firewall reload >/dev/null 2>&1
-                
-                # 喚醒高級应用
-                sleep 2
-                wakeup_apps
-                
+                # 先立即返回成功给前端，防止 XHR 超时报错
                 echo '{"result":0}'
+                
+                # 4. 放入后台环境执行重启和唤醒
+                (
+                    sleep 1
+                    /etc/init.d/dnsmasq restart
+                    /etc/init.d/firewall reload
+                    
+                    # 喚醒高级应用
+                    sleep 2
+                    wakeup_apps
+                ) >/dev/null 2>&1 &
+                
                 exit 0
                 ;;
 
