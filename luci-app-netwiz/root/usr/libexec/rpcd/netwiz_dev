@@ -609,7 +609,7 @@ case "$1" in
                             wakeup_apps  # 喚醒函數
                         fi
                     ) >/dev/null 2>&1 &
-                fi
+                
                 echo '{"result":0}'
                 exit 0
                 ;;
@@ -686,17 +686,32 @@ case "$1" in
                 ;;
                 
                 reset_all)
-                # 1. 淨化防火牆
-                for rule in $(uci -q show firewall | grep -E "\.name='nw_" | cut -d'.' -f2 | sed "s/\[//g; s/\]//g" | sort -rn); do 
+                # 初始化前备份
+                mkdir -p /root/netwiz_bak
+                backup_file="/root/netwiz_bak/netwiz_pre_reset_$(date +%Y%m%d_%H%M%S).tar.gz"
+                tar -czf "$backup_file" -C / \
+                    etc/config/network \
+                    etc/config/wireless \
+                    etc/config/dhcp \
+                    etc/config/firewall \
+                    etc/config/netwiz 2>/dev/null
+                
+                logger -t Netwiz "📦 Pre-reset backup created: $backup_file"
+
+                # 1. 净化防火墙
+                for rule in $(uci -q show firewall 2>/dev/null | grep "^firewall\.@rule\[[0-9]*\]\.name=.*nw_" | cut -d'.' -f2 | sed 's/[^0-9]//g' | sort -rn | uniq);
+                do 
                     uci -q delete firewall.@rule[$rule]
                 done
-                for redir in $(uci -q show firewall | grep -E "\.name='nw_dmz_" | cut -d'.' -f2 | sed "s/\[//g; s/\]//g" | sort -rn); do 
+                for redir in $(uci -q show firewall 2>/dev/null | grep "^firewall\.@redirect\[[0-9]*\]\.name=.*nw_dmz_" | cut -d'.' -f2 | sed 's/[^0-9]//g' | sort -rn | uniq);
+                do 
                     uci -q delete firewall.@redirect[$redir]
                 done
                 uci commit firewall
 
-                # 2. 淨化 DHCP (刪除所有透過 netwiz 设置的主机)
-                for host in $(uci -q show dhcp | grep "=host" | cut -d'.' -f2 | sed "s/\[//g; s/\]//g" | sort -rn); do
+                # 2. 净化 DHCP (删除所有的静态 IP 绑定)
+                for host in $(uci -q show dhcp 2>/dev/null | grep "^dhcp\.@host\[[0-9]*\]=host" | cut -d'.' -f2 | sed 's/[^0-9]//g' | sort -rn | uniq);
+                do
                     uci -q delete dhcp.@host[$host]
                 done
                 uci commit dhcp
@@ -843,6 +858,8 @@ EOF
                     
                     # 3. 保留最近的 7 份自动备份
                     ls -t /root/netwiz_bak/netwiz_auto_*.tar.gz 2>/dev/null | tail -n +8 | xargs rm -f 2>/dev/null
+                    # 保留5 份高危操作前备份
+                    ls -t /root/netwiz_bak/netwiz_pre_*.tar.gz 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
                 else
                     logger -t Netwiz "💤 Auto-backup skipped: Config unchanged"
                 fi
