@@ -240,6 +240,8 @@ return view.extend({
             '  .nd-dept-col-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }',
 
             '  @media screen and (max-width: 768px) {',
+            '    .nd-conn-tooltip { right: 0 !important; left: auto !important; transform: none !important; margin-bottom: 8px !important; }',
+            '    .nd-conn-tooltip::after { left: auto !important; right: 25px !important; transform: none !important; }',
             '    .nd-batch-bar.show { padding-right: 15px !important; }',
             '    .nd-batch-close-btn { top: 2px; right: 15px; transform: none; font-size: 36px; }',
             '    .nd-dept-row-inner { display: grid; grid-template-columns: 1fr auto; gap: 10px; }',
@@ -1906,11 +1908,30 @@ return view.extend({
 
                     var tasks = [];
                     var currentIp = strategy === 'seq' ? (basePrefix + parseInt(data.startSuffix, 10)) : null;
+
+                    // 顺延“预先锁”机制
+                    var seqReservedIps = {}; // 记录专属座位
+                    if (strategy === 'seq') {
+                        var suf = parseInt(data.startSuffix, 10);
+                        selectedDevices.forEach(function(d) {
+                            var eIp = d.bound_ip || d.ip;
+                            if (eIp && eIp !== 'Unknown IP' && eIp.indexOf(basePrefix) === 0) {
+                                var eSuf = parseInt(eIp.split('.').pop(), 10);
+                                // 如果它的原 IP 在我们要顺延的范围内，且没被别人占领
+                                if (eSuf >= suf && usedIps.indexOf(eIp) === -1) {
+                                    usedIps.push(eIp); // 提前把这个 IP 占了
+                                    seqReservedIps[d.mac] = eIp; // 记录这是它专属ip
+                                }
+                            }
+                        });
+                    }
+                    // ------------------------------------
+
                     var lastAssignedGlobal = null;
                     var skippedCount = 0;
 
                     selectedDevices.forEach(function(dev) {
-                        var assignIp = dev.bound_ip || dev.ip; 
+                        var assignIp = dev.bound_ip || dev.ip;
                         var existingIp = dev.bound_ip || dev.ip;
                         var exSuf = -1;
                         if (existingIp && existingIp !== 'Unknown IP' && existingIp.indexOf(basePrefix) === 0) {
@@ -1923,8 +1944,14 @@ return view.extend({
                                 assignIp = getAvailableIpInRange(basePrefix, 50, 250, usedIps);
                             }
                         } else if (strategy === 'seq') {
-                            assignIp = getNextAvailableIp(currentIp, usedIps);
-                            currentIp = getNextAvailableIp(assignIp, usedIps); 
+                            // 检查设备有没有成功锁ip
+                            if (seqReservedIps[dev.mac]) {
+                                assignIp = seqReservedIps[dev.mac]; // 使用原ip
+                            } else {
+                                // 往下排队拿空闲 IP
+                                assignIp = getNextAvailableIp(currentIp, usedIps);
+                                currentIp = getNextAvailableIp(assignIp, usedIps); 
+                            }
                         } else if (strategy === 'smart') {
                             var devType = getDeviceType(dev);
                             var sStart = data.ranges.os, sEnd = data.ranges.oe;
