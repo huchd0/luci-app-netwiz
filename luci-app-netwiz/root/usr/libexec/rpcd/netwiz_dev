@@ -361,26 +361,36 @@ case "$1" in
                 # --- 靜默清理与更新 ---
                 (
                     NOW=$(date +%s)
-                    EXP_TIME=2592000 #  30 天
+                    EXP_TIME=2592000 # 30 天超时清理
+                    UPDATE_THRESHOLD=604800 # 配置文件_SAFE块写入阈值 7 天
 
-                    # 1. 活跃时间戳 (前缀互斥隔离，绝不重复)
-                    cat /proc/net/arp 2>/dev/null | grep -v IP | awk '{print $4}' | while read mac; do
+                    NEEDS_COMMIT=0
+
+                    # 1. 活跃时间戳更新 (合并 ARP 与 IPv6 邻居)
+                    ip neigh show 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i ~ /^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$/) print tolower($i)}' | sort -u | while read mac; do
                         [ -z "$mac" ] || [ "$mac" = "00:00:00:00:00:00" ] && continue
                         MAC_SAFE=$(echo "$mac" | tr -d ':' | tr 'a-z' 'A-Z')
                         
-                        # 判断它是否已经拥有 PC 特权
+                        # 判断是否为 PC 特权设备
                         if uci -q get netwiz.v6pc_${MAC_SAFE} >/dev/null; then
-                            # 如果是 PC，只更新 v6pc_ 的时间戳
-                            uci -q set netwiz.v6pc_${MAC_SAFE}.ts="$NOW"
+                            OLD_TS=$(uci -q get netwiz.v6pc_${MAC_SAFE}.ts)
+                            # 只有没记录过，或距离上次记录超过 1 天，才允许更新
+                            if [ -z "$OLD_TS" ] || [ $((NOW - OLD_TS)) -gt $UPDATE_THRESHOLD ]; then
+                                uci -q set netwiz.v6pc_${MAC_SAFE}.ts="$NOW"
+                                NEEDS_COMMIT=1
+                            fi
                         else
-                            # 如果是普通设备，更新 seen_ 的时间戳
-                            uci -q set netwiz.seen_${MAC_SAFE}="netwiz_dev"
-                            uci -q set netwiz.seen_${MAC_SAFE}.ts="$NOW"
+                            # 普通设备
+                            OLD_TS=$(uci -q get netwiz.seen_${MAC_SAFE}.ts)
+                            if [ -z "$OLD_TS" ] || [ $((NOW - OLD_TS)) -gt $UPDATE_THRESHOLD ]; then
+                                uci -q set netwiz.seen_${MAC_SAFE}="netwiz_dev"
+                                uci -q set netwiz.seen_${MAC_SAFE}.ts="$NOW"
+                                NEEDS_COMMIT=1
+                            fi
                         fi
                     done
-                    uci commit netwiz
 
-                    # 2. 90 天没上线清理 (同时扫描 seen_ 和 v6pc_)
+                    # 2. 30 天没上线清理 (同时扫描 seen_ 和 v6pc_)
                     uci -q show netwiz | grep -E '=netwiz_dev|=v6_pc' | while read line; do
                         sec=$(echo "$line" | cut -d'=' -f1 | cut -d'.' -f2)
                         mac_safe=$(echo "$sec" | cut -d'_' -f2)
@@ -394,14 +404,19 @@ case "$1" in
                             delete_fw_rule "nw_iso_${mac_lower}" "rule"
                             delete_fw_rule "nw_dmz_${mac_lower}" "redirect"
 
-                            # 删除过期记录 (不管是 seen 还是 v6pc 都杀掉)
+                            # 删除过期记录
                             uci -q delete netwiz."$sec"
+                            NEEDS_COMMIT=1
                             logger -t Netwiz "🧹 Garbage Collection: Cleared old rules for $mac_safe"
                         fi
                     done
-                    uci commit firewall
-                    uci commit netwiz
-                    /etc/init.d/firewall reload >/dev/null 2>&1
+                    
+                    # 💡 只有当确实有设备更新了时间戳，或者有垃圾被清理时，才执行耗时的物理写入与重启
+                    if [ "$NEEDS_COMMIT" -eq 1 ]; then
+                        uci commit firewall
+                        uci commit netwiz
+                        /etc/init.d/firewall reload >/dev/null 2>&1
+                    fi
                 ) >/dev/null 2>&1 &
                 # ----------------------------------------------------
 
@@ -666,7 +681,7 @@ case "$1" in
 
                 MAC_SAFE=$(echo "$mac" | tr -d ':' | tr 'a-z' 'A-Z')
                 NOW=$(date +%s)
-                UPDATE_THRESHOLD=604800 # 写入阈值：7天
+                UPDATE_THRESHOLD=604800 # 配置文件_v6pc写入阈值：7天
 
                 # 时间戳更新
                 OLD_TS=$(uci -q get netwiz.v6pc_$MAC_SAFE.ts)
