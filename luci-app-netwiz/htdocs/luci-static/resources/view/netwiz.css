@@ -400,11 +400,11 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nw-modal-box h3,
 .nw-confirm-board .nw-modal-title,
 .nd-modal-box .nd-modal-title {
-    margin: 0 0 15px 0 !important;
+    margin: 0 0 10px 0 !important;
     line-height: 1.4 !important;
     background: #3b82f6 !important;
     color: #fff !important;
-    padding: 16px 0 !important;
+    padding: 15px 0 !important;
     width: 100% !important;
     font-size: 25px !important;
     border-radius: 0 !important;
