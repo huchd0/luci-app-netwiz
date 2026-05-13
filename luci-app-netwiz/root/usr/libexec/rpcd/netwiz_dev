@@ -362,7 +362,7 @@ case "$1" in
                 (
                     NOW=$(date +%s)
                     EXP_TIME=2592000 # 30 天超时清理
-                    UPDATE_THRESHOLD=604800 # 配置文件_SAFE块写入阈值 7 天
+                    UPDATE_THRESHOLD=604800 # 配置文件netwiz_dev的写入阈值：7天
 
                     NEEDS_COMMIT=0
 
@@ -681,7 +681,7 @@ case "$1" in
 
                 MAC_SAFE=$(echo "$mac" | tr -d ':' | tr 'a-z' 'A-Z')
                 NOW=$(date +%s)
-                UPDATE_THRESHOLD=604800 # 配置文件_v6pc写入阈值：7天
+                UPDATE_THRESHOLD=604800 # 配置文件v6_pc的写入阈值：7天
 
                 # 时间戳更新
                 OLD_TS=$(uci -q get netwiz.v6pc_$MAC_SAFE.ts)
