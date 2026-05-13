@@ -1003,11 +1003,11 @@ msgstr "公網 IPv6 (點擊即可複製):"
 msgid "IPv6 address copied successfully:"
 msgstr "IPv6 位址已成功複製："
 
-msgid "Export Config"
-msgstr "匯出配置"
+msgid "Export Groups"
+msgstr "匯出自定義"
 
-msgid "Import Config"
-msgstr "匯入配置"
+msgid "Import Groups"
+msgstr "匯入自定義"
 
 msgid "✅ Import successful!"
 msgstr "✅ 匯入成功！"
@@ -1155,3 +1155,6 @@ msgstr "匯入配置前備份"
 
 msgid "Before Reset"
 msgstr "重置網路前備份"
+
+msgid "-- Keep Unchanged --"
+msgstr "-- 保持不變 --"
