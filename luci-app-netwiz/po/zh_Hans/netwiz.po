@@ -1022,7 +1022,7 @@ msgid "Invalid or corrupted file format. Please select a valid JSON backup file.
 msgstr "文件格式错误或已损坏，请选择正确的 JSON 备份文件。"
 
 msgid "Suspected Spoofed Device"
-msgstr "疑似伪装设备"
+msgstr "疑似伪装或新设备"
 
 msgid "Factory Reset"
 msgstr "恢复出厂"
