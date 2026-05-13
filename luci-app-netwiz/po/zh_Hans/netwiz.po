@@ -730,7 +730,7 @@ msgstr "修改设备信息"
 msgid "Quick Bind IP"
 msgstr "一键固定 IP"
 
-msgid "Configuring MAC: "
+msgid "Configuring MAC:"
 msgstr "正在为 MAC: "
 
 msgid "Save Changes"
