@@ -139,8 +139,8 @@ var T = {
     'ERR_IP_FORMAT': _('❌ Invalid IP format! Please enter a valid IPv4 address (e.g., 192.168.1.50)'),
     'TIP_V6_COPY': _('Public IPv6 (Click to copy):'),
     'MSG_V6_COPIED': _('IPv6 address copied successfully:'),
-    'BTN_EXPORT_DEPTS': _('Export Config'),
-    'BTN_IMPORT_DEPTS': _('Import Config'),
+    'BTN_EXPORT_DEPTS': _('Export Groups'),
+    'BTN_IMPORT_DEPTS': _('Import Groups'),
     'MSG_IMPORT_SUCCESS': _('✅ Import successful!') + '\n' + _('Please verify and click [Save] below to apply.'),
     'ERR_IMPORT_FAIL': _('❌ Import failed!') + '\n' + _('Invalid or corrupted file format. Please select a valid JSON backup file.'),
     'BDG_NEW_UNKNOWN': _('Suspected Spoofed Device'),
@@ -188,7 +188,7 @@ var T = {
     'TXT_BAK_AUTO': _('Auto Backup'),
     'TXT_BAK_IMPORT': _('Before Import'),
     'TXT_BAK_RESET': _('Before Reset'),
-    'OPT_NO_CHANGE': _('-- 保持不变 --')
+    'OPT_NO_CHANGE': _('-- Keep Unchanged --'),
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns'], expect: { '': {} } });
