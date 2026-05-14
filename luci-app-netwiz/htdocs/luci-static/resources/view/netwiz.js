@@ -1013,25 +1013,21 @@ return view.extend({
         Promise.all([
             callNetCheckWifi(),
             safePromise(callSystemBoard(), {}),
-            safePromise(uci.load('netwiz'), null) // 1. 恢复加载 netwiz 配置
+            safePromise(uci.load('netwiz'), null), // 恢复加载 netwiz 配置
+            safePromise(uci.load('wireless'), null) // 加载底层 wireless 配置
         ]).then(function(results) {
             var wifiRes = results[0];
             var boardRes = results[1] || {};
             var modelName = (boardRes.model || '').toLowerCase();
             
-            var hasWifi = (wifiRes === true || (typeof wifiRes === 'object' && wifiRes && wifiRes.has_wifi === true));
-            window._hasRealWifi = hasWifi; // 真实的硬件状态，供底部状态栏判断使用
-            var isUnknownDevice = (modelName.indexOf('generic') !== -1 && modelName.indexOf('unknown') !== -1);
-
-            // 2. 恢复读取 netwiz 的标志位
-            var wizardEnable = safeUciGet('netwiz', 'main', 'wizard_enable', '1');
-            window._currentWizState = wizardEnable;
-
-            var wizModal = container.querySelector('#nw-wizard-modal');
-            var btnReopenWiz = container.querySelector('#btn-reopen-wizard');
-
-            // 1. 处理主界面的 Wi-Fi 卡片显示与隐藏
-            if (hasWifi && !isUnknownDevice) {
+            var uciWifiDevs = [];
+            try { uciWifiDevs = uci.sections('wireless', 'wifi-device') || []; } catch(e) {}
+            
+            var hasWifi = (wifiRes === true || (typeof wifiRes === 'object' && wifiRes && wifiRes.has_wifi === true) || uciWifiDevs.length > 0);
+            window._hasRealWifi = hasWifi; // 真实的硬件状态
+            
+            // 处理主界面的 Wi-Fi 卡片显示与隐藏
+            if (hasWifi) {
                 var wifiCard = container.querySelector('#card-wifi');
                 if (wifiCard) wifiCard.style.display = 'flex';
             } else {
