@@ -1159,11 +1159,5 @@ msgstr "重置網路前備份"
 msgid "-- Keep Unchanged --"
 msgstr "-- 保持不變 --"
 
-msgid "Public IPv6 (Click to copy):"
-msgstr "公網 IPv6 (點擊即可複製):"
-
-msgid "IPv6 address copied successfully:"
-msgstr "IPv6 地址複製成功:"
-
 msgid "Reserved"
 msgstr "預留"
