@@ -720,12 +720,12 @@ case "$1" in
                 # 初始化前备份
                 mkdir -p /root/netwiz_bak
                 backup_file="/root/netwiz_bak/netwiz_pre_reset_$(date +%Y%m%d_%H%M%S).tar.gz"
-                # 动态打包这 5 个核心配置
-                if [ -f /etc/config/wireless ]; then
-                    tar -czf "$backup_file" -C / etc/config/network etc/config/wireless etc/config/dhcp etc/config/firewall etc/config/netwiz 2>/dev/null
-                else
-                    tar -czf "$backup_file" -C / etc/config/network etc/config/dhcp etc/config/firewall etc/config/netwiz 2>/dev/null
-                fi
+                
+            FILE_LIST=""
+                    for f in network wireless dhcp firewall netwiz; do
+                        if [ -s "/etc/config/$f" ]; then FILE_LIST="$FILE_LIST etc/config/$f"; fi
+                    done
+                    tar -czf "$backup_file" -C / $FILE_LIST 2>/dev/null    
                 
                 logger -t Netwiz "📦 Pre-reset backup created: $backup_file"
 
@@ -795,10 +795,11 @@ EOF
                     tar -czf "$backup_file" -C / $FILE_LIST 2>/dev/null
 
                     if [ -s "$backup_file" ]; then
-
                         chmod 644 "$backup_file" 2>/dev/null
-                        
                         printf '{"url":"/luci-static/%s", "filename":"%s"}\n' "$dl_name" "$dl_name"
+                        
+                        # 120 秒后删除
+                        ( sleep 120; rm -f "$backup_file" ) >/dev/null 2>&1 &
                     else
                         printf '{"error":"Archive creation failed"}\n'
                     fi
@@ -845,12 +846,11 @@ EOF
                     
                     backup_file="/root/netwiz_bak/netwiz_pre_import_$(date +%Y%m%d_%H%M%S).tar.gz"
                     
-                    # 动态打包这 5 个核心配置
-                    if [ -f /etc/config/wireless ]; then
-                    tar -czf "$backup_file" -C / etc/config/network etc/config/wireless etc/config/dhcp etc/config/firewall etc/config/netwiz 2>/dev/null
-                else
-                    tar -czf "$backup_file" -C / etc/config/network etc/config/dhcp etc/config/firewall etc/config/netwiz 2>/dev/null
-                fi
+                    FILE_LIST=""
+                    for f in network wireless dhcp firewall netwiz; do
+                        if [ -s "/etc/config/$f" ]; then FILE_LIST="$FILE_LIST etc/config/$f"; fi
+                    done
+                    tar -czf "$backup_file" -C / $FILE_LIST 2>/dev/null
 
                     # 解压目标文件覆盖配置
                     tar -xzf "$restore_file" -C / 2>/dev/null
@@ -888,12 +888,11 @@ EOF
                     timestamp=$(date +%Y%m%d_%H%M%S)
                     backup_file="/root/netwiz_bak/netwiz_auto_${timestamp}.tar.gz"
                     
-                    # 动态打包这 5 个核心配置
-                    if [ -f /etc/config/wireless ]; then
-                    tar -czf "$backup_file" -C / etc/config/network etc/config/wireless etc/config/dhcp etc/config/firewall etc/config/netwiz 2>/dev/null
-                else
-                    tar -czf "$backup_file" -C / etc/config/network etc/config/dhcp etc/config/firewall etc/config/netwiz 2>/dev/null
-                fi
+                    FILE_LIST=""
+                    for f in network wireless dhcp firewall netwiz; do
+                        if [ -s "/etc/config/$f" ]; then FILE_LIST="$FILE_LIST etc/config/$f"; fi
+                    done
+                    tar -czf "$backup_file" -C / $FILE_LIST 2>/dev/null
                     
                     # 记录最新的 MD5
                     echo "$current_md5" > /root/netwiz_bak/.netwiz_last_md5
