@@ -229,8 +229,7 @@ case "$1" in
                 # ==========================================
 
                 elif [ "$mode" = "lan" ]; then
-                    uci set network.lan.proto='static';
-                    uci set network.lan.ipaddr="$arg1"; uci set network.lan.netmask="$arg3"
+                    uci set network.lan.proto='static'; uci set network.lan.ipaddr="$arg1"; uci set network.lan.netmask="$arg3"
                     if [ -n "$arg2" ]; then uci set network.lan.gateway="$arg2"; else uci delete network.lan.gateway 2>/dev/null || true; fi
                     if [ "$arg4" = "1" ]; then
                         uci set dhcp.lan.ignore='1'
@@ -238,15 +237,45 @@ case "$1" in
                     else
                         uci set dhcp.lan.ignore='0'; uci delete network.lan.dns 2>/dev/null || true
                     fi
-                    if [ "$arg6" = "1" ]; then
+                    
+                    # ==========================================
+                    # IPv6 状态对齐与自愈
+                    # ==========================================
+                    current_v6=$(uci -q get dhcp.lan.dhcpv6) # 获取路由器当前真实的 IPv6 状态
+                    
+                    # 如果前端明确要求开启 (arg6=1)，或者前端没传但底层原本就是开启的 (current_v6=server)
+                    if [ "$arg6" = "1" ] || { [ -z "$arg6" ] && [ "$current_v6" = "server" ]; }; then
+                        # 1. 净化 ULA 前缀
+                        uci -q delete network.globals.ula_prefix
+                        
+                        # 2. 确保 LAN 口拥有申请 IPv6 前缀的权限
+                        uci set network.lan.ip6assign='60' 
+
+                        # 3. 开启服务与通告
                         uci set dhcp.lan.dhcpv6='server'
                         uci set dhcp.lan.ra='server'
                         uci set dhcp.lan.ndp='hybrid'
-                    else
+                        
+                        # 4. 开启 SLAAC
+                        uci set dhcp.lan.ra_slaac='1'
+                        
+                        # 5. 注入 M-Flag 和 O-Flag
+                        uci -q del_list dhcp.lan.ra_flags='managed-config'
+                        uci add_list dhcp.lan.ra_flags='managed-config'
+                        uci -q del_list dhcp.lan.ra_flags='other-config'
+                        uci add_list dhcp.lan.ra_flags='other-config'
+                        
+                    elif [ "$arg6" = "0" ]; then
+                        # 明确要求关闭时，执行无痕清理
                         uci set dhcp.lan.dhcpv6='disabled'
                         uci set dhcp.lan.ra='disabled'
                         uci set dhcp.lan.ndp='disabled'
+                        
+                        uci -q delete dhcp.lan.ra_slaac
+                        uci -q del_list dhcp.lan.ra_flags='managed-config'
+                        uci -q del_list dhcp.lan.ra_flags='other-config'
                     fi
+                    
                     uci commit network; uci commit dhcp
                 elif [ "$mode" = "wifi" ]; then
                     payload="$arg1"
@@ -566,6 +595,7 @@ case "$1" in
                     sleep 3
                     /etc/init.d/network restart
                     /etc/init.d/dnsmasq restart
+                    /etc/init.d/odhcpd restart
                     /etc/init.d/uhttpd restart
 
                     # 唤醒调用2
