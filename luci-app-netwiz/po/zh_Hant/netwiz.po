@@ -691,6 +691,9 @@ msgstr "連線"
 msgid "Offline"
 msgstr "離線"
 
+msgid "Long-term Offline"
+msgstr "長期離線"
+
 msgid "Static"
 msgstr "靜態"
 
