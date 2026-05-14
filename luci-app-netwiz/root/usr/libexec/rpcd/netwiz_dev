@@ -828,6 +828,8 @@ EOF
                 if [ "$has_file" -eq 1 ]; then
                     mkdir -p /root/netwiz_bak
                     
+                    backup_file="/root/netwiz_bak/netwiz_pre_import_$(date +%Y%m%d_%H%M%S).tar.gz"
+                    
                     # 动态打包这 5 个核心配置
                     FILE_LIST="etc/config/network etc/config/dhcp etc/config/firewall etc/config/netwiz"
                     [ -f /etc/config/wireless ] && FILE_LIST="$FILE_LIST etc/config/wireless"
