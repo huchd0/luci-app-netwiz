@@ -1151,7 +1151,7 @@ return view.extend({
             var isCrossSubnet = (dev.ip && dev.ip !== 'Unknown IP' && dev.ip.substring(0, dev.ip.lastIndexOf('.') + 1) !== basePrefix);
             var isStatic = (dev.is_static === true || dev.is_static === 'true');
 
-            if (isSys) return false; 
+            if (isSys || isVisitor) return false; 
             
             if (isCrossSubnet && !isStatic) return false;
             
@@ -1532,16 +1532,14 @@ return view.extend({
 
                 var actions = "";
                 if (isGw || isLocal) {
-                    // 系统保留
                     actions = '<span style="color:#f00; font-size:16.5px; font-weight:bold; padding: 10px;">' + T['TXT_SYS_RESERVED'] + '</span>';
                 } else if (isStatic) {
-                    // 已绑定的设备，保留編輯和解绑
                     actions = '<button class="nd-btn nd-btn-gray btn-edit" data-mac="'+dev.mac+'" data-ip="'+(dev.bound_ip || dev.ip)+'" data-name="'+dev.name+'">' + T['BTN_EDIT'] + '</button>' +
                               '<button class="nd-btn nd-btn-red btn-unbind" data-mac="'+dev.mac+'">' + T['BTN_UNBIND'] + '</button>';
-                } else if (!isSelectable(dev)) {
+                } else if (!isSelectable(dev) && !isVisitor) {
+
                     actions = '<span style="color:#94a3b8; font-size:13px; padding-right:10px;">' + T['TXT_UNOPERABLE'] + '</span>';
                 } else {
-                    // 正常的未绑定
                     actions = '<button class="nd-btn nd-btn-green btn-bind" data-mac="'+dev.mac+'" data-ip="'+dev.ip+'" data-name="'+dev.name+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> ' + T['BTN_QUICK_BIND'] + '</button>';
                 }
 
