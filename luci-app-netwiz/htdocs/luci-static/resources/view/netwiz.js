@@ -204,6 +204,8 @@ var T = {
     'TXT_UNSET': _('Not set'),
     'TXT_NO_PWD_OPEN': _('No Password (Open)'),
     'BTN_DEV_BIND': _('Terminal Device & IP Binding'),
+    'TXT_DNS1': _('Primary DNS:'),
+    'TXT_DNS2': _('Secondary DNS:'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1088,7 +1090,28 @@ return view.extend({
                     if (!liveGw && Array.isArray(activeWan.route)) { var defaultRoute = activeWan.route.find(function(r) { return r.target === '0.0.0.0'; }); if (defaultRoute) liveGw = defaultRoute.nexthop; }
                     if (!liveGw && activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) liveGw = activeWan['ipv4-address'][0].ptpaddress || '';
                     liveGw = liveGw || T['TXT_GETTING'];
-                    var wIp = safeUciGet('network', 'wan', 'ipaddr', T['TXT_NOT_GOT']).split('/')[0], wGw = safeUciGet('network', 'wan', 'gateway', T['TXT_NOT_SET']); 
+
+                    // 提取并格式化连接时间
+                    var wanUptime = activeWan.uptime || 0;
+                    var formatUptime = function(secs) {
+                        if (!secs) return '';
+                        var d = Math.floor(secs / 86400), h = Math.floor((secs % 86400) / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+                        var res = '';
+                        if (d > 0) res += d + 'd ';
+                        if (h > 0) res += h + 'H ';
+                        if (m > 0) res += m + 'm ';
+                        res += s + 's';
+                        return res;
+                    };
+                    var uptimeStr = formatUptime(wanUptime);
+                    var upBadgeHtml = uptimeStr ? "<span style='font-size:18px; color:#fff; font-weight:600; margin-left:4px; font-family:monospace;'>🕒" + uptimeStr + "</span>" : "";
+
+                    // 提取主备 DNS
+                    var dnsServers = activeWan['dns-server'] || [];
+                    var dns1 = dnsServers[0] || '';
+                    var dns2 = dnsServers[1] || '';
+
+                    var wIp = safeUciGet('network', 'wan', 'ipaddr', T['TXT_NOT_GOT']).split('/')[0], wGw = safeUciGet('network', 'wan', 'gateway', T['TXT_NOT_SET']);
                     var lIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0], lGw = safeUciGet('network', 'lan', 'gateway', T['TXT_NOT_SET']), lIgnore = safeUciGet('dhcp', 'lan', 'ignore', ''), isBypass = (lIgnore === '1' || lIgnore === 'true' || lIgnore === 'on' || lIgnore === 'yes');
                     if (container.querySelector('#pppoe-user')) container.querySelector('#pppoe-user').value = safeUciGet('network', 'wan', 'username', '');
                     if (container.querySelector('#pppoe-pass')) container.querySelector('#pppoe-pass').value = safeUciGet('network', 'wan', 'password', '');
@@ -1479,11 +1502,15 @@ return view.extend({
                     var sTitle = "", sDetails = "", statusBadge = "";
                     
                     if (isBypass) { sTitle = T['STAT_BYPASS']; sDetails = mkD(T['TXT_DEV_IP'], lIp, T['TXT_UP_GW'], lGw); } 
-                    else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']); sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } 
-                    else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']); sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } 
-                    else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = activeWan.up ? mkB('#10b981', T['BDG_CONN']) : mkB('#ef4444', T['BDG_UNPLUG']); sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } 
+                    else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']) + upBadgeHtml; sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } 
+                    else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']) + upBadgeHtml; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } 
+                    else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = activeWan.up ? mkB('#10b981', T['BDG_CONN']) + upBadgeHtml : mkB('#ef4444', T['BDG_UNPLUG']); sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } 
                     else { sTitle = T['STAT_LAN']; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_DHCP_SRV'], T['TXT_ON']); }
-                    
+                    var sDnsHtml = "";
+                    if (!isBypass && activeWan.up && dns1) {
+                        sDnsHtml = "<div style='font-size:15.5px; font-weight:bold; color:#FFF; font-family:monospace; margin:6px 0 10px 0; display:flex; flex-wrap:wrap; justify-content:center; gap:15px;'><span class='nw-info-item'>" + T['TXT_DNS1'] + " <span class='nw-hl'>" + dns1 + "</span></span>" + (dns2 ? "<span class='nw-info-item'>" + T['TXT_DNS2'] + " <span class='nw-hl'>" + dns2 + "</span></span>" : "") + "</div>";
+                    }
+
                     window._gotoRoam = function(band, isDirty) {
                         var box = document.getElementById('netwiz-container');
                         if (!box) return;
@@ -1658,7 +1685,7 @@ return view.extend({
                     extraInfo += "</div>";
 
                     if (modeTextEl) {
-                        modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:8px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; max-width:100%; min-width:0;'><span style='white-space:nowrap; max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.3; max-width:100%; min-width:0;'>" + sDetails + "</div>" + ipv6Html + devMgrBtn + extraInfo;
+                        modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:8px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; max-width:100%; min-width:0;'><span style='white-space:nowrap; max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.3; max-width:100%; min-width:0;'>" + sDetails + "</div>" + sDnsHtml + ipv6Html + devMgrBtn + extraInfo;
                     }
                     
                 }).catch(function() {});
