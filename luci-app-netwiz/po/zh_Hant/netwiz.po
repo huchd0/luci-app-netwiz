@@ -1174,5 +1174,5 @@ msgstr "說明："
 msgid "Custom group names are not strictly bound to IP subnets. The ranges are only used for automatic IP assignment when a group is selected."
 msgstr "自訂群組的名稱不會強制綁定 IP 網段，網段也不受名稱限制，僅用於選擇自訂群組時自動發號到對應網段。"
 
-msgid "When enabled, [Terminal Device Network Manager] can assign short IPv6 addresses to PCs."
-msgstr "啟用後配合【終端設備網路管理】固定 IP，可分配電腦簡短 IPv6"
+msgid "When enabled, [Terminal Device & IP Binding] can assign short IPv6 addresses to PCs."
+msgstr "啟用後配合【終端設備與 IP 綁定】固定 IP，可分配電腦簡短 IPv6"
