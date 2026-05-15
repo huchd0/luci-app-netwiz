@@ -1148,14 +1148,11 @@ return view.extend({
             var isSys = dev.is_gw === 'true' || dev.is_gw === true || dev.is_local === 'true' || dev.is_local === true;
             var isVisitor = dev.is_visitor === 'true' || dev.is_visitor === true;
             
-            // 判断是否为游离在当前网段之外的设备 (终端自签IP)
             var isCrossSubnet = (dev.ip && dev.ip !== 'Unknown IP' && dev.ip.substring(0, dev.ip.lastIndexOf('.') + 1) !== basePrefix);
-            // 设备已经被静态绑定过，保留选择权（为了让用户能一键全选解绑它）
             var isStatic = (dev.is_static === true || dev.is_static === 'true');
 
-            if (isSys || isVisitor) return false;
+            if (isSys) return false; 
             
-            // 非本网段且未被绑定的异常设备，直接剔除出可选名单
             if (isCrossSubnet && !isStatic) return false;
             
             return true; 
