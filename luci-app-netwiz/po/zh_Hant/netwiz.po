@@ -842,10 +842,10 @@ msgid "Pending"
 msgstr "待生效"
 
 msgid "Device Type (By IP)"
-msgstr "設備類型（按IP）"
+msgstr "類型（按IP）"
 
 msgid "Device Type (Built-in)"
-msgstr "設備類型（內置）"
+msgstr "類型（內置）"
 
 msgid "Custom Groups"
 msgstr "自定義組"
