@@ -268,8 +268,8 @@ msgstr "WAN 靜態 IP 必須與閘道器處於同一網段！"
 msgid "e.g., if gateway is {gw}, the IP must be {ip}.x"
 msgstr "例如：如果閘道器是 {gw}，則 IP 必須是 {ip}.x"
 
-msgid "The AP Wired Relay Device IP must be in the same subnet as the Gateway!"
-msgstr "旁路由（AP有線中繼）的設備 IP 必須與上級閘道器處於同一網段！"
+msgid "In AP/Relay mode, the device IP must be in the same subnet as the Gateway! (💡 Tip: The Gateway should be the LAN IP of your upstream main router)"
+msgstr "【旁路由 / 有線中繼 (AP)】模式下，本設備 IP 必須與網關處於同一網段！（💡 提示：網關請填寫上級主路由的 LAN 口 IP 地址）"
 
 msgid "Config Warning"
 msgstr "高危操作警告"
