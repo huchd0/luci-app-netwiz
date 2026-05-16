@@ -2320,6 +2320,10 @@ return view.extend({
                         var currentIpv6 = (currentDhcpv6 === 'server' || currentDhcpv6 === 'relay') ? '1' : '0';
                         var ipv6El = container.querySelector('#lan-ipv6-toggle');
                         var newIpv6 = (ipv6El && ipv6El.checked) ? '1' : '0';
+                        
+                        // 💡 新增：检查黄色的 IPv6 警告灯是否亮起？
+                        var v6WarnEl = container.querySelector('#tip-ipv6-warn');
+                        var needsV6Fix = (v6WarnEl && v6WarnEl.style.display !== 'none');
 
                         var currentWifiState = getWifiSnapshot();
 
@@ -2336,11 +2340,10 @@ return view.extend({
                         }
 
                         var isNoMod = false;
-                        if (selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass && newIpv6 === currentIpv6) isNoMod = true;
+                        if (selectedMode === 'lan' && targetIp === currentLanIp && targetGw === currentLanGw && newBypass === currentBypass && newIpv6 === currentIpv6 && !needsV6Fix) isNoMod = true;
+                        
                         if (selectedMode === 'router' && rType === 'static' && targetIp === currentWanIp && targetGw === currentWanGw) isNoMod = true;
                         if (selectedMode === 'router' && rType === 'dhcp' && currentWanProto === 'dhcp') isNoMod = true;
-                        // if (selectedMode === 'pppoe' && container.querySelector('#pppoe-user').value === safeUciGet('network', 'wan', 'username', '') && container.querySelector('#pppoe-pass').value === safeUciGet('network', 'wan', 'password', '')) isNoMod = true;
-                        // 只要相关快照完全一致，且没有提交标记，弹窗拦截
                         if (selectedMode === 'wifi') {
                             if (window._forceWifiSubmit) {
                                 isNoMod = false;
