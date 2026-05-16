@@ -1182,3 +1182,6 @@ msgstr "主 DNS:"
 
 msgid "Secondary DNS:"
 msgstr "备 DNS:"
+
+msgid "⚠️ Non-standard parameters (Default configuration recommended)"
+msgstr "⚠️ 与默认参数不一致 (推荐使用默认配置)"
