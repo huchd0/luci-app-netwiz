@@ -1584,7 +1584,7 @@ return view.extend({
                         }, 100);
                     };
 
-                    var ipv6Label = (ipv6Mode === 'server' || ipv6Mode === 'relay') ? '<b style="color:#10b981; padding: 3px 10px; background: #fff; border-radius: 10px;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444; padding: 3px 10px; background: #fff; border-radius: 10px;">' + T['TXT_OFF'] + '</b>';
+                    var ipv6Label = (window._trueIpv6State === '1') ? '<b style="color:#10b981; padding: 3px 10px; background: #fff; border-radius: 10px;">' + T['TXT_ON'] + '</b>' : '<b style="color:#ef4444; padding: 3px 10px; background: #fff; border-radius: 10px;">' + T['TXT_OFF'] + '</b>';
                     
                     var wDevsList = uci.sections('wireless', 'wifi-device') || [];
                     var wIfacesList = uci.sections('wireless', 'wifi-iface') || [];
