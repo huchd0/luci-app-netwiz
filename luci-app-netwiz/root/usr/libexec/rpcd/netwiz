@@ -243,30 +243,33 @@ case "$1" in
                     # ==========================================
                     current_v6=$(uci -q get dhcp.lan.dhcpv6) # 获取路由器当前真实的 IPv6 状态
                     
-                    # 如果前端明确要求开启 (arg6=1)，或者前端没传但底层原本就是开启的 (current_v6=server)
+                    # 如前端明确要求开启 (arg6=1)，或者前端没传但底层原本就是开启的 (current_v6=server)
                     if [ "$arg6" = "1" ] || { [ -z "$arg6" ] && [ "$current_v6" = "server" ]; }; then
+                        log ">>> [IPv6] 强制清洗并应用标准 DHCPv6 五重参数..."
                         # 1. 净化 ULA 前缀
                         uci -q delete network.globals.ula_prefix
                         
                         # 2. 确保 LAN 口拥有申请 IPv6 前缀的权限
                         uci set network.lan.ip6assign='60' 
 
-                        # 3. 开启服务与通告
+                        # 3. 开启服务与通告 (将 ndp 从 hybrid 改为严格的 server)
                         uci set dhcp.lan.dhcpv6='server'
                         uci set dhcp.lan.ra='server'
-                        uci set dhcp.lan.ndp='hybrid'
+                        uci set dhcp.lan.ndp='server'
                         
-                        # 4. 开启 SLAAC
+                        # 4. 开启 SLAAC (保留此项以增加安卓等不支持DHCPv6设备的兼容性)
                         uci set dhcp.lan.ra_slaac='1'
                         
-                        # 5. 注入 M-Flag 和 O-Flag
+                        # 5. 注入 M-Flag 和 O-Flag (先删后加防重复)
                         uci -q del_list dhcp.lan.ra_flags='managed-config'
                         uci add_list dhcp.lan.ra_flags='managed-config'
                         uci -q del_list dhcp.lan.ra_flags='other-config'
                         uci add_list dhcp.lan.ra_flags='other-config'
                         
+                        uci commit network
+                        
                     elif [ "$arg6" = "0" ]; then
-                        # 明确要求关闭时，执行无痕清理
+                        log ">>> [IPv6] 明确要求关闭，执行无痕清理..."
                         uci set dhcp.lan.dhcpv6='disabled'
                         uci set dhcp.lan.ra='disabled'
                         uci set dhcp.lan.ndp='disabled'
@@ -275,6 +278,8 @@ case "$1" in
                         uci -q del_list dhcp.lan.ra_flags='managed-config'
                         uci -q del_list dhcp.lan.ra_flags='other-config'
                     fi
+                    
+                    uci commit dhcp
                     
                     uci commit network; uci commit dhcp
                 elif [ "$mode" = "wifi" ]; then
