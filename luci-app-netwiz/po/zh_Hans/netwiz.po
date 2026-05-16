@@ -232,8 +232,8 @@ msgstr "旁路由（AP有线中继）模式下，网关为必填项。"
 msgid "WAN Static IP MUST NOT be the same as the gateway!"
 msgstr "WAN 静态 IP 绝对不能和网关一模一样！"
 
-msgid "The AP Wired Relay Device IP MUST NOT be the same as the Gateway!"
-msgstr "旁路由（AP有线中继）的设备 IP 绝对不能和上级网关一模一样！"
+msgid "In AP/Relay mode, the device IP MUST NOT be the exact same as the Gateway! (💡 Tip: The Gateway should be the LAN IP of your upstream main router, and this device needs its own unique IP)"
+msgstr "【旁路由 / 有线中继 (AP)】模式下，本设备 IP 绝对不能与网关相同！（💡 提示：网关请填写上级主路由的 LAN 口 IP 地址，本设备需设置一个同网段的独立 IP）"
 
 msgid "No Changes Needed"
 msgstr "未发生更改"
@@ -268,8 +268,8 @@ msgstr "WAN 静态 IP 必须与网关处于同一网段！"
 msgid "e.g., if gateway is {gw}, the IP must be {ip}.x"
 msgstr "例如：如果网关是 {gw}，则 IP 必须是 {ip}.x"
 
-msgid "The AP Wired Relay Device IP must be in the same subnet as the Gateway!"
-msgstr "旁路由（AP有线中继）的设备 IP 必须与上级网关处于同一网段！"
+msgid "In AP/Relay mode, the device IP must be in the same subnet as the Gateway! (💡 Tip: The Gateway should be the LAN IP of your upstream main router)"
+msgstr "【旁路由 / 有线中继 (AP)】模式下，本设备 IP 必须与网关处于同一网段！（💡 提示：网关请填写上级主路由的 LAN 口 IP 地址）"
 
 msgid "Config Warning"
 msgstr "高危操作警告"
