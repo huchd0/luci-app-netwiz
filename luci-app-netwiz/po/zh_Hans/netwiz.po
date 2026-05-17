@@ -1185,3 +1185,66 @@ msgstr "备 DNS:"
 
 msgid "⚠️ Non-standard parameters (Default configuration recommended)"
 msgstr "⚠️ 与默认参数不一致 (推荐使用默认配置)"
+
+msgid "Cable Unplugged or Wrong Port"
+msgstr "网线未连接 或 插错网口"
+
+msgid "System detected NO SIGNAL on the <b>WAN port</b>!<br><br><b style=\"color:#ef4444;\">💡 Troubleshooting:</b><br>1. Did you plug the upstream cable into the <b>LAN port</b>?<br>2. Are both ends plugged in tightly? Is the modem powered on?<br>"
+msgstr "系统检测到路由器的 <b>WAN 口（外网口）</b> 没有信号！<br><br><b style=\"color:#ef4444;\">💡 新手常见错误排查：</b><br>1. 您是不是把上级网线 <b>插错到了 LAN 口</b>？<br>2. 网线两端是否已插紧？光猫/墙壁网口是否已通电？<br>"
+
+msgid "🔄 Detecting in background... This will close automatically once connected."
+msgstr "🔄 正在后台极速侦测... 插好后本窗口将自动消失"
+
+msgid "I am an AP / Ignore for now"
+msgstr "我是旁路由（中继） / 暂不处理"
+
+msgid "🚨 Severe Warning: Routing Loop"
+msgstr "🚨 严重警告：网络冲突死环"
+
+msgid "System detected that the upstream network (<b style=\"color:#ef4444;\">{wan_ip}</b>) and the LAN (<b style=\"color:#ef4444;\">{lan_ip}</b>) are in the same subnet!<br><br>This will crash the router. <b style=\"color:#059669;\">Please confirm or modify the new LAN IP below and click auto-evade:</b><br><br>"
+msgstr "系统实时检测到，入户网络 (<b style=\"color:#ef4444;\">{wan_ip}</b>) 与本路由器的局域网 (<b style=\"color:#ef4444;\">{lan_ip}</b>) 处于同一网段！<br><br>这将导致路由器彻底瘫痪。<b style=\"color:#059669;\">请确认或修改下方的新局域网 IP，并点击一键避让：</b><br><br>"
+
+msgid "Modify and Restart Network"
+msgstr "立即修改并重启网络"
+
+msgid "❌ Invalid IP format! System restored safe default, please confirm."
+msgstr "❌ 无效的 IP 格式！系统已恢复安全推荐值，请重新确认。"
+
+msgid "❌ Still conflicting! The modified IP is still in the same subnet as upstream.\nSystem restored safe default, please change the 3rd number!"
+msgstr "❌ 依然冲突！修改后的 IP 仍与上级网络在同一网段。\n系统已恢复安全推荐值，请修改第三段数字！"
+
+msgid "⚠️ IMPORTANT:\n\nTo resolve the fatal network loop, the system must change LAN IP and restart immediately.\n\nChanges you made on this page will NOT be saved.\nPlease reconfigure after the network restarts and redirects to the new IP.\n\nContinue to fix conflict?"
+msgstr "⚠️ 重要提示：\n\n为优先解决致命的网络死环，系统必须立即修改局域网 IP 并重启。\n\n您刚才填写的【当前页面的其他配置】将不会被保存。\n请在网络重启、跳转到新 IP 后重新配置。\n\n确定要立即修复冲突吗？"
+
+msgid "⚠️ Network Conflict Blocked"
+msgstr "⚠️ 网络冲突已拦截"
+
+msgid "Upstream network ({wan_ip}) conflicts with local LAN ({lan_ip})!<br><br>Please click below to safely evade to: <b>{safe_ip}</b> to finish setup."
+msgstr "检测到上级网络分配的地址 ({wan_ip}) 与本路由器的内网 ({lan_ip}) 发生严重冲突！<br><br>请先点击下方按钮安全避让至：<b>{safe_ip}</b>，随后即可正常完成向导。"
+
+msgid "Auto Evade"
+msgstr "一键自动避让"
+
+msgid "⚠️ Cross-Subnet Loop Blocked"
+msgstr "⚠️ 跨网段路由死环拦截"
+
+msgid "The LAN IP ({ip}) you set is in the same subnet as your upstream network ({wan_ip}), which will crash the router!<br><br>Suggested evasion to: <b>{safe_ip}</b>"
+msgstr "您设置的 LAN IP ({ip}) 与您的入户网络 ({wan_ip}) 处于同一网段，这会导致路由器瘫痪！<br><br>建议一键避让至：<b>{safe_ip}</b>"
+
+msgid "Fix and Apply"
+msgstr "一键修复并应用"
+
+msgid "Edit Manually"
+msgstr "我自己去改"
+
+msgid "Upstream network ({wan_ip}) conflicts with local LAN ({lan_ip})!<br><br>You MUST change device LAN IP. Suggested evasion to: <b>{safe_ip}</b>"
+msgstr "检测到上级网络分配的地址 ({wan_ip}) 与本路由器的内网 ({lan_ip}) 发生严重冲突！<br><br>必须修改本设备的 LAN IP。系统建议安全避让至：<b>{safe_ip}</b>"
+
+msgid "⚠️ Severe Physical Conflict"
+msgstr "⚠️ 严重物理冲突"
+
+msgid "The WAN Static IP ({ip}) you set is exactly the same as the upstream Gateway!<br><br>This causes a severe physical loop. Please change your Static IP (e.g., {suggest_ip})."
+msgstr "您设置的 WAN 静态 IP ({ip}) 与上级网络的真实网关完全相同！<br><br>这将导致严重的物理死环。请修改您的静态 IP（例如改为 {suggest_ip}）。"
+
+msgid "The AP IP ({ip}) you set is exactly the same as the upstream Gateway!<br><br>This will paralyze the network. Please change to another free IP (e.g., {suggest_ip})."
+msgstr "您设置的旁路由 IP ({ip}) 与上级网络的真实网关完全相同！<br><br>这将导致全屋网络瘫痪。请修改为同网段的其他空闲 IP（例如 {suggest_ip}）。"
