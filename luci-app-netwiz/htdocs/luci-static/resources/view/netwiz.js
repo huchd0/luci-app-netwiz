@@ -207,6 +207,28 @@ var T = {
     'TXT_DNS1': _('Primary DNS:'),
     'TXT_DNS2': _('Secondary DNS:'),
     'TIP_IPV6_WARN':_('⚠️ Non-standard parameters (Default configuration recommended)'),
+    // ===== 新增防呆与冲突拦截词条 =====
+    'M_WAN_DOWN_TIT': _('Cable Unplugged or Wrong Port'),
+    'M_WAN_DOWN_MSG': _('System detected NO SIGNAL on the <b>WAN port</b>!<br><br><b style="color:#ef4444;">💡 Troubleshooting:</b><br>1. Did you plug the upstream cable into the <b>LAN port</b>?<br>2. Are both ends plugged in tightly? Is the modem powered on?<br>'),
+    'M_WAN_DOWN_WAIT': _('🔄 Detecting in background... This will close automatically once connected.'),
+    'BTN_IGNORE_WAN': _('I am an AP / Ignore for now'),
+    'M_CFLT_GLOBAL_TIT': _('🚨 Severe Warning: Routing Loop'),
+    'M_CFLT_GLOBAL_MSG': _('System detected that the upstream network (<b style="color:#ef4444;">{wan_ip}</b>) and the LAN (<b style="color:#ef4444;">{lan_ip}</b>) are in the same subnet!<br><br>This will crash the router. <b style="color:#059669;">Please confirm or modify the new LAN IP below and click auto-evade:</b><br><br>'),
+    'BTN_FIX_CONFLICT': _('Modify and Restart Network'),
+    'M_INVALID_IP_FMT': _('❌ Invalid IP format! System restored safe default, please confirm.'),
+    'M_STILL_CONFLICT': _('❌ Still conflicting! The modified IP is still in the same subnet as upstream.\nSystem restored safe default, please change the 3rd number!'),
+    'M_WARN_UNSAVED': _('⚠️ IMPORTANT:\n\nTo resolve the fatal network loop, the system must change LAN IP and restart immediately.\n\nChanges you made on this page will NOT be saved.\nPlease reconfigure after the network restarts and redirects to the new IP.\n\nContinue to fix conflict?'),
+    'M_CFLT_INTERCEPT_TIT': _('⚠️ Network Conflict Blocked'),
+    'M_CFLT_WIZ_MSG': _('Upstream network ({wan_ip}) conflicts with local LAN ({lan_ip})!<br><br>Please click below to safely evade to: <b>{safe_ip}</b> to finish setup.'),
+    'BTN_AUTO_EVADE': _('Auto Evade'),
+    'M_CFLT_CROSS_TIT': _('⚠️ Cross-Subnet Loop Blocked'),
+    'M_CFLT_CROSS_MSG': _('The LAN IP ({ip}) you set is in the same subnet as your upstream network ({wan_ip}), which will crash the router!<br><br>Suggested evasion to: <b>{safe_ip}</b>'),
+    'BTN_FIX_APPLY': _('Fix and Apply'),
+    'BTN_EDIT_MYSELF': _('Edit Manually'),
+    'M_CFLT_ROUTER_MSG': _('Upstream network ({wan_ip}) conflicts with local LAN ({lan_ip})!<br><br>You MUST change device LAN IP. Suggested evasion to: <b>{safe_ip}</b>'),
+    'M_CFLT_PHYSICAL_TIT': _('⚠️ Severe Physical Conflict'),
+    'M_CFLT_PHYSICAL_WAN_MSG': _('The WAN Static IP ({ip}) you set is exactly the same as the upstream Gateway!<br><br>This causes a severe physical loop. Please change your Static IP (e.g., {suggest_ip}).'),
+    'M_CFLT_PHYSICAL_BYP_MSG': _('The AP IP ({ip}) you set is exactly the same as the upstream Gateway!<br><br>This will paralyze the network. Please change to another free IP (e.g., {suggest_ip}).'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -775,7 +797,36 @@ return view.extend({
                     openModal({ title: T['M_INC_TIT'], msg: T['M_INC_PPPOE'], okText: T['M_CLOSE'] }); 
                     return; 
                 }
-                wArea1.style.display = 'none'; wArea2.style.display = 'block'; wBtnPrev.style.display = 'block'; wArea1.style.display = 'none'; wArea2.style.display = 'block'; wBtnPrev.style.display = 'block'; currentWizStep = 2; updateWizSteps(2); // 【更新点阵】
+
+                // ========================================================
+                // 向导内的 DHCP 冲突拦截与一键避让
+                if (wType === 'dhcp') {
+                    var sysWanIp = window._liveWanIp || '';
+                    var currentLanIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0];
+                    
+                    if (sysWanIp && currentLanIp && isSameSubnet(sysWanIp, currentLanIp)) {
+                        var newSafeIp = getSafeRouterIp(sysWanIp); // 调用我们的向上递增算法
+                        openModal({
+                            title: T['M_CFLT_INTERCEPT_TIT'], 
+                            msg: T['M_CFLT_WIZ_MSG'].replace('{wan_ip}', sysWanIp).replace('{lan_ip}', currentLanIp).replace('{safe_ip}', newSafeIp), 
+                            okText: T['BTN_AUTO_EVADE'],
+                            isDanger: true,
+                            onOk: function() {
+                                // 关闭向导，通道静默改 IP，并触发 120 秒回滚！
+                                container.querySelector('#lan-ip').value = newSafeIp;
+                                selectedMode = 'lan'; 
+                                container.querySelector('#nw-global-modal').style.display = 'none';
+                                container.querySelector('#nw-wizard-modal').style.display = 'none'; // 关闭向导
+                                container.querySelector('#btn-next-2').click(); // 触发底层 120s 重启逻辑
+                            }
+                        });
+                        return; // 不让向导进入下一步
+                    }
+                }
+                // ========================================================
+
+                wArea1.style.display = 'none'; wArea2.style.display = 'block'; 
+                wBtnPrev.style.display = 'block'; currentWizStep = 2; updateWizSteps(2); 
             } else if (currentWizStep === 2) {
                 var isSkipWifi = skipWifiCb ? skipWifiCb.checked : false;
                 var ssid = container.querySelector('#wiz-wifi-ssid').value.trim();
@@ -1085,12 +1136,15 @@ return view.extend({
                 Promise.all([ safePromise(uci.load('network'), null), safePromise(uci.load('dhcp'), null), safePromise(uci.load('wireless'), null), safePromise(getWanStatus(), {}) ]).then(function(results) {
                     var rawIfaces = results[3] || {}, ifaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
-                    var activeWan = ifaces.find(function(i) { return i && (i.interface === 'wan' || i.proto === wProto || i.device === 'eth0' || i.device === 'wan'); }) || {};
+                    var activeWan = ifaces.find(function(i) { 
+                        return i && (i.interface === 'wan' || i.interface === 'wwan' || (i.interface && i.interface.indexOf('wan') !== -1 && i.interface.indexOf('lan') === -1)); 
+                    }) || {};
                     var liveWanIp = ((activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) ? activeWan['ipv4-address'][0].address : '').split('/')[0];
                     window._liveWanIp = liveWanIp;
                     var liveGw = activeWan.nexthop || '';
                     if (!liveGw && Array.isArray(activeWan.route)) { var defaultRoute = activeWan.route.find(function(r) { return r.target === '0.0.0.0'; }); if (defaultRoute) liveGw = defaultRoute.nexthop; }
                     if (!liveGw && activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) liveGw = activeWan['ipv4-address'][0].ptpaddress || '';
+                    window._realUpstreamGw = liveGw;
                     liveGw = liveGw || T['TXT_GETTING'];
 
                     // 提取并格式化连接时间
@@ -1111,10 +1165,119 @@ return view.extend({
                     // 提取主备 DNS
                     var dnsServers = activeWan['dns-server'] || [];
                     var dns1 = dnsServers[0] || '';
+
+                    // 优先使用 底层物理载波状态判断网线通断
+                    var isWanDown = false;
+                    if (typeof activeWan.l1up !== 'undefined') {
+                        // 新系统：物理层！l1up 为 false
+                        isWanDown = (activeWan.l1up === false);
+                    } else {
+                        // 老系统：底层接口没暴露 l1up，退回使用 up 状态和 IP 综合推断
+                        isWanDown = (activeWan.up === false && (!liveWanIp || liveWanIp === T['TXT_GETTING'] || liveWanIp === T['TXT_NOT_GOT']));
+                    }
+                    
+                    if (isWanDown && !isBypass && (!selectedMode || selectedMode === 'router')) {
+                        // 大约在 502 行
+                        if (!window._hasAlertedWanDown && !localStorage.getItem('ignoreWanAlert')) {
+                            window._hasAlertedWanDown = true;
+                            
+                            // 专属悬浮层，让探针运行
+                            var overlay = document.createElement('div');
+                            overlay.id = 'nw-custom-wan-alert';
+                            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);';
+                            
+                            var box = document.createElement('div');
+                            box.style.cssText = 'background:#fff; width:90%; max-width:420px; border-radius:12px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); text-align:center; font-family:sans-serif;';
+                            
+                            box.innerHTML = '<div style="font-size:36px; margin-bottom:10px;">🔌</div>' + 
+                                            '<h3 style="margin:0 0 15px 0; color:#1f2937; font-size:20px;">' + T['M_WAN_DOWN_TIT'] + '</h3>' + 
+                                            '<div style="text-align:left; color:#4b5563; font-size:15px; line-height:1.6; margin-bottom:20px;">' + T['M_WAN_DOWN_MSG'] + '</div>' + 
+                                            '<div style="text-align:center; color:#059669; font-weight:bold; font-size:14px; margin-bottom:20px; padding:10px; background:#d1fae5; border-radius:8px;">' + T['M_WAN_DOWN_WAIT'] + '</div>' +
+                                            '<button id="btn-ignore-wan" style="background:#f00; color:#fff; border:none; padding:0 20px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; font-size:15px; transition:0.2s;">' + T['BTN_IGNORE_WAN'] + '</button>';
+                            
+                            overlay.appendChild(box);
+                            document.body.appendChild(overlay);
+
+                            // 点击不处理，手动删掉悬浮层
+                            document.getElementById('btn-ignore-wan').onclick = function() {
+                                window._hasAlertedWanDown = true;
+                                
+                                // 写入本地缓存
+                                localStorage.setItem('ignoreWanAlert', 'true'); 
+                                
+                                var el = document.getElementById('nw-custom-wan-alert');
+                                if (el) el.remove();
+                            };
+                        }
+                    } else if (!isWanDown) {
+                        // 发现插网线
+                        var customAlert = document.getElementById('nw-custom-wan-alert');
+                        if (customAlert) {
+                            customAlert.remove();
+                        }
+                        window._hasAlertedWanDown = false;
+                        
+                        // 清除免扰状态
+                        localStorage.removeItem('ignoreWanAlert'); 
+                    }
+
                     var dns2 = dnsServers[1] || '';
 
                     var wIp = safeUciGet('network', 'wan', 'ipaddr', T['TXT_NOT_GOT']).split('/')[0], wGw = safeUciGet('network', 'wan', 'gateway', T['TXT_NOT_SET']);
                     var lIp = safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0], lGw = safeUciGet('network', 'lan', 'gateway', T['TXT_NOT_SET']), lIgnore = safeUciGet('dhcp', 'lan', 'ignore', ''), isBypass = (lIgnore === '1' || lIgnore === 'true' || lIgnore === 'on' || lIgnore === 'yes');
+                    
+                    // 全局拦截，只要发现网段死环，立刻弹窗
+                    var sysWanIp = window._liveWanIp || ''; 
+                    var currentLanIp = lIp; // 刚刚获取的最新局域网 IP
+                    
+                    // 只要拿到 WAN IP，且发现和 LAN 在同一网段，立刻触发警报
+                    if (sysWanIp && currentLanIp && isSameSubnet(sysWanIp, currentLanIp)) {
+                        if (!window._hasAlertedConflict && container.querySelector('#nw-global-modal').style.display === 'none') {
+                            window._hasAlertedConflict = true; 
+                            var newSafeIp = getSafeRouterIp(sysWanIp); // 如果 WAN 是 100 段，自动 192.168.1.1
+                            
+                            openModal({
+                                title: T['M_CFLT_GLOBAL_TIT'], 
+                                msg: T['M_CFLT_GLOBAL_MSG'].replace('{wan_ip}', sysWanIp).replace('{lan_ip}', currentLanIp) + "<div style='text-align:center;'><input type='text' id='conflict-new-ip' value='" + newSafeIp + "' style='font-size:19px; font-weight:bold; color:#1e3a8a; background:#eff6ff; border:2px solid #3b82f6; border-radius:8px; padding:10px 15px; width:220px; text-align:center; box-sizing:border-box; outline:none;'></div>", 
+                                okText: T['BTN_FIX_CONFLICT'],
+                                isDanger: true,
+                                onOk: function() {
+                                    var customIp = document.getElementById('conflict-new-ip').value.trim();
+                                    var cleanIp = customIp.replace(/\s+/g, '');
+                                    if (!isValidIP(cleanIp)) {
+                                        alert(T['M_INVALID_IP_FMT']);
+                                        document.getElementById('conflict-new-ip').value = newSafeIp;
+                                        return;
+                                    }
+                                    if (isSameSubnet(sysWanIp, cleanIp)) {
+                                        alert(T['M_STILL_CONFLICT']);
+                                        document.getElementById('conflict-new-ip').value = newSafeIp;
+                                        return;
+                                    }
+                                    if (selectedMode !== 'lan' && selectedMode !== '') {
+                                        var userConfirm = confirm(T['M_WARN_UNSAVED']);
+                                        if (!userConfirm) return; 
+                                    }
+
+                                    // 2. 合法的 IP 塞进表单
+                                    container.querySelector('#lan-ip').value = cleanIp;
+                                    selectedMode = 'lan'; // 明确告诉底层：这次只修 LAN
+                                    
+                                    // 3. 开启 120 秒回滚保护
+                                    var safeToggle = container.querySelector('#lan-safe-toggle');
+                                    if (safeToggle) safeToggle.checked = true;
+
+                                    // 4. 清理所有弹窗并触发底层保存
+                                    container.querySelector('#nw-global-modal').style.display = 'none';
+                                    var wizModal = container.querySelector('#nw-wizard-modal');
+                                    if (wizModal) wizModal.style.display = 'none';
+                                    
+                                    container.querySelector('#btn-apply').click(); 
+                                }
+                            });
+                        }
+                    }
+
                     if (container.querySelector('#pppoe-user')) container.querySelector('#pppoe-user').value = safeUciGet('network', 'wan', 'username', '');
                     if (container.querySelector('#pppoe-pass')) container.querySelector('#pppoe-pass').value = safeUciGet('network', 'wan', 'password', '');
                     if (container.querySelector('#router-ip')) container.querySelector('#router-ip').value = (wIp !== T['TXT_NOT_GOT']) ? wIp : '';
@@ -1122,6 +1285,18 @@ return view.extend({
                     if (container.querySelector('#lan-ip')) container.querySelector('#lan-ip').value = lIp;
                     if (container.querySelector('#lan-gw')) container.querySelector('#lan-gw').value = (lGw !== T['TXT_NOT_SET']) ? lGw : '';
                     
+                    if (wProto === 'static') {
+                        var staticRadio = container.querySelector('input[name="router_type"][value="static"]');
+                        if (staticRadio) staticRadio.checked = true; // 选中静态 IP
+                        var staticFields = container.querySelector('#router-static-fields');
+                        if (staticFields) staticFields.style.display = 'block'; // 展开静态 IP 填写框
+                    } else {
+                        var dhcpRadio = container.querySelector('input[name="router_type"][value="dhcp"]');
+                        if (dhcpRadio) dhcpRadio.checked = true; // 默认选中 DHCP
+                        var staticFields = container.querySelector('#router-static-fields');
+                        if (staticFields) staticFields.style.display = 'none'; // 隐藏静态 IP 填写框
+                    }
+
                     var bypassToggle = container.querySelector('#lan-bypass-toggle');
                     if (bypassToggle) { bypassToggle.checked = isBypass; container.querySelector('#lan-bypass-warning').style.display = isBypass ? 'block' : 'none'; container.querySelector('#lan-main-warning').style.display = isBypass ? 'none' : 'block'; }
 
@@ -1716,6 +1891,28 @@ return view.extend({
 
         function calculateNetmask(ip) { if (!ip) return '255.255.255.0'; var b = parseInt(ip.split('.')[0], 10); if (b >= 1 && b <= 126) return '255.0.0.0'; if (b >= 128 && b <= 191) return '255.255.0.0'; return '255.255.255.0'; }
         function isValidIP(ip) { if (!ip) return false; var p = ip.split('.'); if (p.length !== 4) return false; for (var i = 0; i < 4; i++) { var n = parseInt(p[i], 10); if (isNaN(n) || n < 0 || n > 255 || String(n) !== p[i]) return false; } if (p[0] === '0' || p[0] === '127') return false; var l = parseInt(p[3], 10); return (l !== 0 && l !== 255); }
+        // 主路由模式 - 向上递增避让算法 (1.1 -> 2.1 -> 3.1)
+        function getSafeRouterIp(wanIp) {
+            if (!wanIp) return '192.168.2.1';
+            var wanSubnet = parseInt(wanIp.split('.')[2], 10);
+            var safeSubnet = 1; // 默认从 192.168.1.1 开始试探
+            while (safeSubnet === wanSubnet || safeSubnet === 0) {
+                safeSubnet++;
+                if (safeSubnet > 250) break; // 极值保护
+            }
+            return '192.168.' + safeSubnet + '.1';
+        }
+
+        // 旁路由/AP模式 - 向下递减避让算法 (.254 -> .253)
+        function getSafeApIp(gatewayIp) {
+            if (!gatewayIp) return '';
+            var parts = gatewayIp.split('.');
+            var prefix = parts[0] + '.' + parts[1] + '.' + parts[2];
+            var gwTail = parseInt(parts[3], 10);
+            var safeTail = 254; // 默认从最高位 254 开始给
+            if (safeTail === gwTail) safeTail = 253; // 如果网关极其罕见地占用了 254，则顺延
+            return prefix + '.' + safeTail;
+        }
         function isSameSubnet(ip1, ip2) { if (!ip1 || !ip2) return false; var p1 = ip1.split('.'), p2 = ip2.split('.'); return (p1.length === 4 && p2.length === 4 && p1[0] === p2[0] && p1[1] === p2[1] && p1[2] === p2[2]); }
         
         function openModal(o) { 
@@ -1848,7 +2045,7 @@ return view.extend({
                 // 2. 下拉框选择 -> 影响密码框
                 encEl.addEventListener('change', function() {
                     if (this.value === 'none') {
-                        keyEl.value = ''; // 如果手动选了无密码，强行清空密码框，防止数据残留
+                        keyEl.value = ''; // 手动选了无密码，清空密码框，防止数据残留
                     }
                 });
             }
@@ -1868,7 +2065,7 @@ return view.extend({
                 en5g.checked = false; 
                 var s2El = container.querySelector('#wifi-2g-ssid');
                 var s5 = container.querySelector('#wifi-5g-ssid').value;
-                // 不仅为空时推断，名字一样，强制加后缀拆分
+                // 不仅为空时推断，名字一样，加后缀拆分
                 if ((!s2El.value || s2El.value === s5) && s5) {
                     s2El.value = smartConvertSsid(s5, '2g');
                     if (!container.querySelector('#wifi-2g-key').value) container.querySelector('#wifi-2g-key').value = container.querySelector('#wifi-5g-key').value;
@@ -1884,7 +2081,7 @@ return view.extend({
                 en2g.checked = false; 
                 var s5El = container.querySelector('#wifi-5g-ssid');
                 var s2 = container.querySelector('#wifi-2g-ssid').value;
-                // 不仅为空时推断，名字一样，强制加后缀拆分
+                // 不仅为空时推断，名字一样，加后缀拆分
                 if ((!s5El.value || s5El.value === s2) && s2) {
                     s5El.value = smartConvertSsid(s2, '5g');
                     if (!container.querySelector('#wifi-5g-key').value) container.querySelector('#wifi-5g-key').value = container.querySelector('#wifi-2g-key').value;
@@ -2117,7 +2314,7 @@ return view.extend({
                 scanBtn.innerText = T['TXT_SCANNING'];
                 scanBtn.disabled = true;
                 
-                // 单芯片用 radio0，多芯片若 5G 有开則优先用 radio1 异频中继)
+                // 单芯片用 radio0，多芯片若 5G 开优先用 radio1 异频中继)
                 var scanDevice = 'radio0'; 
                 if (!window._isSingleChip && container.querySelector('#wifi-5g-en').checked) scanDevice = 'radio1'; 
                 
@@ -2244,26 +2441,123 @@ return view.extend({
                 var rType = rTypeEl ? rTypeEl.value : 'dhcp';
                 var targetIp = '', targetGw = '', isBypass = false;
                 
+                // 获取系统当前的 WAN IP，用于冲突比对
+                var sysWanIp = window._liveWanIp || ''; 
+
                 if (selectedMode === 'lan') { 
                     targetIp = container.querySelector('#lan-ip').value.trim(); 
                     targetGw = container.querySelector('#lan-gw').value.trim(); 
                     isBypass = bypassToggle.checked;
+                    
                     if (!targetIp) { openModal({title: T['M_INC_TIT'], msg: T['M_INC_IP'], okText:T['BTN_EDIT']}); return; }
                     if (!isValidIP(targetIp)) { openModal({title:T['M_FMT_TIT'], msg:T['M_FMT_IP'], okText:T['BTN_EDIT']}); return; }
+                    
                     if (isBypass) {
                         if (!targetGw) { openModal({title: T['M_LOGIC_TIT'], msg: T['M_LOGIC_BYP'], okText:T['BTN_EDIT']}); return; }
                         if (!isValidIP(targetGw)) { openModal({title: T['M_FMT_TIT'], msg: T['M_FMT_GW'], okText:T['BTN_EDIT']}); return; }
-                        if (targetIp === targetGw) { openModal({title: T['M_LOGIC_TIT'], msg: T['M_SAME_BYP'], okText:T['BTN_EDIT']}); return; }
                         if (!isSameSubnet(targetIp, targetGw)) { openModal({title: T['M_SUB_ERR_TIT'], msg: T['M_SUB_ERR_BYP'], okText:T['BTN_EDIT']}); return; }
+                        
+                        if (targetIp === targetGw) { 
+                            openModal({
+                                title: T['M_LOGIC_TIT'], 
+                                msg: T['M_SAME_BYP'] || "旁路由/AP 模式下，本设备 IP 绝对不能与网关相同！", 
+                                okText: T['BTN_EDIT']
+                            }); 
+                            return; 
+                        }
+                        if (window._realUpstreamGw && window._realUpstreamGw !== T['TXT_GETTING']) {
+                            // 物理网关抢占拦截 (旁路由模式)
+                            if (targetIp === window._realUpstreamGw) {
+                                // 递減算法
+                                var suggestBypIp = getSafeApIp(window._realUpstreamGw);
+
+                                openModal({
+                                    title: T['M_CFLT_PHYSICAL_TIT'],
+                                    msg: T['M_CFLT_PHYSICAL_BYP_MSG'].replace('{ip}', targetIp).replace('{suggest_ip}', suggestBypIp),
+                                    okText: T['BTN_EDIT'],
+                                    isDanger: true
+                                });
+                                return;
+                            }
+                        }
+                    } else {
+                        // 在 LAN 模式（未开启 AP）时，如果填写的 LAN IP 与上级 WAN IP 网段冲突
+                        if (sysWanIp && isSameSubnet(targetIp, sysWanIp)) {
+                            var safeRouterIp = getSafeRouterIp(sysWanIp);
+                            // 跨网段拦截
+                            openModal({
+                                title: T['M_CFLT_CROSS_TIT'], 
+                                msg: T['M_CFLT_CROSS_MSG'].replace('{ip}', targetIp).replace('{wan_ip}', sysWanIp).replace('{safe_ip}', safeRouterIp), 
+                                okText: T['BTN_FIX_APPLY'],
+                                cancelText: T['BTN_EDIT_MYSELF'],
+                                onOk: function() {
+                                    container.querySelector('#lan-ip').value = safeRouterIp;
+                                    container.querySelector('#nw-global-modal').style.display = 'none';
+                                    container.querySelector('#btn-next-2').click();
+                                }
+                            });
+                            return;
+                        }
                     }
-                } else if (selectedMode === 'router' && rType === 'static') { 
-                    targetIp = container.querySelector('#router-ip').value.trim(); 
-                    targetGw = container.querySelector('#router-gw').value.trim();
-                    if (!targetIp || !targetGw) { openModal({title:T['M_INC_TIT'], msg:T['M_INC_WAN'], okText:T['BTN_EDIT']}); return; }
-                    if (!isValidIP(targetIp) || !isValidIP(targetGw)) { openModal({title:T['M_FMT_TIT'], msg:(!isValidIP(targetIp)?T['M_FMT_WAN']:T['M_FMT_GW']), okText:T['BTN_EDIT']}); return; }
-                    if (targetIp === targetGw) { openModal({title: T['M_LOGIC_TIT'], msg: T['M_SAME_GW'], okText:T['BTN_EDIT']}); return; }
-                    if (!isSameSubnet(targetIp, targetGw)) { openModal({title: T['M_SUB_ERR_TIT'], msg: T['M_SUB_ERR_WAN1'] + '<br>' + T['M_SUB_ERR_WAN2'].replace('{gw}', targetGw).replace('{ip}', targetGw.substring(0, targetGw.lastIndexOf('.'))), okText:T['BTN_EDIT']}); return; }
-                } else if (selectedMode === 'pppoe') { 
+                } else if (selectedMode === 'router') { 
+                    // 主路由模式下的避让，包含 DHCP 和 Static
+                    // DHCP 还是配置 Static，路由器的 LAN IP 和现在的 WAN 冲突，修改 LAN IP
+                    var currentLanIp = container.querySelector('#lan-ip').value || safeUciGet('network', 'lan', 'ipaddr', window.location.hostname).split('/')[0];
+                    
+                    if (rType === 'static') { 
+                        targetIp = container.querySelector('#router-ip').value.trim(); 
+                        targetGw = container.querySelector('#router-gw').value.trim();
+                        if (!targetIp || !targetGw) { openModal({title:T['M_INC_TIT'], msg:T['M_INC_WAN'], okText:T['BTN_EDIT']}); return; }
+                        if (!isValidIP(targetIp) || !isValidIP(targetGw)) { openModal({title:T['M_FMT_TIT'], msg:(!isValidIP(targetIp)?T['M_FMT_WAN']:T['M_FMT_GW']), okText:T['BTN_EDIT']}); return; }
+                    if (targetIp === targetGw) { 
+                        openModal({
+                            title: T['M_LOGIC_TIT'], 
+                            msg: T['M_SAME_GW'],
+                            okText: T['BTN_EDIT']
+                        }); 
+                        return; 
+                    }
+                    // 主路由/WAN 靜态 IP 模式的物理网关拦截
+                    if (window._realUpstreamGw && window._realUpstreamGw !== T['TXT_GETTING']) {
+                        if (targetIp === window._realUpstreamGw) {
+                            // WAN 口动态生成一個不等于 targetIp 尾数的建义值 (.88 或 .66)
+                            var gwTailWan = parseInt(targetIp.split('.')[3], 10);
+                            var suggestTailWan = (gwTailWan === 88) ? 66 : 88;
+                            var suggestWanIp = targetIp.substring(0, targetIp.lastIndexOf('.')) + "." + suggestTailWan;
+
+                            openModal({
+                                title: T['M_CFLT_PHYSICAL_TIT'],
+                                msg: T['M_CFLT_PHYSICAL_WAN_MSG'].replace('{ip}', targetIp).replace('{suggest_ip}', suggestWanIp),
+                                okText: T['BTN_EDIT'],
+                                isDanger: true
+                            });
+                            return;
+                        }
+                    }
+                        if (!isSameSubnet(targetIp, targetGw)) { openModal({title: T['M_SUB_ERR_TIT'], msg: T['M_SUB_ERR_WAN1'] + '<br>' + T['M_SUB_ERR_WAN2'].replace('{gw}', targetGw).replace('{ip}', targetGw.substring(0, targetGw.lastIndexOf('.'))), okText:T['BTN_EDIT']}); return; }
+                        sysWanIp = targetIp; // 静态下，将用户填写的 WAN IP 作为校验基准
+                    }
+
+                    // WAN 和 LAN 在主路由模式冲突
+                    if (sysWanIp && currentLanIp && isSameSubnet(sysWanIp, currentLanIp)) {
+                        var newSafeIp = getSafeRouterIp(sysWanIp);
+                        // 主路由模式跨网段避让
+                        openModal({
+                            title: T['M_CFLT_INTERCEPT_TIT'], 
+                            msg: T['M_CFLT_ROUTER_MSG'].replace('{wan_ip}', sysWanIp).replace('{lan_ip}', currentLanIp).replace('{safe_ip}', newSafeIp), 
+                            okText: T['BTN_AUTO_EVADE'],
+                            isDanger: true,
+                            onOk: function() {
+                                // 强制重定向到修改 LAN IP，并附带 120 秒回滚保护！
+                                container.querySelector('#lan-ip').value = newSafeIp;
+                                selectedMode = 'lan'; // 篡改提交模式
+                                container.querySelector('#nw-global-modal').style.display = 'none';
+                                container.querySelector('#btn-next-2').click(); 
+                            }
+                        });
+                        return; // 拦截本次提交
+                    }
+                } else if (selectedMode === 'pppoe') {
                     if (!container.querySelector('#pppoe-user').value.trim() || !container.querySelector('#pppoe-pass').value.trim()) { openModal({title: T['M_INC_TIT'], msg: T['M_INC_PPPOE'], okText: T['BTN_EDIT']}); return; } 
                 } else if (selectedMode === 'wifi') {
                     var isSmart = container.querySelector('#wifi-smart-toggle').checked && !window._isSingleChip;
@@ -2321,7 +2615,7 @@ return view.extend({
                         var ipv6El = container.querySelector('#lan-ipv6-toggle');
                         var newIpv6 = (ipv6El && ipv6El.checked) ? '1' : '0';
                         
-                        // 💡 新增：检查黄色的 IPv6 警告灯是否亮起？
+                        // 检查黄色的 IPv6 警告灯是否亮起
                         var v6WarnEl = container.querySelector('#tip-ipv6-warn');
                         var needsV6Fix = (v6WarnEl && v6WarnEl.style.display !== 'none');
 
