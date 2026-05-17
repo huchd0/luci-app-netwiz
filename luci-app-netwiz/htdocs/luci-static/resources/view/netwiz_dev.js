@@ -194,7 +194,7 @@ var T = {
     'TIP_DEPT_BIND_RULE': _('Custom group names are not strictly bound to IP subnets. The ranges are only used for automatic IP assignment when a group is selected.'),
     'TXT_UNOPERABLE': _('Unoperable'),
     'TXT_NOTE': _('Note:'),
-    'BTN_WOL': _('Wake on LAN'),
+    'BTN_WOL': _('Wake on LAN (WOL)'),
     'MSG_WOL_SENT': _('Wake packet sent to {mac}!\n(Device booting may take a minute)'),
 };
 
