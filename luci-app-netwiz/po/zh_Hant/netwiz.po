@@ -1189,16 +1189,16 @@ msgstr "⚠️ 與預設參數不一致 (建議使用預設設定)"
 msgid "Cable Unplugged or Wrong Port"
 msgstr "網線未連接 或 插錯網口"
 
-msgid "System detected NO SIGNAL on the <b>WAN port</b>!<br><br><b style=\"color:#ef4444;\">💡 Troubleshooting:</b><br>1. Did you plug the upstream cable into the <b>LAN port</b>?<br>2. Are both ends plugged in tightly? Is the modem powered on?<br>"
+msgid "System detected NO SIGNAL on the <b>WAN port</b>!<br><br><b style=\"color:#ef4444;\">Troubleshooting:</b><br>1. Did you plug the upstream cable into the <b>LAN port</b>?<br>2. Are both ends plugged in tightly? Is the modem powered on?<br>"
 msgstr "系統檢測到路由器的 <b>WAN 口（外網口）</b> 沒有信號！<br><br><b style=\"color:#ef4444;\">💡 新手常見錯誤排查：</b><br>1. 您是不是把上級網線 <b>插錯到了 LAN 口</b>？<br>2. 網線兩端是否已插緊？光貓/牆壁網口是否已通電？<br>"
 
-msgid "🔄 Detecting in background... This will close automatically once connected."
+msgid "Detecting in background... This will close automatically once connected."
 msgstr "🔄 正在後台極速偵測... 插好後本窗口將自動消失"
 
 msgid "I am an AP / Ignore for now"
 msgstr "我是旁路由（中繼） / 暫不處理"
 
-msgid "🚨 Severe Warning: Routing Loop"
+msgid "Severe Warning: Routing Loop"
 msgstr "🚨 嚴重警告：網絡衝突死環"
 
 msgid "System detected that the upstream network (<b style=\"color:#ef4444;\">{wan_ip}</b>) and the LAN (<b style=\"color:#ef4444;\">{lan_ip}</b>) are in the same subnet!<br><br>This will crash the router. <b style=\"color:#059669;\">Please confirm or modify the new LAN IP below and click auto-evade:</b><br><br>"
@@ -1207,16 +1207,16 @@ msgstr "系統實時檢測到，入戶網絡 (<b style=\"color:#ef4444;\">{wan_i
 msgid "Modify and Restart Network"
 msgstr "立即修改並重啟網絡"
 
-msgid "❌ Invalid IP format! System restored safe default, please confirm."
+msgid "Invalid IP format! System restored safe default, please confirm."
 msgstr "❌ 無效的 IP 格式！系統已恢復安全推薦值，請重新確認。"
 
-msgid "❌ Still conflicting! The modified IP is still in the same subnet as upstream.\nSystem restored safe default, please change the 3rd number!"
+msgid "Still conflicting! The modified IP is still in the same subnet as upstream.\nSystem restored safe default, please change the 3rd number!"
 msgstr "❌ 依然衝突！修改後的 IP 仍與上級網絡在同一網段。\n系統已恢復安全推薦值，請修改第三段數字！"
 
-msgid "⚠️ IMPORTANT:\n\nTo resolve the fatal network loop, the system must change LAN IP and restart immediately.\n\nChanges you made on this page will NOT be saved.\nPlease reconfigure after the network restarts and redirects to the new IP.\n\nContinue to fix conflict?"
+msgid "IMPORTANT:\n\nTo resolve the fatal network loop, the system must change LAN IP and restart immediately.\n\nChanges you made on this page will NOT be saved.\nPlease reconfigure after the network restarts and redirects to the new IP.\n\nContinue to fix conflict?"
 msgstr "⚠️ 重要提示：\n\n為優先解決致命的網絡死環，系統必須立即修改局域網 IP 並重啟。\n\n您剛才填寫的【當前頁面的其他配置】將不會被保存。\n請在網絡重啟、跳轉到新 IP 後重新配置。\n\n確定要立即修復衝突嗎？"
 
-msgid "⚠️ Network Conflict Blocked"
+msgid "Network Conflict Blocked"
 msgstr "⚠️ 網絡衝突已攔截"
 
 msgid "Upstream network ({wan_ip}) conflicts with local LAN ({lan_ip})!<br><br>Please click below to safely evade to: <b>{safe_ip}</b> to finish setup."
@@ -1225,7 +1225,7 @@ msgstr "檢測到上級網絡分配的地址 ({wan_ip}) 與本路由器的內網
 msgid "Auto Evade"
 msgstr "一鍵自動避讓"
 
-msgid "⚠️ Cross-Subnet Loop Blocked"
+msgid "Cross-Subnet Loop Blocked"
 msgstr "⚠️ 跨網段路由死環攔截"
 
 msgid "The LAN IP ({ip}) you set is in the same subnet as your upstream network ({wan_ip}), which will crash the router!<br><br>Suggested evasion to: <b>{safe_ip}</b>"
@@ -1240,7 +1240,7 @@ msgstr "我自己去改"
 msgid "Upstream network ({wan_ip}) conflicts with local LAN ({lan_ip})!<br><br>You MUST change device LAN IP. Suggested evasion to: <b>{safe_ip}</b>"
 msgstr "檢測到上級網絡分配的地址 ({wan_ip}) 與本路由器的內網 ({lan_ip}) 發生嚴重衝突！<br><br>必須修改本設備的 LAN IP。系統建議安全避讓至：<b>{safe_ip}</b>"
 
-msgid "⚠️ Severe Physical Conflict"
+msgid "Severe Physical Conflict"
 msgstr "⚠️ 嚴重物理衝突"
 
 msgid "The WAN Static IP ({ip}) you set is exactly the same as the upstream Gateway!<br><br>This causes a severe physical loop. Please change your Static IP (e.g., {suggest_ip})."
