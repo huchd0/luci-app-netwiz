@@ -45,7 +45,7 @@ wakeup_apps() {
 
 case "$1" in
     list)
-        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "get_smart_ranges": {}, "save_smart_ranges": { "data": "string" }, "v6_keep_alive": { "mac": "string" }, "reset_all": {}, "analyze_conns": { "ip": "string" }, "export_config": {}, "import_config": { "data": "string", "file": "string" }, "list_backups": {}, "auto_backup": {}, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean", "dmz_en": "boolean" } }'
+        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "wake_device": { "mac": "string" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "get_smart_ranges": {}, "save_smart_ranges": { "data": "string" }, "v6_keep_alive": { "mac": "string" }, "reset_all": {}, "analyze_conns": { "ip": "string" }, "export_config": {}, "import_config": { "data": "string", "file": "string" }, "list_backups": {}, "auto_backup": {}, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean", "dmz_en": "boolean" } }'
         exit 0
         ;;
     call)
@@ -53,6 +53,22 @@ case "$1" in
             get_list)
                 input=$(cat)
                 show_conns=$(echo "$input" | jsonfilter -e '@.show_conns' || echo "false")
+                do_rescan=$(echo "$input" | jsonfilter -e '@.do_rescan' || echo "false")
+                
+                # --- 主动唤醒扫描 ---
+                if [ "$do_rescan" = "true" ] || [ "$do_rescan" = "1" ]; then
+                    # 动态取得 LAN 网段
+                    lan_prefix=$(uci -q get network.lan.ipaddr | cut -d. -f1-3)
+                    if [ -n "$lan_prefix" ]; then
+                        # Ping 封包，取MAC
+                        for i in $(seq 1 254); do
+                            (ping -c 1 -W 1 -q "$lan_prefix.$i" >/dev/null 2>&1) &
+                        done
+                        # 等待 1 秒回就写入 ARP 表
+                        sleep 1
+                    fi
+                fi
+                # ----------------------------------------
                 
                 rm -f /tmp/nw_conns_cache.txt
                 touch /tmp/nw_conns_cache.txt
@@ -870,6 +886,21 @@ EOF
                 fi
                 exit 0
                 ;;
+
+            wake_device)
+                input=$(cat)
+                mac=$(echo "$input" | jsonfilter -e '@.mac' | tr 'A-Z' 'a-z')
+                [ -n "$mac" ] && {
+                    # 嘗試使用 OpenWrt 內建的喚醒工具
+                    if command -v etherwake >/dev/null 2>&1; then
+                        etherwake -b -i br-lan "$mac" >/dev/null 2>&1
+                    elif command -v ether-wake >/dev/null 2>&1; then
+                        ether-wake -b -i br-lan "$mac" >/dev/null 2>&1
+                    fi
+                }
+                echo '{"result":0}'
+                exit 0
+                ;;    
 
             list_backups)
                 mkdir -p /root/netwiz_bak
