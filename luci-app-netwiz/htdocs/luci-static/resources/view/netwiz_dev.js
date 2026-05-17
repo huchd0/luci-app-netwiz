@@ -194,7 +194,7 @@ var T = {
     'TIP_DEPT_BIND_RULE': _('Custom group names are not strictly bound to IP subnets. The ranges are only used for automatic IP assignment when a group is selected.'),
     'TXT_UNOPERABLE': _('Unoperable'),
     'TXT_NOTE': _('Note:'),
-    'BTN_WOL': _('Wake on LAN (WOL)'),
+    'BTN_WOL': _('Wake on LAN'),
     'MSG_WOL_SENT': _('Wake packet sent to {mac}!\n(Device booting may take a minute)'),
 };
 
@@ -1566,6 +1566,18 @@ return view.extend({
                 }
 
                 var ipText = dev.ip === 'Unknown IP' ? T['TXT_UNKNOWN_IP'] : dev.ip;
+
+                // --- 新增：IPv4 为未知时，提取设备自签的 IPv6 (fe80:: / fd::) 作为兜底显示 ---
+                if (dev.ip === 'Unknown IP' && dev.ipv6 && dev.ipv6.trim() !== '') {
+                    var allV6 = dev.ipv6.trim().split(' ');
+                    // 优先寻找 fe80 或 fd 开头的自签/本地 IPv6
+                    var localV6 = allV6.find(function(v) { return v.indexOf('fe80:') === 0 || v.indexOf('fd') === 0; }) || allV6[0];
+                    if (localV6) {
+                        ipText = '<span style="font-size:12px; color:#8b5cf6; font-family:monospace;" title="由于无法获取 IPv4，显示设备底层自签的本地 IPv6">' + localV6 + ' <span style="font-size:10px; border:1px solid #ddd6fe; padding:1px 4px; border-radius:4px; background:#ede9fe; font-weight:bold;">自签 IPv6</span></span>';
+                    }
+                }
+                // -------------------------------------------------------------
+
                 if (isPending) {
                     ipText = '<span style="text-decoration:line-through; color:#94a3b8; font-size:12.5px; margin-right:5px;">' + dev.ip + '</span><span style="color:#d97706; font-weight:bold;">➜ ' + dev.bound_ip + '</span>';
                 }
