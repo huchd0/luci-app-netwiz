@@ -41,8 +41,15 @@ start_service() {
             # 多语言适配：自动检测固件内置的本地语言
             local current_lang=$(uci -q get luci.main.lang)
             if [ "$current_lang" = "auto" ] || [ "$current_lang" = "en" ] || [ -z "$current_lang" ]; then
-                # 抓取系统已安装的语言，取第一个匹配到的语言
-                local smart_lang=$(uci -q show luci.languages 2>/dev/null | grep -v "\.en=" | head -n 1 | awk -F'.' '{print $3}' | awk -F'=' '{print $1}')
+                # 过滤 internal 头部
+                local smart_lang=$(uci -q show luci.languages 2>/dev/null | grep "luci\.languages\." | grep -v "\.en=" | head -n 1 | awk -F'=' '{print $1}' | awk -F'.' '{print $3}')
+                
+                # uci 里没有，直接扫描系统底层的汉化文件 (将 base.zh-cn.lmo 转换为 zh_cn)
+                if [ -z "$smart_lang" ]; then
+                    smart_lang=$(ls /usr/lib/lua/luci/i18n/base.*.lmo 2>/dev/null | grep -v "\.en\." | head -n 1 | awk -F'.' '{print $2}' | tr '-' '_')
+                fi
+
+                # 如果成功获取到了语言包（如 zh_cn, zh_tw）
                 if [ -n "$smart_lang" ]; then
                     log "🔎 智能探测到本地语言包 [$smart_lang]，已自动应用为默认语言"
                     uci set luci.main.lang="$smart_lang"
