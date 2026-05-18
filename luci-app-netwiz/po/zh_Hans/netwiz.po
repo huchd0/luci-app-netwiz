@@ -1275,6 +1275,3 @@ msgstr "路由器管理密码 (可选)"
 
 msgid "Keep empty to retain current password"
 msgstr "留空则保持目前密码不变"
-
-msgid "Please set the router admin password!"
-msgstr "请务必设置路由器管理密码！"
