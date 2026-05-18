@@ -526,20 +526,8 @@ msgstr "⚠️ 无密码安全警告"
 msgid "You are setting up an Open Wi-Fi network without a password. Anyone nearby will be able to connect and access your network.<br><br>Are you sure you want to continue?"
 msgstr "您正在设置无密码的开放 Wi-Fi，附近任何人都可以随意连接并访问您的局域网设备。<br><br>您确定要继续吗？"
 
-msgid "✨ Quick Setup Wizard"
-msgstr "✨ 新机首次运行引导"
-
-msgid "Step 1: Internet Setup"
-msgstr "第一步：上网设置"
-
-msgid "Step 2: Wi-Fi Setup"
-msgstr "第二步：Wi-Fi 设置"
-
 msgid "Set your wireless network name and password."
 msgstr "设置您的无线网络名称和密码。"
-
-msgid "Step 3: Confirm & Apply"
-msgstr "第三步：确认与应用"
 
 msgid "Skip this time"
 msgstr "跳过本次引导"
