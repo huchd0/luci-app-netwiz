@@ -694,7 +694,7 @@ case "$1" in
                     uci commit netwiz
                     # ==========================================
 
-                    # 喚醒調用2
+                    # 喚醒调用2
                     restart_depend_apps
                     ) &
                 exit 0
