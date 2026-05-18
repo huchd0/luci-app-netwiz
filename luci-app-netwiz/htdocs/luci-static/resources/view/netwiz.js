@@ -239,6 +239,7 @@ var T = {
     'PH_NEW_PWD': _('Keep empty to retain current password'),
     'WIZ_SKIP_TITLE': _('Skip Wizard'),
     'WIZ_SKIP_MSG': _('Releasing wizard lock, entering official dashboard...'),
+    'M_PWD_REQ': _('Please enter a new password or check "Skip Password Setup"!'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
