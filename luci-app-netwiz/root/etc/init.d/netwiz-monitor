@@ -38,7 +38,7 @@ start_service() {
         if [ "$is_empty_pwd" -eq 1 ] || [ "$is_in_rom" -eq 1 ]; then
             log "检测到首次开机，执行网关劫持"
             
-            # 🌟 智能多语言适配：自动检测固件内置的本地语言
+            # 多语言适配：自动检测固件内置的本地语言
             local current_lang=$(uci -q get luci.main.lang)
             if [ "$current_lang" = "auto" ] || [ "$current_lang" = "en" ] || [ -z "$current_lang" ]; then
                 # 抓取系统已安装的语言，取第一个匹配到的语言
