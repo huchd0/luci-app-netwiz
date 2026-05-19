@@ -1182,8 +1182,8 @@ return view.extend({
         // 去除 _2.4G, -5G, 2.4G, 5G, 甚至 2.4, 5 等冗余后缀
         function cleanSsidSuffix(ssid) {
             if (!ssid) return '';
-            // 正则匹配：结尾的可选下划线/横杠/空格 + 2.4或5 + 可选的G或g
-            return ssid.replace(/[_\-\s]?(2\.4|5)[gG]?$/i, '');
+            // 兼容 5G_Game 后缀剥离
+            return ssid.replace(/[_\-\s]?(2\.4|5)[gG]?(_Game)?$/i, '');
         }
 
         // 生成纯净的目标名称
@@ -2310,7 +2310,7 @@ return view.extend({
                 en2g.checked = false; 
                 var s5El = container.querySelector('#wifi-5g-ssid');
                 var s2 = container.querySelector('#wifi-2g-ssid').value;
-                if ((!s5El.value || s5El.value === s2) && s2) {
+                if ((!s5El.value || cleanSsidSuffix(s5El.value) === cleanSsidSuffix(s2)) && s2) {
                     s5El.value = smartConvertSsid(s2, '5g');
                     if (!container.querySelector('#wifi-5g-key').value) container.querySelector('#wifi-5g-key').value = container.querySelector('#wifi-2g-key').value;
                     container.querySelector('#wifi-5g-enc').value = container.querySelector('#wifi-2g-enc').value;
@@ -2334,6 +2334,20 @@ return view.extend({
             en5g2.addEventListener('change', function() {
                 var t = container.querySelector('#tab-5g2');
                 if (t) t.click();
+                
+                // 以 5G (或 2.4G) 为基准自动补齐
+                if (this.checked) {
+                    var s5g2El = container.querySelector('#wifi-5g2-ssid');
+                    var s5 = container.querySelector('#wifi-5g-ssid').value;
+                    var s2 = container.querySelector('#wifi-2g-ssid').value;
+                    var refSsid = s5 || s2; // 优先学 5G，没有 5G 就学 2.4G
+                    var refKey = container.querySelector('#wifi-5g-key').value || container.querySelector('#wifi-2g-key').value;
+
+                    if (s5g2El && refSsid && (!s5g2El.value || cleanSsidSuffix(s5g2El.value) === cleanSsidSuffix(refSsid))) {
+                        s5g2El.value = smartConvertSsid(refSsid, '5g2');
+                        if (!container.querySelector('#wifi-5g2-key').value) container.querySelector('#wifi-5g2-key').value = refKey;
+                    }
+                }
             });
         }
 
@@ -2347,24 +2361,9 @@ return view.extend({
                 smartUi.style.display = 'block';
                 splitUi.style.display = 'none';
 
-                // 防止系统自动触发时覆盖数据
-                if (!e.isTrusted) return;
+                if (!e.isTrusted) return; // 防止页面加载时覆盖底层数据
 
-                // 备份现有的独立账号密码及漫游状态
-                var roam2gEl = container.querySelector('#wifi-2g-roaming');
-                var roam5gEl = container.querySelector('#wifi-5g-roaming');
-                window._backupSplit = {
-                    s2: container.querySelector('#wifi-2g-ssid').value,
-                    k2: container.querySelector('#wifi-2g-key').value,
-                    e2: container.querySelector('#wifi-2g-enc').value,
-                    r2: roam2gEl ? roam2gEl.checked : false, // 备份 2.4G 漫游状态
-                    s5: container.querySelector('#wifi-5g-ssid').value,
-                    k5: container.querySelector('#wifi-5g-key').value,
-                    e5: container.querySelector('#wifi-5g-enc').value,
-                    r5: roam5gEl ? roam5gEl.checked : true   // 备份 5G 漫游状态
-                };
-
-                // 获取已开启频段的信息优先5G
+                // 获取已开启频段的信息（优先提取 5G 的名字）
                 var en2 = container.querySelector('#wifi-2g-en').checked;
                 var en5 = container.querySelector('#wifi-5g-en').checked;
                 var pickBand = (en5 || !en2) ? '5g' : '2g'; 
@@ -2373,70 +2372,44 @@ return view.extend({
                 var pickKey = container.querySelector('#wifi-' + pickBand + '-key').value;
                 var pickEnc = container.querySelector('#wifi-' + pickBand + '-enc').value;
                 
-                // 去除后缀并回填数据
+                // 🌟 智能联动 1：合一模式下，强制自动“剥离” 2.4G/5G 等后缀
                 var smartSsidEl = container.querySelector('#wifi-smart-ssid');
-                if (pickSsid && !smartSsidEl.dataset.initialized) {
-                    smartSsidEl.value = cleanSsidSuffix(pickSsid);
+                if (pickSsid) {
+                    smartSsidEl.value = cleanSsidSuffix(pickSsid); 
                     container.querySelector('#wifi-smart-key').value = pickKey;
                     container.querySelector('#wifi-smart-enc').value = pickEnc;
-                    smartSsidEl.dataset.initialized = 'true'; 
                 }
-                // 切换为合一模式时，强行开启漫游开关，并同步清理报警
+
+                // 切换为合一模式时，自动开启无缝漫游
                 var rSmartEl = container.querySelector('#wifi-smart-roaming');
-                if (rSmartEl) { 
-                    rSmartEl.checked = true; 
-                    rSmartEl.dispatchEvent(new Event('change')); 
-                }
+                if (rSmartEl) { rSmartEl.checked = true; rSmartEl.dispatchEvent(new Event('change')); }
 
             } else {
                 // 切换为独立频段
                 smartUi.style.display = 'none';
                 splitUi.style.display = 'block';
 
-                // 防止系统加载时覆盖底层数据
                 if (!e.isTrusted) return;
 
-                // 恢复之前备份的独立账号密码及漫游状态
-                var targetRoam2g = false; // 2.4G 漫游默认安全关闭
-                var targetRoam5g = true;  // 5G 漫游默认开启
+                // 🌟 智能联动 2：分开模式下，强制提取合一名称，并自动“追加”各自的后缀
+                var baseSsid = container.querySelector('#wifi-smart-ssid').value;
+                var baseKey = container.querySelector('#wifi-smart-key').value;
+                var baseEnc = container.querySelector('#wifi-smart-enc').value;
                 
-                if (window._backupSplit && (window._backupSplit.s2 || window._backupSplit.s5)) {
-                    container.querySelector('#wifi-2g-ssid').value = window._backupSplit.s2;
-                    container.querySelector('#wifi-2g-key').value = window._backupSplit.k2;
-                    container.querySelector('#wifi-2g-enc').value = window._backupSplit.e2;
-                    // targetRoam2g = window._backupSplit.r2; // 强制使用默认值 false
-                    
-                    container.querySelector('#wifi-5g-ssid').value = window._backupSplit.s5;
-                    container.querySelector('#wifi-5g-key').value = window._backupSplit.k5;
-                    container.querySelector('#wifi-5g-enc').value = window._backupSplit.e5;
-                    // targetRoam5g = window._backupSplit.r5; // 强制使用默认值 true
-                } else {
-                    // 无备份时自动生成独立名称
-                    var baseSsid = container.querySelector('#wifi-smart-ssid').value;
-                    var baseKey = container.querySelector('#wifi-smart-key').value;
-                    var baseEnc = container.querySelector('#wifi-smart-enc').value;
-                    
-                    container.querySelector('#wifi-2g-ssid').value = smartConvertSsid(baseSsid, '2g');
-                    container.querySelector('#wifi-2g-key').value = baseKey;
-                    container.querySelector('#wifi-2g-enc').value = baseEnc;
-                    
-                    container.querySelector('#wifi-5g-ssid').value = smartConvertSsid(baseSsid, '5g');
-                    container.querySelector('#wifi-5g-key').value = baseKey;
-                    container.querySelector('#wifi-5g-enc').value = baseEnc;
-                    // 多频合一关闭时，给 5G_Game 赋值
-                    var s5g2El = container.querySelector('#wifi-5g2-ssid');
-                    if (s5g2El) {
-                        s5g2El.value = smartConvertSsid(baseSsid, '5g2');
-                        container.querySelector('#wifi-5g2-key').value = baseKey;
-                        container.querySelector('#wifi-5g2-enc').value = baseEnc;
-                    }
+                container.querySelector('#wifi-2g-ssid').value = smartConvertSsid(baseSsid, '2g');
+                container.querySelector('#wifi-2g-key').value = baseKey;
+                container.querySelector('#wifi-2g-enc').value = baseEnc;
+                
+                container.querySelector('#wifi-5g-ssid').value = smartConvertSsid(baseSsid, '5g');
+                container.querySelector('#wifi-5g-key').value = baseKey;
+                container.querySelector('#wifi-5g-enc').value = baseEnc;
+                
+                var s5g2El = container.querySelector('#wifi-5g2-ssid');
+                if (s5g2El) {
+                    s5g2El.value = smartConvertSsid(baseSsid, '5g2');
+                    container.querySelector('#wifi-5g2-key').value = baseKey;
+                    container.querySelector('#wifi-5g2-enc').value = baseEnc;
                 }
-                
-                // 应用漫游开关状态，并触发 change 事件以同步 UI
-                var r2gEl = container.querySelector('#wifi-2g-roaming');
-                if (r2gEl) { r2gEl.checked = targetRoam2g; r2gEl.dispatchEvent(new Event('change')); }
-                var r5gEl = container.querySelector('#wifi-5g-roaming');
-                if (r5gEl) { r5gEl.checked = targetRoam5g; r5gEl.dispatchEvent(new Event('change')); }
             }
         });
 
@@ -2464,7 +2437,7 @@ return view.extend({
             // 3. 为空或者同名时触发 2.4G 后缀保护与密码同步
             var s2El = container.querySelector('#wifi-2g-ssid');
             var s5 = container.querySelector('#wifi-5g-ssid').value;
-            if ((!s2El.value || s2El.value === s5) && s5) {
+            if ((!s2El.value || cleanSsidSuffix(s2El.value) === cleanSsidSuffix(s5)) && s5) {
                 s2El.value = smartConvertSsid(s5, '2g');
                 if(!container.querySelector('#wifi-2g-key').value) {
                     container.querySelector('#wifi-2g-key').value = container.querySelector('#wifi-5g-key').value;
