@@ -240,6 +240,10 @@ var T = {
     'WIZ_SKIP_TITLE': _('Skip Wizard'),
     'WIZ_SKIP_MSG': _('Releasing wizard lock, entering official dashboard...'),
     'M_PWD_REQ': _('Please enter a new password or check "Skip Password Setup"!'),
+    'TAG_SMART': _('Smart Connect'),
+    'TAG_SPLIT': _('Independent Bands'),
+    'TAG_WISP': _('WISP Repeater'),
+    'TAG_DISABLED': _('Disabled'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -280,6 +284,7 @@ return view.extend({
             '  #nw-wizard-modal .nw-value-field input[type="text"]:focus, #nw-wizard-modal .nw-value-field input[type="password"]:focus, #nw-wizard-modal .nw-value-field input[type="search"]:focus { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15), inset 0 1px 2px rgba(0,0,0,0.02) !important; outline: none !important; }',
             '  @media screen and (min-width: 769px) { #nw-wizard-modal .nw-wiz-modal-box { max-width: 660px !important; } }',
             '  @media screen and (max-width: 768px) { #nw-wizard-modal .nw-wiz-modal-box > div:nth-child(2) { padding: 15px 15px 10px !important; } }',
+            '  @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 8px rgba(16,185,129,0.8); transform: scale(1); } 50% { opacity: 0.4; box-shadow: 0 0 2px rgba(16,185,129,0.2); transform: scale(0.85); } 100% { opacity: 1; box-shadow: 0 0 8px rgba(16,185,129,0.8); transform: scale(1); } }',
             '</style>',
 
             '<div class="nw-wrapper">',
@@ -417,8 +422,14 @@ return view.extend({
             '    <div class="nw-card-group">',
             '      <div class="nw-card" data-mode="pppoe"><div class="nw-badge nw-badge-pppoe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>',
             '        <div class="nw-card-title">{{MODE_PPPOE_TITLE}}</div><span>{{MODE_PPPOE_DESC}}</span></div>',
-            '      <div class="nw-card" id="card-wifi" data-mode="wifi" style="display: none;"><div class="nw-badge nw-badge-wifi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>', 
-            '        <div class="nw-card-title">{{MODE_WIFI_TITLE}}</div><span>{{MODE_WIFI_DESC}}</span></div>',
+            '<div class="nw-card" id="card-wifi" data-mode="wifi" style="display: none; position: relative;">',
+            '  ',
+            '  <div id="nw-wifi-status-dot" style="position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%; background:#94a3b8; box-shadow:0 0 0 rgba(0,0,0,0); transition:all 0.5s ease;"></div>',
+            '  <div class="nw-badge nw-badge-wifi" style="margin-bottom: 12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>',
+            '  <div class="nw-card-title">{{MODE_WIFI_TITLE}}</div><span style="display:block; margin-bottom:10px;">{{MODE_WIFI_DESC}}</span>',
+            '  ',
+            '  <div id="nw-wifi-tags" style="display:flex; flex-wrap:wrap; justify-content:center; gap:6px; min-height:22px; width:100%;"></div>',
+            '</div>',
             '      <div class="nw-card" data-mode="router"><div class="nw-badge nw-badge-dhcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg></div>',
             '        <div class="nw-card-title">{{MODE_ROUTER_TITLE}}</div><span>{{MODE_ROUTER_DESC}}</span></div>',
             '      <div class="nw-card" data-mode="lan"><div class="nw-badge nw-badge-bypass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>',
@@ -501,10 +512,15 @@ return view.extend({
             '                 <label class="nw-switch nw-flex-shrink-0 nw-scale-switch" style="margin: 0;"><input type="checkbox" id="wifi-5g-en" checked><span class="nw-slider"></span></label>',
             '                 <label class="nw-value-title nw-m0 nw-pointer" style="display: inline-block !important; margin: 0 !important; line-height: 1 !important;">{{LBL_WIFI_5G_EN}}</label>',
             '              </div>',
+            '              <div id="hdr-5g2" class="nw-split-header-item" style="display: none; align-items: center; justify-content: center; gap: 2px;">',
+            '                 <label class="nw-switch nw-flex-shrink-0 nw-scale-switch" style="margin: 0;"><input type="checkbox" id="wifi-5g2-en" checked><span class="nw-slider"></span></label>',
+            '                 <label class="nw-value-title nw-m0 nw-pointer" style="display: inline-block !important; margin: 0 !important; line-height: 1 !important;">5G_Game</label>',
+            '              </div>',
             '           </div>',
             '           <div id="wifi-tab-buttons" class="nw-wifi-tabs">',
             '              <button id="tab-2g" class="nw-tab-btn" style="background:#3b82f6; color:#fff;">{{TAB_2G}}</button>',
             '              <button id="tab-5g" class="nw-tab-btn" style="background:#f1f5f9; color:#475569;">{{TAB_5G}}</button>',
+            '              <button id="tab-5g2" class="nw-tab-btn" style="display:none; background:#f1f5f9; color:#475569;">5G_Game</button>',
             '           </div>',
             '           <div id="wifi-2g-form">',
             '              <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}} (2.4G{{M_ACCT}})</label><div class="nw-value-field"><input type="text" id="wifi-2g-ssid"></div></div>',
@@ -575,6 +591,17 @@ return view.extend({
             '                 </div>',
             '              </div>',
             '           </div>',
+            
+            '           <div id="wifi-5g2-form" style="display:none;">',
+            '              <div class="nw-value"><label class="nw-value-title">无线网络名称 (5G_Game)</label><div class="nw-value-field"><input type="text" id="wifi-5g2-ssid"></div></div>',
+            '              <div class="nw-value"><label class="nw-value-title">Wi-Fi 密码 (5G_Game)</label><div class="nw-value-field"><input type="text" id="wifi-5g2-key"></div></div>',
+            '              <input type="hidden" id="wifi-5g2-enc" value="psk2+sae">',
+            '              <input type="hidden" id="wifi-5g2-mode" value="auto">',
+            '              <input type="hidden" id="wifi-5g2-chan" value="auto">',
+            '              <input type="hidden" id="wifi-5g2-bw" value="auto">',
+            '              <input type="hidden" id="wifi-5g2-roaming" value="1">',
+            '           </div>',
+            
             '        </div>',
             '        <div class="nw-wisp-section">',
             '           <div class="nw-wisp-header">',
@@ -1168,8 +1195,10 @@ return view.extend({
         function smartConvertSsid(ssid, targetBand) {
             var base = cleanSsidSuffix(ssid);
             if (!base) base = 'OpenWrt';
-            return targetBand === '2g' ? base + '_2.4G' : base + '_5G';
-}
+            if (targetBand === '2g') return base + '_2.4G';
+            if (targetBand === '5g2') return base + '_5G_Game'; // 第三个芯片的专属后缀
+            return base + '_5G';
+        }
 
         Promise.all([
             callNetCheckWifi(),
@@ -1492,6 +1521,13 @@ return view.extend({
                                     }
                                     console.log("===============================================");
                                     // ==================================
+                                    // 三频识别与显示
+                                    if (true) {
+                                        var hdr5g2 = container.querySelector('#hdr-5g2');
+                                        var tab5g2 = container.querySelector('#tab-5g2');
+                                        if (hdr5g2) hdr5g2.style.display = 'flex';
+                                        if (tab5g2) tab5g2.style.display = 'block';
+                                    }
 
                             var smartToggle = container.querySelector('#wifi-smart-toggle');
                             var legacyToggle = container.querySelector('#legacy-b-toggle');
@@ -1884,6 +1920,42 @@ return view.extend({
                     var wIfacesList = uci.sections('wireless', 'wifi-iface') || [];
                     var activeIfaces = wIfacesList.filter(function(i) { return i.disabled !== '1' && (i.mode === 'ap' || i.mode === 'sta') && i.ssid; });
                     var wifiLines = [];
+                    // === 首页 Wi-Fi 卡片 ===
+                    var cardDot = container.querySelector('#nw-wifi-status-dot');
+                    var cardTags = container.querySelector('#nw-wifi-tags');
+                    if (cardDot && cardTags) {
+                        if (activeIfaces.length > 0) {
+                            // 绿灯呼吸效果
+                            cardDot.style.background = '#10b981';
+                            cardDot.style.boxShadow = '0 0 8px rgba(16,185,129,0.8)';
+                            cardDot.style.animation = 'pulse 2s infinite'; 
+                            
+                            var tagsHtml = '';
+                            var hasAp = activeIfaces.some(function(i){ return i.mode === 'ap'; });
+                            var hasSta = activeIfaces.some(function(i){ return i.mode === 'sta'; });
+                            
+                            if (hasAp) {
+                                var apList = activeIfaces.filter(function(i){ return i.mode === 'ap'; });
+                                var isSmartGrp = apList.length > 1 && apList.every(function(i){ return i.ssid === apList[0].ssid && i.key === apList[0].key; });
+                                if (isSmartGrp) {
+                                    tagsHtml += '<span style="font-size:11.5px; background:rgba(59,130,246,0.1); color:#3b82f6; border:1px solid rgba(59,130,246,0.2); padding:2px 8px; border-radius:12px; font-weight:bold;">' + (T['TAG_SMART'] || 'Smart Connect') + '</span>';
+                                } else {
+                                    tagsHtml += '<span style="font-size:11.5px; background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.2); padding:2px 8px; border-radius:12px; font-weight:bold;">' + (T['TAG_SPLIT'] || 'Independent Bands') + '</span>';
+                                }
+                            }
+                            if (hasSta) {
+                                tagsHtml += '<span style="font-size:11.5px; background:rgba(245,158,11,0.1); color:#f59e0b; border:1px solid rgba(245,158,11,0.2); padding:2px 8px; border-radius:12px; font-weight:bold;">' + (T['TAG_WISP'] || 'WISP Repeater') + '</span>';
+                            }
+                            cardTags.innerHTML = tagsHtml;
+                        } else {
+                            // 灰灯熄灭效果
+                            cardDot.style.background = '#94a3b8';
+                            cardDot.style.boxShadow = 'none';
+                            cardDot.style.animation = 'none';
+                            cardTags.innerHTML = '<span style="font-size:11.5px; background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.2); padding:2px 8px; border-radius:12px; font-weight:bold;">' + (T['TAG_DISABLED'] || 'Disabled') + '</span>';
+                        }
+                    }
+                    // ==================================
                     
                     if (!window._hasRealWifi) {
                         // 没有真实物理 Wi-Fi，隐藏状态栏的 Wi-Fi 信息
@@ -2200,14 +2272,32 @@ return view.extend({
                 en2g.checked = false; 
                 var s5El = container.querySelector('#wifi-5g-ssid');
                 var s2 = container.querySelector('#wifi-2g-ssid').value;
-                // 不仅为空时推断，名字一样，加后缀拆分
                 if ((!s5El.value || s5El.value === s2) && s2) {
                     s5El.value = smartConvertSsid(s2, '5g');
                     if (!container.querySelector('#wifi-5g-key').value) container.querySelector('#wifi-5g-key').value = container.querySelector('#wifi-2g-key').value;
                     container.querySelector('#wifi-5g-enc').value = container.querySelector('#wifi-2g-enc').value;
                 }
             }
+            
+            // 开启 5G 时，顺便把 wifi-5g2-ssid 的值也赋上
+            if (this.checked && !window._isSingleChip) {
+                var s5g2El = container.querySelector('#wifi-5g2-ssid');
+                var s5 = container.querySelector('#wifi-5g-ssid').value;
+                if (s5g2El && s5 && !s5g2El.value) {
+                    s5g2El.value = smartConvertSsid(s5, '5g2');
+                    if (!container.querySelector('#wifi-5g2-key').value) container.querySelector('#wifi-5g2-key').value = container.querySelector('#wifi-5g-key').value;
+                }
+            }
         });
+
+        // 5G_Game 开关被点击时，跳转到第三个标签页
+        var en5g2 = container.querySelector('#wifi-5g2-en');
+        if (en5g2) {
+            en5g2.addEventListener('change', function() {
+                var t = container.querySelector('#tab-5g2');
+                if (t) t.click();
+            });
+        }
 
         smartToggle.addEventListener('change', function(e) {
             var isSmart = this.checked;
@@ -2295,6 +2385,13 @@ return view.extend({
                     container.querySelector('#wifi-5g-ssid').value = smartConvertSsid(baseSsid, '5g');
                     container.querySelector('#wifi-5g-key').value = baseKey;
                     container.querySelector('#wifi-5g-enc').value = baseEnc;
+                    // 多频合一关闭时，给 5G_Game 赋值
+                    var s5g2El = container.querySelector('#wifi-5g2-ssid');
+                    if (s5g2El) {
+                        s5g2El.value = smartConvertSsid(baseSsid, '5g2');
+                        container.querySelector('#wifi-5g2-key').value = baseKey;
+                        container.querySelector('#wifi-5g2-enc').value = baseEnc;
+                    }
                 }
                 
                 // 应用漫游开关状态，并触发 change 事件以同步 UI (比如加密方式的降级警告)
@@ -2312,35 +2409,53 @@ return view.extend({
             }
         });
         
+        // ================= 2.4G 标签页点击事件 =================
         container.querySelector('#tab-2g').addEventListener('click', function() {
+            // 1. 切换 Tab 颜色
             this.style.background = '#3b82f6'; this.style.color = '#fff';
             container.querySelector('#tab-5g').style.background = '#f1f5f9'; container.querySelector('#tab-5g').style.color = '#475569';
+            var t5g2 = container.querySelector('#tab-5g2'); 
+            if (t5g2) { t5g2.style.background = '#f1f5f9'; t5g2.style.color = '#475569'; }
+            
+            // 2. 切换表单显示
             container.querySelector('#wifi-2g-form').style.display = 'block';
             container.querySelector('#wifi-5g-form').style.display = 'none';
+            var f5g2 = container.querySelector('#wifi-5g2-form'); 
+            if (f5g2) f5g2.style.display = 'none';
             
+            // 3. 为空或者同名时触发 2.4G 后缀保护与密码同步
             var s2El = container.querySelector('#wifi-2g-ssid');
             var s5 = container.querySelector('#wifi-5g-ssid').value;
-            // 为空或者同名时触发后缀保护
             if ((!s2El.value || s2El.value === s5) && s5) {
                 s2El.value = smartConvertSsid(s5, '2g');
-                if(!container.querySelector('#wifi-2g-key').value) container.querySelector('#wifi-2g-key').value = container.querySelector('#wifi-5g-key').value;
+                if(!container.querySelector('#wifi-2g-key').value) {
+                    container.querySelector('#wifi-2g-key').value = container.querySelector('#wifi-5g-key').value;
+                }
             }
         });
-        
-        container.querySelector('#tab-5g').addEventListener('click', function() {
-            this.style.background = '#3b82f6'; this.style.color = '#fff';
-            container.querySelector('#tab-2g').style.background = '#f1f5f9'; container.querySelector('#tab-2g').style.color = '#475569';
-            container.querySelector('#wifi-5g-form').style.display = 'block';
-            container.querySelector('#wifi-2g-form').style.display = 'none';
-            
-            var s5El = container.querySelector('#wifi-5g-ssid');
-            var s2 = container.querySelector('#wifi-2g-ssid').value;
-            // 为空或者同名时触发后缀保护
-            if ((!s5El.value || s5El.value === s2) && s2) {
-                s5El.value = smartConvertSsid(s2, '5g');
-                if(!container.querySelector('#wifi-5g-key').value) container.querySelector('#wifi-5g-key').value = container.querySelector('#wifi-2g-key').value;
-            }
+        // ================================================================
+
+        container.querySelector('#tab-5g').addEventListener('click', function(){
+            this.style.background='#3b82f6'; this.style.color='#fff';
+            container.querySelector('#tab-2g').style.background='#f1f5f9'; container.querySelector('#tab-2g').style.color='#475569';
+            var t5g2 = container.querySelector('#tab-5g2'); if(t5g2) { t5g2.style.background='#f1f5f9'; t5g2.style.color='#475569'; }
+            container.querySelector('#wifi-5g-form').style.display='block';
+            container.querySelector('#wifi-2g-form').style.display='none';
+            var f5g2 = container.querySelector('#wifi-5g2-form'); if(f5g2) f5g2.style.display='none';
         });
+
+        // 新增的第三个 Tab 点击事件
+        var tab5g2El = container.querySelector('#tab-5g2');
+        if(tab5g2El) {
+            tab5g2El.addEventListener('click', function(){
+                this.style.background='#3b82f6'; this.style.color='#fff';
+                container.querySelector('#tab-2g').style.background='#f1f5f9'; container.querySelector('#tab-2g').style.color='#475569';
+                container.querySelector('#tab-5g').style.background='#f1f5f9'; container.querySelector('#tab-5g').style.color='#475569';
+                var f5g2 = container.querySelector('#wifi-5g2-form'); if(f5g2) f5g2.style.display='block';
+                container.querySelector('#wifi-2g-form').style.display='none';
+                container.querySelector('#wifi-5g-form').style.display='none';
+            });
+        }
 
         // ===== 漫游与加密方式联动 =====
         // 1. 多频合一面板联动
@@ -3033,6 +3148,17 @@ return view.extend({
                             bandwidth: container.querySelector('#wifi-5g-bw').value,
                             roaming: container.querySelector('#wifi-5g-roaming').checked ? "1" : "0"
                         };
+                        
+                        // 5G_Game 逻辑
+                        if (container.querySelector('#tab-5g2').style.display !== 'none') {
+                            payload.radio_5g2 = {
+                                enabled: container.querySelector('#wifi-5g2-en').checked ? "1" : "0",
+                                ssid: container.querySelector('#wifi-5g2-ssid').value.trim(),
+                                key: container.querySelector('#wifi-5g2-key').value,
+                                encryption: "psk2+sae", // 强制安全加密
+                                hidden: "0", mode: "auto", channel: "auto", bandwidth: "auto", roaming: "1"
+                            };
+                        }
                     }
                     // WISP 参数打包
                     var wispTog = container.querySelector('#wisp-toggle');
