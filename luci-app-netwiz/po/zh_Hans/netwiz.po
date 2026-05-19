@@ -1289,7 +1289,7 @@ msgid "Smart Connect"
 msgstr "多频合一"
 
 msgid "Independent Bands"
-msgstr "独立双频"
+msgstr "分频独立"
 
 msgid "WISP Repeater"
 msgstr "中继 (WISP)"
