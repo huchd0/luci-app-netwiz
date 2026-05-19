@@ -258,7 +258,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nw-wiz-title-responsive { flex: 2; margin: 0; padding: 0; text-align: center; font-size: 17px; letter-spacing: 0.5px; white-space: nowrap; color: #fff; order: 2; }
 .nw-wiz-close-wrap { flex: 1; display: flex; justify-content: flex-end; order: 3; }
 .nw-wisp-modal-title, .nw-wiz-modal-title { margin: 0 15px; font-size: 15px; color: #eee; background: #0f172a; text-align: center; border-radius: 10px; }
-.nw-wiz-modal-title { background: transparent; font-size: 17px; font-weight: 600; margin: 0; padding: 0; letter-spacing: 0.5px; }
+.nw-wiz-modal-title { background: transparent; font-size: 25px; font-weight: 600; margin: 0; padding: 0; letter-spacing: 0.5px; }
 .nw-wisp-ui-panel { flex-direction: column; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
 .nw-wisp-target-input { background: #e2e8f0 !important; color: #475569 !important; }
 .nw-wifi-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -447,7 +447,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     margin: 0 !important;
     min-width: 120px !important;
     flex: 1 !important;
-    max-width: 200px !important;
+    max-width: 220px !important;
 }
 
 .nw-actions [style*="none"],
@@ -644,4 +644,5 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     /* .nw-switch span{color: transparent !important; font-size: 0 !important; }  */
     .nd-modal-box .nd-modal-title { font-size: 18px !important; } 
     .nd-cb-refresh {padding: 6px 5px;}
+    .nw-wiz-modal-title { font-size: 20px; margin: 0; padding: 0 0 0 40px; }
 }
