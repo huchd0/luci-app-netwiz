@@ -1327,47 +1327,59 @@ return view.extend({
                     // 优先使用 底层物理载波状态判断网线通断
                     var isWanDown = false;
                     if (typeof activeWan.l1up !== 'undefined') {
-                        // 新系统：物理层！l1up 为 false
                         isWanDown = (activeWan.l1up === false);
                     } else {
-                        // 老系统：底层接口没暴露 l1up，退回使用 up 状态和 IP 综合推断
                         isWanDown = (activeWan.up === false && (!liveWanIp || liveWanIp === T['TXT_GETTING'] || liveWanIp === T['TXT_NOT_GOT']));
                     }
+
+                    // 初始化防抖计数器
+                    if (typeof window._wanDropCount === 'undefined') window._wanDropCount = 0;
                     
                     if (isWanDown && !isBypass && (!selectedMode || selectedMode === 'router')) {
-                        // 大约在 502 行
-                        if (!window._hasAlertedWanDown && !localStorage.getItem('ignoreWanAlert')) {
-                            window._hasAlertedWanDown = true;
+                        
+                        // 系统正在保存/重启，直接【静默】，根本不触发防抖计数
+                        if (window._isSystemBusy) {
+                            window._wanDropCount = 0; 
+                        } else {
+                            // 只有在系统空闲时，才开启防抖逻辑
+                            window._wanDropCount++;
                             
-                            // 专属悬浮层，让探针运行
-                            var overlay = document.createElement('div');
-                            overlay.id = 'nw-custom-wan-alert';
-                            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);';
-                            
-                            var box = document.createElement('div');
-                            box.style.cssText = 'background:#fff; width:90%; max-width:420px; border-radius:12px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); text-align:center; font-family:sans-serif;';
-                            
-                            box.innerHTML = '<div style="font-size:36px; margin-bottom:10px;">🔌</div>' + 
-                                            '<h3 style="margin:0 0 15px 0; color:#1f2937; font-size:20px;">' + T['M_WAN_DOWN_TIT'] + '</h3>' + 
-                                            '<div style="text-align:left; color:#4b5563; font-size:15px; line-height:1.6; margin-bottom:20px;">' + T['M_WAN_DOWN_MSG'] + '</div>' + 
-                                            '<div style="text-align:center; color:#059669; font-weight:bold; font-size:14px; margin-bottom:20px; padding:10px; background:#d1fae5; border-radius:8px;">' + T['M_WAN_DOWN_WAIT'] + '</div>' +
-                                            '<button id="btn-ignore-wan" style="background:#f00; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; font-size:15px; transition:0.2s;">' + T['BTN_IGNORE_WAN'] + '</button>';
-                            
-                            overlay.appendChild(box);
-                            document.body.appendChild(overlay);
+                            // 1 次断线（約 1~5 秒）确认断线，且没有弹过窗，才触发弹窗
+                            if (window._wanDropCount >= 1) {
+                                if (!window._hasAlertedWanDown && !localStorage.getItem('ignoreWanAlert')) {
+                                    window._hasAlertedWanDown = true;
+                                    
+                                    // 专属悬浮层，让探针运行
+                                    var overlay = document.createElement('div');
+                                    overlay.id = 'nw-custom-wan-alert';
+                                    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);';
+                                    
+                                    var box = document.createElement('div');
+                                    box.style.cssText = 'background:#fff; width:90%; max-width:420px; border-radius:12px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); text-align:center; font-family:sans-serif;';
+                                    
+                                    box.innerHTML = '<div style="font-size:36px; margin-bottom:10px;">🔌</div>' + 
+                                                    '<h3 style="margin:0 0 15px 0; color:#1f2937; font-size:20px;">' + T['M_WAN_DOWN_TIT'] + '</h3>' + 
+                                                    '<div style="text-align:left; color:#4b5563; font-size:15px; line-height:1.6; margin-bottom:20px;">' + T['M_WAN_DOWN_MSG'] + '</div>' + 
+                                                    '<div style="text-align:center; color:#059669; font-weight:bold; font-size:14px; margin-bottom:20px; padding:10px; background:#d1fae5; border-radius:8px;">' + T['M_WAN_DOWN_WAIT'] + '</div>' +
+                                                    '<button id="btn-ignore-wan" style="background:#f00; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; font-size:15px; transition:0.2s;">' + T['BTN_IGNORE_WAN'] + '</button>';
+                                    
+                                    overlay.appendChild(box);
+                                    document.body.appendChild(overlay);
 
-                            // 点击不处理，手动删掉悬浮层
-                            document.getElementById('btn-ignore-wan').onclick = function() {
-                                window._hasAlertedWanDown = true;
-                                
-                                // 写入本地缓存
-                                localStorage.setItem('ignoreWanAlert', 'true'); 
-                                
-                                var el = document.getElementById('nw-custom-wan-alert');
-                                if (el) el.remove();
-                            };
+                                    // 点击不处理，手动删掉悬浮层
+                                    document.getElementById('btn-ignore-wan').onclick = function() {
+                                        window._hasAlertedWanDown = true;
+                                        localStorage.setItem('ignoreWanAlert', 'true'); 
+                                        var el = document.getElementById('nw-custom-wan-alert');
+                                        if (el) el.remove();
+                                    };
+                                }
+                            }
                         }
                     } else if (!isWanDown) {
+                        // 侦测到网线恢复，立刻将计数器清零
+                        window._wanDropCount = 0;
+
                         // 发现插网线
                         var customAlert = document.getElementById('nw-custom-wan-alert');
                         if (customAlert) {
@@ -3120,6 +3132,11 @@ return view.extend({
         };
 
         container.querySelector('#btn-apply').addEventListener('click', function () {
+            // 开启“系统忙碌锁”
+            window._isSystemBusy = true;
+            // 设定 15 秒后自动解锁
+            setTimeout(function() { window._isSystemBusy = false; }, 15000);
+
             try {
                 var rTypeEl = container.querySelector('input[name="router_type"]:checked');
                 var rType = rTypeEl ? rTypeEl.value : 'dhcp';
