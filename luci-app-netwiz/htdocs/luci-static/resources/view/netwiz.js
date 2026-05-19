@@ -786,27 +786,12 @@ return view.extend({
         updateWizSteps(currentWizStep);
 
         var skipAndReleaseLuci = function() {
+            // 直接隐藏向导弹窗
             wizModal.style.display = 'none';
             var hideCb = container.querySelector('#wiz-hide-checkbox');
             var hideState = (hideCb && hideCb.checked) ? '0' : '1';
             
-            // 使用第一步探測到的真实底层状态
-            var isConfigured = window._realIsConfigured || '0';
-            
-            if (isConfigured !== '1') {
-                // 初次开机劫持状态 -> 解除锁定，并平滑跳回官方主页
-                openModal({ 
-                title: T['WIZ_SKIP_TITLE'], 
-                msg: '<div style="color: #64748b; font-size: 16px; font-weight:bold;">' + T['WIZ_SKIP_MSG'] + '</div>', 
-                spin: true 
-            });
-                silentSaveWizardState(hideState).then(function() {
-                    window.location.replace('/cgi-bin/luci/');
-                }).catch(function() { window.location.replace('/cgi-bin/luci/'); });
-            } else {
-                // 日常使用时的手动打开 -> 关闭弹窗，【安静地留在当前插件首页】！
-                silentSaveWizardState(hideState);
-            }
+            silentSaveWizardState(hideState);
         };
 
         container.querySelector('#wiz-modal-close').addEventListener('click', skipAndReleaseLuci);
@@ -1335,13 +1320,17 @@ return view.extend({
                     // 初始化防抖计数器
                     if (typeof window._wanDropCount === 'undefined') window._wanDropCount = 0;
                     
+                    // 初始向导是否在显示
+                    var wizModalEl = container.querySelector('#nw-wizard-modal');
+                    var isWizOpen = (wizModalEl && wizModalEl.style.display !== 'none');
+                    
                     if (isWanDown && !isBypass && (!selectedMode || selectedMode === 'router')) {
                         
-                        // 系统正在保存/重启，直接【静默】，根本不触发防抖计数
-                        if (window._isSystemBusy) {
+                        // 系统正在保存/重启，或者向导没关闭，保持静默
+                        if (window._isSystemBusy || isWizOpen) {
                             window._wanDropCount = 0; 
                         } else {
-                            // 只有在系统空闲时，才开启防抖逻辑
+                            // 系统空闲，且向导关闭，开启防抖
                             window._wanDropCount++;
                             
                             // 1 次断线（約 1~5 秒）确认断线，且没有弹过窗，才触发弹窗
