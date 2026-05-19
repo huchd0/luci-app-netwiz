@@ -724,6 +724,7 @@ case "$1" in
                     (
                     exec >/dev/null 2>&1 </dev/null
                     sleep 3
+                    /etc/init.d/network restart
 
                     z_wan=$(uci show firewall | grep -m1 "\.name='wan'" | cut -d'.' -f2)
                     
