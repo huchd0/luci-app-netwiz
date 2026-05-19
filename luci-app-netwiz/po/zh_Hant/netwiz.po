@@ -1285,6 +1285,9 @@ msgstr "💡 此密碼將用於日後登入路由器後台及 SSH，建議立即
 msgid "Please enter a new password or check \"Skip Password Setup\"!"
 msgstr "請輸入新管理員密碼，或勾選「暫不配置」！"
 
+msgid "Smart Connect"
+msgstr "雙頻合一"
+
 msgid "Independent Bands"
 msgstr "獨立雙頻"
 
