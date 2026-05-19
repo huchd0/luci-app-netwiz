@@ -1251,7 +1251,7 @@ return view.extend({
                 }
             }
 
-            // ================== 确保向导 100% 完美弹出 (彻底解决前端盲区) ==================
+            // ================== 弹出向导 ==================
             if (typeof uci !== 'undefined') {
                 uci.load('netwiz').then(function() {
                     var isConfigured = uci.get('netwiz', 'global', 'configured');
@@ -1686,7 +1686,7 @@ return view.extend({
                                     var i2g = findMainIfaceForDev(dev2g ? dev2g['.name'] : 'none');
                                     var i5g = findMainIfaceForDev(dev5g ? dev5g['.name'] : 'none');
                                     
-                                    // 🌟 安全防护：只有当存在第三个芯片时，才去查找接口，否则直接给空值
+                                    // 存在第三个芯片时，才去查找接口，否则直接给空值
                                     var i5g2 = dev5g2 ? findMainIfaceForDev(dev5g2['.name']) : null;
 
                                     var isLegacy = dev2g && dev2g.hwmode === '11b';
@@ -1701,7 +1701,7 @@ return view.extend({
                                     var h5 = i5g.hidden === '1';
                                     var d5 = (i5g.disabled === '1' || (dev5g && dev5g.disabled === '1'));
                                     
-                                    // 🌟 重新安全解析 5G_Game 状态
+                                    // 解析 5G_Game 状态
                                     var s5g2 = '', k5g2 = '', d5g2 = true; 
                                     if (dev5g2 && i5g2) {
                                         s5g2 = i5g2.ssid || '';
@@ -2416,7 +2416,7 @@ return view.extend({
                     }
                 }
                 
-                // 应用漫游开关状态，并触发 change 事件以同步 UI (比如加密方式的降级警告)
+                // 应用漫游开关状态，并触发 change 事件以同步 UI
                 var r2gEl = container.querySelector('#wifi-2g-roaming');
                 if (r2gEl) { r2gEl.checked = targetRoam2g; r2gEl.dispatchEvent(new Event('change')); }
                 var r5gEl = container.querySelector('#wifi-5g-roaming');
@@ -2466,7 +2466,7 @@ return view.extend({
             var f5g2 = container.querySelector('#wifi-5g2-form'); if(f5g2) f5g2.style.display='none';
         });
 
-        // 新增的第三个 Tab 点击事件
+        // 第三个 Tab 点击事件
         var tab5g2El = container.querySelector('#tab-5g2');
         if(tab5g2El) {
             tab5g2El.addEventListener('click', function(){
