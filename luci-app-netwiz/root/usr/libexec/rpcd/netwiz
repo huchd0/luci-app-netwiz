@@ -46,7 +46,7 @@ restart_depend_apps() {
 # 结束
 
 # =======================================================
-# PPPoE 拨号后 IPv6 虚拟接口未生成的底层 Bug 进行自愈
+# PPPoE 拨号后 IPv6 虚拟接口未生成的底层自愈
 watchdog_pppoe_ipv6() {
     if [ "$(uci -q get network.wan.proto)" = "pppoe" ]; then
         log ">>> 启动 PPPoE IPv6 虚拟接口守护 (20秒后检测)..."
@@ -54,14 +54,21 @@ watchdog_pppoe_ipv6() {
             sleep 20
             # 确认 WAN 是否已经拨号成功 (IPv4 连通)
             if ifstatus wan | grep -q '"up": true'; then
-                # 检查底层的 wan_6 或 wan6 虚拟接口是否成功生成并 up
-                if ! ifstatus wan_6 | grep -q '"up": true' && ! ifstatus wan6 | grep -q '"up": true'; then
-                    log "⚠️ 发现 PPPoE 已连接，但 IPv6 虚拟接口 (wan_6) 丢失！正在执行自愈重置..."
+                
+                # 局域网 IPv6 被关闭，直接跳过
+                if [ "$(uci -q get dhcp.lan.dhcpv6)" = "disabled" ]; then
+                    log "✅ IPv6 已全局关闭，跳过虚拟接口检测。"
+                    exit 0
+                fi
+
+                # 检查接口是否“存在” (grep '"up"' 能同时匹配 true 和 false)
+                if ! ifstatus wan_6 2>/dev/null | grep -q '"up"' && ! ifstatus wan6 2>/dev/null | grep -q '"up"'; then
+                    log "⚠️ PPPoE 已连接，但 IPv6 虚拟接口完全丢失！正在执行自愈重置..."
                     ifdown wan
                     sleep 3
                     ifup wan
                 else
-                    log "✅ PPPoE IPv6 虚拟接口状态正常。"
+                    log "✅ PPPoE IPv6 接口已存在 (健康通网 或 光猫不支持)，无需干预。"
                 fi
             fi
         ) &
