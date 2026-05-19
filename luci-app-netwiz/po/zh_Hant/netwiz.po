@@ -1279,7 +1279,7 @@ msgstr "路由器管理密碼 (可選)"
 msgid "Keep empty to retain current password"
 msgstr "留空則保持目前密碼不變"
 
-msgid "💡 This password will be used for logging into the router web interface and SSH. Setting it now is highly recommended."
+msgid "This password will be used for logging into the router web interface and SSH. Setting it now is highly recommended."
 msgstr "💡 此密碼將用於日後登入路由器後台及 SSH，建議立即設定。"
 
 msgid "Please enter a new password or check \"Skip Password Setup\"!"
