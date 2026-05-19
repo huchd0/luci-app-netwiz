@@ -439,9 +439,15 @@ case "$1" in
                             local ui_prefix="$2"
                             local iface_name="$3"
                             local intended_band="$4"
+                            local ssid_suffix="$5"
 
                             local p_en=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.enabled" || echo "0")
                             local p_ssid=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.ssid" || echo "")
+                            
+                            # <--- 有后缀，自动追加到 SSID 尾部
+                            if [ -n "$p_ssid" ] && [ -n "$ssid_suffix" ]; then
+                                p_ssid="${p_ssid}${ssid_suffix}"
+                            fi
                             local p_key=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.key" || echo "")
                             local p_enc=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.encryption" || echo "sae-mixed")
                             local p_hidden=$(echo "$payload" | jsonfilter -e "@.${ui_prefix}.hidden" || echo "0")
@@ -554,10 +560,10 @@ case "$1" in
                         if [ "$chip_count" -le 1 ]; then
                             single_dev=$(echo "$dev_list" | awk '{print $1}')
                             if [ "$smart" = "true" ]; then 
-                                configure_physical_radio "$single_dev" "merged" "wifinet_0" "2g"
+                                configure_physical_radio "$single_dev" "merged" "wifinet_0" "2g" ""
                             else
-                                configure_physical_radio "$single_dev" "radio_2g" "wifinet_2g" "2g"
-                                configure_physical_radio "$single_dev" "radio_5g" "wifinet_5g" "5g"
+                                configure_physical_radio "$single_dev" "radio_2g" "wifinet_2g" "2g" ""
+                                configure_physical_radio "$single_dev" "radio_5g" "wifinet_5g" "5g" ""
                             fi
                         else
                             if [ "$smart" = "true" ]; then
@@ -565,9 +571,9 @@ case "$1" in
                                 idx=0
                                 for dev in $dev_list; do
                                     if echo " $list_5g " | grep -q " $dev "; then
-                                        configure_physical_radio "$dev" "merged" "wifinet_$idx" "5g"
+                                        configure_physical_radio "$dev" "merged" "wifinet_$idx" "5g" ""
                                     else
-                                        configure_physical_radio "$dev" "merged" "wifinet_$idx" "2g"
+                                        configure_physical_radio "$dev" "merged" "wifinet_$idx" "2g" ""
                                     fi
                                     idx=$((idx + 1))
                                 done
@@ -575,12 +581,30 @@ case "$1" in
                                 log "采用独立频段配置策略"
                                 idx=0
                                 for dev in $list_2g; do
-                                    configure_physical_radio "$dev" "radio_2g" "wifinet_2g_$idx" "2g"
+                                    configure_physical_radio "$dev" "radio_2g" "wifinet_2g_$idx" "2g" ""
                                     idx=$((idx + 1))
                                 done
+                                
                                 idx=0
                                 for dev in $list_5g; do
-                                    configure_physical_radio "$dev" "radio_5g" "wifinet_5g_$idx" "5g"
+                                    local target_prefix="radio_5g"
+                                    local custom_suffix=""
+                                    
+                                    # 第二个 5G 芯片 (idx=1)
+                                    if [ "$idx" -eq 1 ]; then
+                                        # 尝试从前端提取 radio_5g2 的配置
+                                        local has_5g2=$(echo "$payload" | jsonfilter -e "@.radio_5g2.ssid" || echo "")
+                                        if [ -n "$has_5g2" ]; then
+                                            target_prefix="radio_5g2"
+                                        else
+                                            custom_suffix="_Game"
+                                        fi
+                                    # 第三、第四个 5G 芯片兜底
+                                    elif [ "$idx" -ge 2 ]; then
+                                        custom_suffix="_Game${idx}"
+                                    fi
+                                    
+                                    configure_physical_radio "$dev" "$target_prefix" "wifinet_5g_$idx" "5g" "$custom_suffix"
                                     idx=$((idx + 1))
                                 done
                             fi
