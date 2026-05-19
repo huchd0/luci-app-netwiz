@@ -523,7 +523,7 @@ return view.extend({
             '                 <label class="nw-value-title nw-m0 nw-pointer" style="display: inline-block !important; margin: 0 !important; line-height: 1 !important;">{{LBL_WIFI_5G_EN}}</label>',
             '              </div>',
             '              <div id="hdr-5g2" class="nw-split-header-item" style="display: none; align-items: center; justify-content: center; gap: 2px;">',
-            '                 <label class="nw-switch nw-flex-shrink-0 nw-scale-switch" style="margin: 0;"><input type="checkbox" id="wifi-5g2-en" checked><span class="nw-slider"></span></label>',
+            '                 <label class="nw-switch nw-flex-shrink-0 nw-scale-switch" style="margin: 0;"><input type="checkbox" id="wifi-5g2-en"><span class="nw-slider"></span></label>',
             '                 <label class="nw-value-title nw-m0 nw-pointer" style="display: inline-block !important; margin: 0 !important; line-height: 1 !important;">5G_Game</label>',
             '              </div>',
             '           </div>',
@@ -1533,7 +1533,8 @@ return view.extend({
                                     console.log("===============================================");
                                     // ==================================
                                     // 三频识别与显示
-                                    if (!window._isSingleChip && wDevs.length >= 3) {
+                                    // if (!window._isSingleChip && wDevs.length >= 3) {
+                                    if (true) {
                                         var hdr5g2 = container.querySelector('#hdr-5g2');
                                         var tab5g2 = container.querySelector('#tab-5g2');
                                         if (hdr5g2) hdr5g2.style.display = 'flex';
