@@ -212,7 +212,7 @@ var T = {
     'TXT_DNS1': _('Primary DNS:'),
     'TXT_DNS2': _('Secondary DNS:'),
     'TIP_IPV6_WARN':_('⚠️ Non-standard parameters (Default configuration recommended)'),
-    'PH_PWD_TIP': _('💡 This password will be used for logging into the router web interface and SSH. Setting it now is highly recommended.'),
+    'PH_PWD_TIP': '💡 ' + _('This password will be used for logging into the router web interface and SSH. Setting it now is highly recommended.'),
     // ===== 新增防呆与冲突拦截词条 =====
     'M_WAN_DOWN_TIT': _('Cable Unplugged or Wrong Port'),
     'M_WAN_DOWN_MSG': _('System detected NO SIGNAL on the <b>WAN port</b>!<br><br><b style="color:#ef4444;">Troubleshooting:</b><br>1. Did you plug the upstream cable into the <b>LAN port</b>?<br>2. Are both ends plugged in tightly? Is the modem powered on?<br>'),
@@ -1533,8 +1533,8 @@ return view.extend({
                                     console.log("===============================================");
                                     // ==================================
                                     // 三频识别与显示
-                                    // if (!window._isSingleChip && wDevs.length >= 3) {
-                                    if (true) {
+                                    if (!window._isSingleChip && wDevs.length >= 3) {
+                                    // if (true) {
                                         var hdr5g2 = container.querySelector('#hdr-5g2');
                                         var tab5g2 = container.querySelector('#tab-5g2');
                                         if (hdr5g2) hdr5g2.style.display = 'flex';
