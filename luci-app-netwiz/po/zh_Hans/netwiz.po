@@ -1286,7 +1286,7 @@ msgid "Please enter a new password or check \"Skip Password Setup\"!"
 msgstr "请输入新管理员密码，或勾选「暂不配置」！"
 
 msgid "Smart Connect"
-msgstr "双频合一"
+msgstr "多频合一"
 
 msgid "Independent Bands"
 msgstr "独立双频"
