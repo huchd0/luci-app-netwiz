@@ -48,12 +48,15 @@ start_service() {
                 if [ -z "$smart_lang" ]; then
                     smart_lang=$(ls /usr/lib/lua/luci/i18n/base.*.lmo 2>/dev/null | grep -v "\.en\." | head -n 1 | awk -F'.' '{print $2}' | tr '-' '_')
                 fi
-
+    
                 # 如果成功获取到了语言包（如 zh_cn, zh_tw）
                 if [ -n "$smart_lang" ]; then
-                    log "🔎 智能探测到本地语言包 [$smart_lang]，已自动应用为默认语言"
+                    log "🔎 探测到本地语言包 [$smart_lang]，已自动应用为默认语言"
                     uci set luci.main.lang="$smart_lang"
                     uci commit luci
+                    
+                    # 清除 LuCI 页面缓存，强制下一次访问时重新渲染语言
+                    rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/* 2>/dev/null
                 fi
             fi
             
