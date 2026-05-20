@@ -1593,14 +1593,12 @@ return view.extend({
                                     var actSsid = activeIface ? (activeIface.ssid || '') : '';
                                     var actKey = activeIface ? (activeIface.key || '') : '';
                                     var actEnc = activeIface ? (activeIface.encryption || 'sae-mixed') : 'sae-mixed';
-                                    if (actEnc === 'sae-mixed') actEnc = 'sae-mixed';
                                     var actHidden = activeIface ? (activeIface.hidden === '1') : false;
                                     var actDisabled = activeIface ? (activeIface.disabled === '1' || theDev.disabled === '1') : true;
 
                                     var inactSsid = inactiveIface ? (inactiveIface.ssid || '') : '';
                                     var inactKey = inactiveIface ? (inactiveIface.key || '') : '';
                                     var inactEnc = inactiveIface ? (inactiveIface.encryption || 'sae-mixed') : 'sae-mixed';
-                                    if (inactEnc === 'sae-mixed') inactEnc = 'sae-mixed';
                                     var inactHidden = inactiveIface ? (inactiveIface.hidden === '1') : false;
 
                                     var chan = theDev.channel || 'auto';
@@ -1710,12 +1708,12 @@ return view.extend({
                                     var isLegacy = dev2g && dev2g.hwmode === '11b';
                                     
                                     var s2 = i2g.ssid || '', k2 = i2g.key || '';
-                                    var e2 = i2g.encryption || 'sae-mixed'; if (e2 === 'sae-mixed') e2 = 'sae-mixed';
+                                    var e2 = i2g.encryption || 'sae-mixed';
                                     var h2 = i2g.hidden === '1';
                                     var d2 = (i2g.disabled === '1' || (dev2g && dev2g.disabled === '1'));
 
                                     var s5 = i5g.ssid || '', k5 = i5g.key || '';
-                                    var e5 = i5g.encryption || 'sae-mixed'; if (e5 === 'sae-mixed') e5 = 'sae-mixed';
+                                    var e5 = i5g.encryption || 'sae-mixed';
                                     var h5 = i5g.hidden === '1';
                                     var d5 = (i5g.disabled === '1' || (dev5g && dev5g.disabled === '1'));
                                     
@@ -1803,8 +1801,8 @@ return view.extend({
                                 tog.checked = rOn;
                                 
                                 var encVal = encEl ? encEl.value : (iface.encryption || 'psk2');
-                                var isDirty = rOn && (iface.mobility_domain !== 'e4d1' || (encVal !== 'sae-mixed' && encVal !== 'sae-mixed'));
-                                
+                                var isDirty = rOn && (iface.mobility_domain !== 'e4d1' || encVal !== 'sae-mixed');
+
                                 if (isDirty) {
                                     tog.classList.add('is-dirty'); 
                                     if (warn) warn.style.display = 'block'; 
@@ -2037,7 +2035,7 @@ return view.extend({
                             var isDirty = apIfaces.some(function(x) {
                                 var enc = (x.encryption || '').toLowerCase();
                                 var md = (x.mobility_domain || '').toLowerCase();
-                                return x.ieee80211r === '1' && (md !== 'e4d1' || (enc !== 'sae-mixed' && enc !== 'sae-mixed'));
+                                return x.ieee80211r === '1' && (md !== 'e4d1' || enc !== 'sae-mixed');
                             });
                             
                             var roamBadge = "";
@@ -2071,7 +2069,7 @@ return view.extend({
                                 
                                 var rOn = (i.ieee80211r === '1');
                                 var enc = (i.encryption || '').toLowerCase();
-                                var isDirty = rOn && (i.mobility_domain !== 'e4d1' || (enc !== 'sae-mixed' && enc !== 'sae-mixed'));
+                                var isDirty = rOn && (i.mobility_domain !== 'e4d1' || enc !== 'sae-mixed');
                                 
                                 var roamBadge = "";
                                 if (rOn) {
