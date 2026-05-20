@@ -2500,6 +2500,16 @@ return view.extend({
             container.querySelector('#wifi-5g-form').style.display='block';
             container.querySelector('#wifi-2g-form').style.display='none';
             var f5g2 = container.querySelector('#wifi-5g2-form'); if(f5g2) f5g2.style.display='none';
+            
+            // 联动：为空或者同主体名时触发 5G 后缀保护与密码同步
+            var s5El = container.querySelector('#wifi-5g-ssid');
+            var s2 = container.querySelector('#wifi-2g-ssid').value;
+            if ((!s5El.value || cleanSsidSuffix(s5El.value) === cleanSsidSuffix(s2)) && s2) {
+                s5El.value = smartConvertSsid(s2, '5g');
+                if (!container.querySelector('#wifi-5g-key').value) {
+                    container.querySelector('#wifi-5g-key').value = container.querySelector('#wifi-2g-key').value;
+                }
+            }
         });
 
         // 第三个 Tab 点击事件
