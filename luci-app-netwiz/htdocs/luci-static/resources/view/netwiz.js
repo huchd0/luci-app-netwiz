@@ -285,8 +285,8 @@ return view.extend({
             '  @media screen and (min-width: 769px) { #nw-wizard-modal .nw-wiz-modal-box { max-width: 660px !important; } }',
             '  @media screen and (max-width: 768px) { #nw-wizard-modal .nw-wiz-modal-box > div:nth-child(2) { padding: 15px 15px 10px !important; } }',
             '  @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 8px rgba(16,185,129,0.8); transform: scale(1); } 50% { opacity: 0.4; box-shadow: 0 0 2px rgba(16,185,129,0.2); transform: scale(0.85); } 100% { opacity: 1; box-shadow: 0 0 8px rgba(16,185,129,0.8); transform: scale(1); } }',
-            '  @keyframes wifi-wave { 0% { clip-path: inset(100% 0 0 0); } 30% { clip-path: inset(66% 0 0 0); } 60% { clip-path: inset(33% 0 0 0); } 90% { clip-path: inset(0 0 0 0); } 100% { clip-path: inset(0 0 0 0); } }',
-            '  .wifi-active-anim { animation: wifi-wave 1.5s infinite; }',
+            '  @keyframes wifi-wave { 0% { clip-path: inset(100% 0 0 0); } 20% { clip-path: inset(66% 0 0 0); } 40% { clip-path: inset(33% 0 0 0); } 60% { clip-path: inset(0 0 0 0); } 100% { clip-path: inset(0 0 0 0); } }',
+            '  .wifi-active-anim { animation: wifi-wave 2s infinite; }',
             '</style>',
 
             '<div class="nw-wrapper">',
@@ -1974,7 +1974,7 @@ return view.extend({
                         if (activeIfaces.length > 0) {
                             if (animLayer) {
                                 animLayer.style.display = 'block';
-                                animLayer.style.animation = 'wifi-wave 1.5s infinite'; 
+                                animLayer.style.animation = 'wifi-wave 2s infinite';
                             }
                             
                             var tagsHtml = '';
