@@ -55,7 +55,7 @@ start_service() {
                     uci set luci.main.lang="$smart_lang"
                     uci commit luci
                     
-                    # 清除 LuCI 页面缓存，强制下一次访问时重新渲染语言
+                    # 清除 LuCI 页面缓存，开机第一次运行时渲染语言
                     rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/* 2>/dev/null
                 fi
             fi
