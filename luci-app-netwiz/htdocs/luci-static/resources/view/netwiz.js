@@ -1066,14 +1066,17 @@ return view.extend({
                         var checkSameTimer = setInterval(function() { 
                             sec += 3; 
                             document.getElementById('nw-global-msg').innerHTML = '<div style="color: #059669; font-size: 16px; font-weight: bold;">' + T['MSG_WAIT_NET'].replace('{sec}', sec) + '</div>'; 
+                            
+                            if (sec <= 9) return;
+
                             fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000).then(function() { 
                                 clearInterval(checkSameTimer); 
                                 
                                 // ================== 自动登录官方后台 ==================
-                                ementById('nw-global-msg').innerHTML = '<div style="color: #10b981; font-size: 16px; font-weight: bold;">' + T['MSG_SETUP_DONE'] + '</div>';
+                                document.getElementById('nw-global-msg').innerHTML = '<div style="color: #10b981; font-size: 16px; font-weight: bold;">' + T['MSG_SETUP_DONE'] + '</div>';
                                 
                                 if (adminPwd) {
-                                    // 动态创建隐藏表单，登录官方页面
+                                    // 创建隐藏表单，登录官方页面
                                     var form = document.createElement('form');
                                     form.method = 'POST';
                                     form.action = 'http://' + h + '/cgi-bin/luci/';
@@ -3345,11 +3348,17 @@ return view.extend({
                             }, 3000);
                         } else {
                             var probeNewTimer = setInterval(function() { 
-                                document.getElementById('nw-global-msg').innerHTML = '<div style="color: #ef4444; font-size: 16px; font-weight: bold; margin-top:20px;">' + T['MSG_SAFE_OFF'] + '</div><div style="color:#64748b; font-size:14px; line-height:1.6; margin-top:10px;">' + T['MSG_MANUAL_VISIT'] + '<br><br><a href="http://' + a1 + '/cgi-bin/luci/admin/netwiz" style="color:#10b981; font-weight:bold; font-size:16px;">http://' + a1 + '</a></div>'; 
-                                fetchProbe('http://' + a1 + '/luci-static/resources/view/netwiz.js?v=' + Date.now(), 2000)
+                                sec += 3; 
+                                document.getElementById('nw-global-msg').innerHTML = '<div style="font-size: 16px; margin-bottom: 10px;">' + T['LBL_TARGET'] + ' ' + actionDetail + '</div><div style="color: #059669; font-size: 16px; font-weight: bold;">' + T['MSG_WAIT_NET'].replace('{sec}', sec) + '</div>'; 
+                                
+                                // 前 9 秒倒数
+                                if (sec <= 9) return;
+
+                                fetchProbe('http://' + a1 + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                                 .then(function() { 
                                     clearInterval(probeNewTimer); 
-                                    window.location.href = 'http://' + a1 + '/cgi-bin/luci/admin/netwiz'; 
+                                    // 探测成功，转到官方主页
+                                    window.location.href = 'http://' + a1 + '/cgi-bin/luci/'; 
                                 }).catch(function() {}); 
                             }, 3000);
                         }
@@ -3357,10 +3366,14 @@ return view.extend({
                         var checkSameTimer = setInterval(function() { 
                             sec += 3; 
                             document.getElementById('nw-global-msg').innerHTML = '<div style="font-size: 16px; margin-bottom: 10px;">' + T['LBL_TARGET'] + ' ' + actionDetail + '</div><div style="color: #059669; font-size: 16px; font-weight: bold;">' + T['MSG_WAIT_NET'].replace('{sec}', sec) + '</div>'; 
+                            
+                            if (sec <= 9) return;
+
                             fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                             .then(function() { 
                                 clearInterval(checkSameTimer); 
-                                window.location.reload(); 
+                                // 成功，跳官方主页
+                                window.location.href = '/cgi-bin/luci/'; 
                             }).catch(function() {}); 
                         }, 3000);
                     }
