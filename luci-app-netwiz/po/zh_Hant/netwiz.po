@@ -1279,6 +1279,12 @@ msgstr "路由器管理密碼 (可選)"
 msgid "Keep empty to retain current password"
 msgstr "留空則保持目前密碼不變"
 
+msgid "Skip Wizard"
+msgstr "跳過嚮導"
+
+msgid "Releasing wizard lock, entering official dashboard..."
+msgstr "正在退出嚮導，進入後台..."
+
 msgid "This password will be used for logging into the router web interface and SSH. Setting it now is highly recommended."
 msgstr "💡 此密碼將用於日後登入路由器後台及 SSH，建議立即設定。"
 
