@@ -17,36 +17,27 @@ log() {
 start_service() {
     log "Netwiz 后台守护进程已启动"
     
+    # 获取向导配置状态
     local configured=$(uci -q get netwiz.global.configured)
-    local pwd_hash=$(awk -F: '/^root:/ {print $2}' /etc/shadow)
-    local is_empty_pwd=0
-    if [ -z "$pwd_hash" ] || [ "$pwd_hash" = "!" ] || [ "$pwd_hash" = "*" ] || [ "$pwd_hash" = "x" ]; then
-        is_empty_pwd=1
-    fi
 
-    local is_in_rom=0
-    if [ -f /rom/etc/init.d/netwiz-monitor ]; then
-        is_in_rom=1
-    fi
-
+    # 配置为 0，触发拦截
     if [ "$configured" != "1" ]; then
-        if [ "$is_empty_pwd" -eq 1 ] || [ "$is_in_rom" -eq 1 ]; then
-            log "触发初次向导配置，生成拦截 CGI 脚本"
-            
-            local is_lang_init=$(uci -q get netwiz.global.lang_init)
-            if [ "$is_lang_init" != "1" ]; then
-                uci -q set luci.main.lang="auto"
-                uci commit luci
-                rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/* 2>/dev/null
-                /etc/init.d/rpcd restart 2>/dev/null
-                /etc/init.d/uhttpd restart 2>/dev/null
-                uci -q set netwiz.global.lang_init='1'
-                uci commit netwiz
-            fi
-            
-            [ -f /www/cgi-bin/luci.bak ] || cp -p /www/cgi-bin/luci /www/cgi-bin/luci.bak
-            
-            cat << 'EOF' > /www/cgi-bin/luci
+        log "触发初次向导配置，生成拦截 CGI 脚本"
+        
+        local is_lang_init=$(uci -q get netwiz.global.lang_init)
+        if [ "$is_lang_init" != "1" ]; then
+            uci -q set luci.main.lang="auto"
+            uci commit luci
+            rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/* 2>/dev/null
+            /etc/init.d/rpcd restart 2>/dev/null
+            /etc/init.d/uhttpd restart 2>/dev/null
+            uci -q set netwiz.global.lang_init='1'
+            uci commit netwiz
+        fi
+        
+        [ -f /www/cgi-bin/luci.bak ] || cp -p /www/cgi-bin/luci /www/cgi-bin/luci.bak
+        
+        cat << 'EOF' > /www/cgi-bin/luci
 #!/bin/sh
 CONF=$(uci -q get netwiz.global.configured)
 
@@ -115,6 +106,7 @@ if [ "$CONF" != "1" ]; then
                 exit 0
                 
             else
+                # 固件自带默认密码，官方登录
                 printf "Status: 302 Found\r\n"
                 printf "Location: /cgi-bin/luci/?url=/cgi-bin/luci/admin/netwiz\r\n"
                 printf "Cache-Control: no-store, no-cache, must-revalidate, max-age=0\r\n\r\n"
@@ -126,17 +118,11 @@ fi
 
 exec /www/cgi-bin/luci.bak
 EOF
-            
-            chmod +x /www/cgi-bin/luci
-        else
-            log "检测到已有密码且后期安装，取消向导"
-            uci -q set netwiz.global.configured='1'
-            uci commit netwiz
-            if [ -f /www/cgi-bin/luci.bak ]; then
-                mv /www/cgi-bin/luci.bak /www/cgi-bin/luci
-            fi
-        fi
+        
+        # 赋予执行权限
+        chmod +x /www/cgi-bin/luci
     else
+        # 已配置过，恢复官方网关
         if [ -f /www/cgi-bin/luci.bak ]; then
             log "向导已完成，还原官方网关"
             mv /www/cgi-bin/luci.bak /www/cgi-bin/luci
