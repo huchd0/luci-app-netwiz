@@ -795,8 +795,6 @@ return view.extend({
         var handleWizardExit = function(action) {
             var hideCb = container.querySelector('#wiz-hide-checkbox');
 
-            // 1. 区别：弹窗记忆选项检查
-            // 点击关闭，检查并修改“不再提示”状态；跳过则无视
             if (action === 'close') {
                 if (hideCb && hideCb.checked) {
                     localStorage.setItem('nw_wizard_never_show', '1');
@@ -807,37 +805,34 @@ return view.extend({
 
             var isFirstRun = (window._realIsConfigured !== '1');
 
-            // 2. 解除 CGI 全局拦截
-            // 无论哪个按钮，都必须强制写入 '1' 来永久解锁后端拦截
             silentSaveWizardState('1').then(function() {
-                executeExitNav(isFirstRun);
+                executeExitNav(isFirstRun, action);
             }).catch(function() {
-                executeExitNav(isFirstRun);
+                executeExitNav(isFirstRun, action);
             });
         };
 
-        var executeExitNav = function(isFirstRun) {
+        var executeExitNav = function(isFirstRun, action) {
             var wizModal = container.querySelector('#nw-wizard-modal');
             
-            // 跳转逻辑一致性
             if (isFirstRun) {
-                // 刷机后第一次运行：关闭弹窗，解除锁定后跳转到系统官方首页
+
                 if (wizModal) wizModal.style.display = 'none';
                 openModal({
-                    title: T['WIZ_SKIP_TITLE'] || '跳过向导',
-                    msg: '<div style="color: #64748b; font-size: 16px; font-weight:bold;">' + (T['WIZ_SKIP_MSG'] || '正在解除锁定，进入官方后台...') + '</div>',
+                    title: T['WIZ_SKIP_TITLE'] || '解除鎖定',
+                    msg: '<div style="color: #64748b; font-size: 16px; font-weight:bold;">' + (T['WIZ_SKIP_MSG'] || '正在解除鎖定，進入官方后台...') + '</div>',
                     spin: true
                 });
                 setTimeout(function() {
                     window.location.replace('http://' + window.location.hostname + '/cgi-bin/luci/');
                 }, 500);
             } else {
-                // 平常：不跳转，直接隐藏弹窗，停留在当前的插件首页
+
                 if (wizModal) wizModal.style.display = 'none';
             }
         };
 
-        // 分别绑定不同的 action
+        // 分別綁定不同的 action
         container.querySelector('#wiz-modal-close').addEventListener('click', function() { handleWizardExit('close'); });
         container.querySelector('#wiz-btn-skip').addEventListener('click', function() { handleWizardExit('skip'); });
         // ==========================================================
