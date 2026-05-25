@@ -805,6 +805,9 @@ return view.extend({
                 } else {
                     safeRemoveLocal('nw_wizard_never_show');
                 }
+            } else if (action === 'skip') {
+                // 跳过清除“不再提示”的缓存
+                safeRemoveLocal('nw_wizard_never_show');
             }
 
             var isFirstRun = (window._realIsConfigured !== '1');
