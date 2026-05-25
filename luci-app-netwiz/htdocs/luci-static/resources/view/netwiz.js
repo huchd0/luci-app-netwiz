@@ -712,6 +712,9 @@ return view.extend({
         });
 
         // ==================  安全XSS 字符转义  ==================
+        var safeGetLocal = function(k) { try { return window.localStorage.getItem(k); } catch(e) { return null; } };
+        var safeSetLocal = function(k, v) { try { window.localStorage.setItem(k, v); } catch(e) {} };
+        var safeRemoveLocal = function(k) { try { window.localStorage.removeItem(k); } catch(e) {} };
         var escapeHTML = function(str) {
             if (!str) return '';
             return String(str).replace(/[&<>'"]/g, function(tag) {
