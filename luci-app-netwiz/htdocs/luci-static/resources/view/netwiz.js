@@ -417,7 +417,7 @@ return view.extend({
             '         </div>',
             '         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">',
             '            <label class="nw-wiz-cb-wrap" style="font-size: 13.5px; color: #64748b; font-weight: 500; margin: 0;">',
-            '               <input type="checkbox" id="wiz-hide-checkbox" checked>',
+            '               <input type="checkbox" id="wiz-hide-checkbox">',
             '               <span class="nw-wiz-checkmark"></span>',
             '               <span style="line-height: 1.3; display: inline-block;">{{WIZ_HIDE}}</span>',
             '            </label>',
@@ -1053,7 +1053,7 @@ return view.extend({
                 }
 
                 // 2. 提交配置，底层必须强制写入 '1' 永久解锁 CGI 拦截
-                silentSaveWizardState('1').then(function() {
+                silentSaveWizardState('0').then(function() {
                     var applyPromise;
                     if (isSkipWifi) {
                         if (wType === 'pppoe') {
@@ -1309,9 +1309,9 @@ return view.extend({
             // ================== 弹出向导 ==================
             if (typeof uci !== 'undefined') {
                 uci.load('netwiz').then(function() {
-                    var isConfigured = uci.get('netwiz', 'global', 'configured');
-                    var isWizEnabled = uci.get('netwiz', 'main', 'wizard_enable');
-                    window._realIsConfigured = String(isConfigured || '0');
+                    var isConfigured = safeUciGet('netwiz', 'global', 'configured', '0');
+                    var isWizEnabled = safeUciGet('netwiz', 'main', 'wizard_enable', '1');
+                    window._realIsConfigured = String(isConfigured);
 
                     // 读取本地浏览器是否勾选过“不再提示”
                     var neverShow = safeGetLocal('nw_wizard_never_show');
@@ -3409,9 +3409,9 @@ return view.extend({
                             fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                             .then(function() { 
                                 clearInterval(checkSameTimer); 
-                                // 成功，跳官方主页
-                                window.location.href = '/cgi-bin/luci/'; 
-                            }).catch(function() {}); 
+                                // 成功后留在当前插件页
+                                window.location.reload(); 
+                            }).catch(function() {});
                         }, 3000);
                     }
                 };
