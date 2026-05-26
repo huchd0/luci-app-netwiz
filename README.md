@@ -4,7 +4,7 @@
 
 **NetWiz(NetWiz Network Wizard)** — minimalist and ready out of the box. Built with rigorous, well-structured logic, it features an enterprise-grade LAN fail-safe mechanism, intelligent WAN mode switching (Auto-detect will be triggered only when the WAN cable is reinserted after a 10-second disconnection), smart validation and error prevention, and full-performance WiFi with automatic hiding when hardware is unavailable. It also enables one-click IPv6 activation, proactively resolves IP, gateway, WAN, and LAN conflicts, and delivers comprehensive protection with a seamless, intuitive experience across both large and small screens.
 
-![OpenWrt](https://img.shields.io/badge/OpenWrt-23.05_|_25.x+-blue.svg) ![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-Supported-orange.svg) ![Downloads](https://img.shields.io/github/downloads/huchd0/luci-app-netwiz/total.svg?logo=github) ![License](https://img.shields.io/badge/License-GPL--3.0-green.svg) ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
+![OpenWrt](https://img.shields.io/badge/OpenWrt-23.05_|_25.x+-blue.svg) ![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-Supported-orange.svg) ![Downloads](https://img.shields.io/github/downloads/huchd0/luci-app-netwiz/total.svg?logo=github) ![Views](https://komarev.com/ghpvc/?username=huchd0-luci-app-netwiz&label=Views&color=blue&style=flat) ![License](https://img.shields.io/badge/License-GPL--3.0-green.svg) ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 
 [English](#english) | [简体中文](#简体中文)
 
