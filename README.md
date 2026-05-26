@@ -1,6 +1,6 @@
 # NetWiz (luci-app-netwiz) 🚀
 
-**NetWiz**专属OpenWrt网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，极致的无感体验，大屏小屏体验行云流水、观感丝滑。NetWiz不仅提供直观的 UI，更深入系统内核，为你提供企业级的网络管控体验——从终端流量透视、IP 智能分组，到一键防火墙控制与灾备级全自动配置管理。
+**NetWiz**专属OpenWrt网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，极致的无感体验，大屏小屏体验行云流水、观感丝滑。NetWiz不仅提供直观的 UI，更深入系统内核，提供超越企业级的一键批量绑定静态IP策略组、网络管控体验——从终端流量透视、IP 智能分组，到一键防火墙控制与灾备级全自动配置管理。
 
 **NetWiz(NetWiz Network Wizard)** — minimalist and ready out of the box. Built with rigorous, well-structured logic, it features an enterprise-grade LAN fail-safe mechanism, intelligent WAN mode switching (Auto-detect will be triggered only when the WAN cable is reinserted after a 10-second disconnection), smart validation and error prevention, and full-performance WiFi with automatic hiding when hardware is unavailable. It also enables one-click IPv6 activation, proactively resolves IP, gateway, WAN, and LAN conflicts, and delivers comprehensive protection with a seamless, intuitive experience across both large and small screens.
 
@@ -93,6 +93,10 @@ Core Supported Modules
 
 它极其适合新手用户，能够一键安全地配置二级路由（动态/静态 IP）以及旁路由(AP有线中继)环境。对于刚装完系统的玩家，需要网络设置才能上网，但自带的设置隐藏比较深，且容易配置错误，无脑和暴力重置整个网络配置文件，清空路由的已配置清单，会导致精心设置的网桥（Bridge）、VLAN 和物理网卡绑定瞬间崩溃或引发**莫名其妙**的网络断流。**NetWiz 专为解决此痛点而生。**
 
+## 🤝 兼容性说明
+* **固件支持：** OpenWrt 23.05 及以上版本、ImmortalWrt 23.05 及以上版本（支持 25.x+ 新分支，兼容 nftables 环境）。
+* **架构支持：** 全架构通用 (x86_64, aarch64, ramips/mt7621 等)。
+
 ## ✨ 核心特性与优势
 
 ### 💻 现代化架构
@@ -105,6 +109,9 @@ Core Supported Modules
 * **安全回退机制：** 配置错误导致无法连接后台？不用怕！应用新配置后会启动 120 秒安全倒计时。LAN 口配置后若无真实的新 IP 访问连接，系统将自动恢复到修改前的配置（意外断电重启依然优雅恢复）**。
 * **智能防错校验：** 严格并精准拦截诸如“比如各种冲突、信息填错”等各种高危操作，从源头防止路由死循环。
 * **旁路由(AP有线中继)自动排雷：** 一键安全切换旁路由(AP有线中继)模式，系统会自动帮您关掉冲突的服务，智能指引配置，引导您正确填写信息，不破坏现有的家庭网络，新手轻松设置。
+* **设备综合大盘：** 掌握所有在线/离线/静态设备的实时动态。
+* **流量分析探针：** 悬停即可查看该设备的 P2P 与 Web 连接数分布。
+* **全链路灾备：** 随时回滚到昨天或导入外部配置文件。
 
 ### ⚡ 极致的无感体验
 * **WAN口上网方式智能切换：** WAN 口识别网线的物理插拔状态，系统智能适配，完美过滤由拨号失败、软件重启引起的“假性掉线” **（拔除网线间隔十秒再接入WAN 口，智能检测上网方式切换机制开启）**。
