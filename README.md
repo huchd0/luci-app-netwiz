@@ -1,6 +1,6 @@
 # NetWiz (luci-app-netwiz) 🚀
 
-**NetWiz**专属OpenWrt网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，极致的无感体验，大屏小屏体验行云流水、观感丝滑。
+**NetWiz**专属OpenWrt网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，极致的无感体验，大屏小屏体验行云流水、观感丝滑。NetWiz不仅提供直观的 UI，更深入系统内核，为你提供企业级的网络管控体验——从终端流量透视、IP 智能分组，到一键防火墙控制与灾备级全自动配置管理。
 
 **NetWiz(NetWiz Network Wizard)** — minimalist and ready out of the box. Built with rigorous, well-structured logic, it features an enterprise-grade LAN fail-safe mechanism, intelligent WAN mode switching (Auto-detect will be triggered only when the WAN cable is reinserted after a 10-second disconnection), smart validation and error prevention, and full-performance WiFi with automatic hiding when hardware is unavailable. It also enables one-click IPv6 activation, proactively resolves IP, gateway, WAN, and LAN conflicts, and delivers comprehensive protection with a seamless, intuitive experience across both large and small screens.
 
@@ -147,7 +147,34 @@ Core Supported Modules
    * **适用场景**：仅需修改设备内网管理 IP；或者网络内已有主路由，本设备仅作为辅助网关/旁路由(AP有线中继)。
    * **行为**：一键开启“旁路由(AP有线中继)模式”，系统将自动关闭本机 DHCP 服务，并要求必须填写主路由网关；若为主路由，则防呆提示网关留空，绝不破坏现有局域网拓扑。
 
- 
+---
+
+## ✨ 设备管理专家核心特性
+
+### ⚡ 终端雷达 & 内核级流量透视 (Connection Radar)
+* **实时连接追踪**：深入解析网络连接状态的核心模块，实时捕获终端设备的底层网络连接。
+* **智能流量分类**：自动将流量精准分类为 Web/HTTPS、DNS/NTP、UDP 媒体、P2P 高端口下载，并以**直观的动态圆饼图**展示。
+* **异常终端预警**：自动识别跨网段设备与疑似伪装 MAC 设备。
+
+### 🏷️ 智能 IP 分组与批量绑定固定IP (Smart IP Assignment)
+* **全自动分类**：精准识别 Mobile（手机/平板）、PC（电脑/工作站）、IoT（智能家居）。
+* **多策略批量下发**：支持选择多个设备，一键执行**顺序分配**、**按设备类型智能分配专属网段**，或分配至**自定义部门/房间**。
+* **安全防冲突**：内置智能防冲突算法，IP 冲突时自动顺延，杜绝网络瘫痪。
+
+### 🌐 纯血 IPv6 深度支持
+* **无感解析**：自动过滤本地链路地址（fe80），精准提取公网 IPv6。
+* **PC 存活保活机制**：独创的 `v6pc_` 活跃时间戳机制，防止 PC 设备的 IPv6 地址频繁变动导致失联。
+
+### 🛡️ 一键防火墙与访问控制 (Firewall Control)
+* **⛔ 断网 (Block)**：一键阻断设备访问外网，保留局域网通信，秒级生效。
+* **🛡️ 局域网隔离 (Isolate)**：一键禁止设备访问内网其他设备（防旁路由嗅探、防智能家居隐私泄露）。
+* **🚀 DMZ 主机**：一键将特定设备的全部端口暴露至公网（自动互斥校验，防止冲突）。
+* **🔌 局域网唤醒 (WOL)**：深度集成，设备离线时自动显示唤醒按钮。
+
+### 📦 灾备级配置管理 (Auto-Backup & Disaster Recovery)
+* **无损自动备份**：当网络拓扑发生改变时（如修改 DHCP、防火墙），后台自动计算核心配置文件的 MD5，并在变动时自动生成 `.tar.gz` 备份存档。
+* **一键导入/导出**：支持将当前所有的静态 IP、黑名单、隔离规则打包下载到电脑，或在刷机后一键从云端/本地恢复，恢复后自动唤醒所有高级代理与 DNS 插件。
+
 ---
 
 <span id="install"></span>
