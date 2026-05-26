@@ -3394,8 +3394,8 @@ return view.extend({
                                 fetchProbe('http://' + a1 + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                                 .then(function() { 
                                     clearInterval(probeNewTimer); 
-                                    // 探测成功，转到官方主页
-                                    window.location.href = 'http://' + a1 + '/cgi-bin/luci/'; 
+                                    // 探测成功
+                                    window.location.href = 'http://' + a1 + '/cgi-bin/luci/admin/netwiz';
                                 }).catch(function() {}); 
                             }, 3000);
                         }
