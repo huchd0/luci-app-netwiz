@@ -93,3 +93,33 @@ rm -rf /tmp/luci-sessions/* /var/run/luci-sessions/* 2>/dev/null
 echo -e "\n👉 👉 👉  NetWiz 核心程序及多语言包更新与部署完成！✅"
 echo -e "💡 登录状态已安全重置，请返回浏览器按下 【F5】 刷新，【重新登录】即可看到新菜单！"
 exit 0
+
+# ==========================================
+# 5. 匿名安装量统计 (仅向私有后台发送基础硬件环境信息)
+# ==========================================
+(
+    # 提取 OpenWrt 版本号和架构 (例如: 23.05.0 和 ramips/mt7621)
+    if [ -f /etc/openwrt_release ]; then
+        . /etc/openwrt_release
+        OW_VER=${DISTRIB_RELEASE:-"unknown"}
+        OW_ARCH=${DISTRIB_TARGET:-"unknown"}
+    else
+        OW_VER="unknown"
+        OW_ARCH=$(uname -m 2>/dev/null || echo "unknown")
+    fi
+
+    # 统计接口地址
+    API_URL="https://netwiz-tracker.vercel.app/api/track"
+    
+    #  提取IP和地域由服务端拼接参数
+    REQ_URL="${API_URL}?app=netwiz&ver=${OW_VER}&arch=${OW_ARCH}"
+    
+    # 静默发送请求，3秒超时，放入后台执行)
+    if command -v curl >/dev/null 2>&1; then
+        curl -s -m 3 "$REQ_URL" >/dev/null 2>&1
+    else
+        wget -qO- -T 3 "$REQ_URL" >/dev/null 2>&1
+    fi
+) &
+
+exit 0
