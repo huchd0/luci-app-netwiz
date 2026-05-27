@@ -77,7 +77,7 @@ NetWiz achieves true "zero external dependencies," utilizing no C/C++/Go compile
 
 2. 📶 **Wi-Fi Settings (Auto-hides if no hardware is detected)**
    * **Scenario:** Initializing the wireless network for the first time, or modifying the whole-house Wi-Fi name, password, and security encryption protocol.
-   * **Behavior:** Intelligently detects the number of underlying physical chips and dynamically renders the UI. Supports one-click "Band Steering (Merged)" for a whole-house smart roaming network, or splitting into independent 2.4G/5G networks. Perfectly compatible with legacy 802.11b IoT devices.
+   * **Behavior:** Intelligently detects the number of underlying physical chips and dynamically renders the UI. Supports one-click "Band Steering (Merged)" for a whole-house smart roaming network, or splitting into independent 2.4G/5G/5G_Game networks. Perfectly compatible with legacy 802.11b IoT devices.
 
 3. 🌐 **Secondary Router Mode (DHCP / Static IP)**
    * **Scenario:** The modem handles dial-up, or there is an existing main router upstream. This device acts as a secondary router or subnet router.
@@ -177,7 +177,7 @@ NetWiz 实现了真正的“零外部依赖”，无任何 C/C++/Go 编译件或
 
 2. 📶 **Wi-Fi 设置（无硬件时自动隐藏）**
    * **适用场景**：首次配置无线网络，或需要修改全屋 Wi-Fi 名称、密码及加密安全协议。
-   * **行为**：智能探测底层物理芯片数量并动态渲染界面。支持一键“多频合一”组建全屋智能漫游网，或拆分为独立的 2.4G/5G 网络；完美兼容旧版 802.11b 物联设备。
+   * **行为**：智能接管底层物理芯片并动态渲染界面。支持一键“多频合一”组建全屋智能漫游网，或拆分为独立的 2.4G/5G/5G_Game 网络；完美兼容旧版 802.11b 物联设备。
      
 3. 🌐 **二级路由模式 (DHCP / 静态 IP)**
    * **适用场景**：光猫已经负责拨号，或者上级有主路由，本设备作为二级路由或子网段路由接入。
