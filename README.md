@@ -1,6 +1,6 @@
 # NetWiz (luci-app-netwiz) 🚀
 
-**NetWiz**专属OpenWrt网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，NetWiz不仅提供直观的 UI，大小屏极致的丝滑体验，更深入系统内核，提供超越企业级的一键批量绑定静态IP策略组、网络管控体验——从终端流量透视、IP 智能分组，到一键防火墙控制与灾备级全自动配置管理。
+**NetWiz**专属OpenWrt网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，NetWiz不仅提供直观的 UI，大小屏极致的丝滑体验，更深入系统内核，提供企业级的一键批量绑定静态IP策略组、网络管控体验——从终端流量透视、IP 智能分组，到一键防火墙控制与灾备级全自动配置管理。
 
 **NetWiz(NetWiz Network Wizard)** — minimalist and ready out of the box. Built with rigorous, well-structured logic, it features an enterprise-grade LAN fail-safe mechanism, intelligent WAN mode switching (Auto-detect will be triggered only when the WAN cable is reinserted after a 10-second disconnection), smart validation and error prevention, and full-performance WiFi with automatic hiding when hardware is unavailable. It also enables one-click IPv6 activation, proactively resolves IP, gateway, WAN, and LAN conflicts, and delivers comprehensive protection with a seamless, intuitive experience across both large and small screens.
 
