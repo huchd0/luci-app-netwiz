@@ -1776,7 +1776,7 @@ return view.extend({
                     var firstV6Ip = fullV6Text.split('\n')[0].split(',')[0].split('<br>')[0].trim();
                     
                     // 3. 自定义弹窗的提示文字
-                    var successMsg = '✅ ' + (T['MSG_V6_COPIED'] || 'First IPv6 address copied successfully:') + '\n\n' + fullV6Text;
+                    var successMsg = '✅ ' + (T['MSG_V6_COPIED'] || 'First IPv6 address copied successfully:') + '\n\n' + fullV6Text + '\n\n' ;
                     
                     if (navigator.clipboard && window.isSecureContext) {
                         // 只复制第一条 (firstV6Ip)
