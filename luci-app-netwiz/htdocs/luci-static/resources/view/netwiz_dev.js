@@ -487,7 +487,7 @@ return view.extend({
             box.style.cssText = 'transform:scale(0.95); transition:transform 0.2s; max-width: 380px; width: 90%; padding: 22px;';
             box.innerHTML = 
                 '<div class="nd-modal-title" style="font-size:17px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #f1f5f9; color:#1e293b;">' + (title || defaultTitle) + '</div>' +
-                '<div style="color:#475569; font-size:14.5px; line-height:1.6; margin-bottom:24px; text-align:left; word-break:break-word; margin: 5PX 10PX 10PX 10PX;">' + formattedMsg + '</div>' +
+                '<div style="color:#475569; font-size:15.5px; line-height:1.6; text-align:left; word-break:break-word; margin: 5px 5px 20px 10px;">' + formattedMsg + '</div>' +
                 '<div style="display:flex; justify-content:center;">' +
                     '<button class="nd-btn nd-btn-blue" style="width:100%; border-radius:8px; padding:10px; font-size:15px; letter-spacing:1px;">' + (T['BTN_CLOSE'] || '关闭') + '</button>' +
                 '</div>';
@@ -1349,7 +1349,7 @@ return view.extend({
                                 callSaveDepts(JSON.stringify(newDepts)).then(function() { setTimeout(loadDevices, 800); })
                                 .catch(function(e) { 
                                     showCustomAlert(T['ERR_FW_SAVE_FAIL'].replace('{err}', e));
-                                    setTimeout(loadDevices, 1000); 
+                                    setTimeout(loadDevices, 2500); 
                                 });
                             }
                         });
@@ -1827,10 +1827,10 @@ return view.extend({
                             loadingEl.style.display = 'flex';
                             listEl.style.display = 'none'; catTabs.style.display = 'none';
                             callFwSet(data.mac, data.ip, data.blk_en, data.iso_en, data.dmz_en)
-                            .then(function() { setTimeout(loadDevices, 1000); })
+                            .then(function() { setTimeout(loadDevices, 2500); })
                             .catch(function(e) { 
                                 showCustomAlert(T['ERR_SAVE_FAIL_SHORT'].replace('{err}', e));
-                                setTimeout(loadDevices, 1000); 
+                                setTimeout(loadDevices, 2500); 
                             });
                         }
                     });
@@ -1919,8 +1919,8 @@ return view.extend({
                             loadingText.innerText = T['MSG_WRITING'];
                             
                             callDeviceBind(mac, data.ip, data.name, data.dept, false).then(function() {
-                                setTimeout(loadDevices, 1000);
-                            }).catch(function() { setTimeout(loadDevices, 1000); });
+                                setTimeout(loadDevices, 2500);
+                            }).catch(function() { setTimeout(loadDevices, 2500); });
                         }
                     });
                     
@@ -1945,8 +1945,8 @@ return view.extend({
                             loadingEl.style.display = 'flex';
                             loadingText.innerText = T['MSG_RELEASING'];
                             callDeviceUnbind(mac, false).then(function() {
-                                setTimeout(loadDevices, 1000);
-                            }).catch(function() { setTimeout(loadDevices, 1000); });
+                                setTimeout(loadDevices, 2500);
+                            }).catch(function() { setTimeout(loadDevices, 2500); });
                         }
                     });
                 });
@@ -2013,8 +2013,8 @@ return view.extend({
                     runWithConcurrency(tasks, 10).then(function() {  // 批量释放并发数：10
                         return callApplyDhcp(); 
                     }).then(function() {
-                        setTimeout(loadDevices, 1500);
-                    }).catch(function() { setTimeout(loadDevices, 1500); });
+                        setTimeout(loadDevices, 2500);
+                    }).catch(function() { setTimeout(loadDevices, 2500); });
                 }
             });
         });
@@ -2203,8 +2203,8 @@ return view.extend({
                     runWithConcurrency(tasks, 10).then(function() {  // 批量绑定并发数：10
                         return callApplyDhcp(); 
                     }).then(function() {
-                        setTimeout(loadDevices, 1500);
-                    }).catch(function() { setTimeout(loadDevices, 1500); });
+                        setTimeout(loadDevices, 2500);
+                    }).catch(function() { setTimeout(loadDevices, 2500); });
                 }
             });
         });
