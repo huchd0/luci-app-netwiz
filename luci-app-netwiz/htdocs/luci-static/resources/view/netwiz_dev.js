@@ -463,6 +463,59 @@ return view.extend({
     },
 
     bindEvents: function(container) {
+        
+        // ==========================================
+        // 自定义 Alert 弹窗
+        // ==========================================
+        var showCustomAlert = function(msg, title) {
+            // 智能识别文本中的 emoji，自动分配标题
+            var defaultTitle = '💡 ' + (T['TXT_NOTE'] || '提示');
+            if (msg.indexOf('❌') !== -1) defaultTitle = '❌ ' + (T['TXT_ERROR'] || '错误');
+            if (msg.indexOf('✅') !== -1) defaultTitle = '✅ ' + (T['TXT_SUCCESS'] || '成功');
+            if (msg.indexOf('⚠️') !== -1) defaultTitle = '⚠️ ' + (T['TXT_WARNING'] || '警告');
+
+            // 创建独立遮罩层
+            var overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:2147483647 !important; display:flex; justify-content:center; align-items:center; opacity:0; transition:opacity 0.2s;';
+            
+            // 自动将 \n 转换为 <br>
+            var formattedMsg = String(msg).replace(/\n/g, '<br>');
+
+            // 完全复用原有的 .nd-modal-box 样式类
+            var box = document.createElement('div');
+            box.className = 'nd-modal-box'; 
+            box.style.cssText = 'transform:scale(0.95); transition:transform 0.2s; max-width: 380px; width: 90%; padding: 22px;';
+            box.innerHTML = 
+                '<div class="nd-modal-title" style="font-size:17px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #f1f5f9; color:#1e293b;">' + (title || defaultTitle) + '</div>' +
+                '<div style="color:#475569; font-size:14.5px; line-height:1.6; margin-bottom:24px; text-align:left; word-break:break-word; margin: 0 5PX;">' + formattedMsg + '</div>' +
+                '<div style="display:flex; justify-content:center;">' +
+                    '<button class="nd-btn nd-btn-blue" style="width:100%; border-radius:8px; padding:10px; font-size:15px; letter-spacing:1px;">' + (T['BTN_CLOSE'] || '关闭') + '</button>' +
+                '</div>';
+
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+
+            // 触发平滑弹出的动画
+            requestAnimationFrame(function() {
+                overlay.style.opacity = '1';
+                box.style.transform = 'scale(1)';
+            });
+
+            // 🌟 这里改成了 closeModal，彻底杜绝替换冲突
+            var closeModal = function() {
+                overlay.style.opacity = '0';
+                box.style.transform = 'scale(0.95)';
+                setTimeout(function() {
+                    if (document.body.contains(overlay)) document.body.removeChild(overlay);
+                }, 200);
+            };
+            
+            // 绑定关闭按钮和点击背景空白处关闭
+            box.querySelector('button').onclick = closeModal;
+            overlay.onclick = function(e) { if (e.target === overlay) closeModal(); };
+        };
+        // ==========================================
+
         container.querySelector('#dev-back').addEventListener('click', function(e) {
             e.preventDefault(); 
             var wrap = document.querySelector('.nw-wrapper');
@@ -681,7 +734,7 @@ return view.extend({
 
                 var newStart = maxEnd + 1;
                 if (newStart > 254) {
-                    alert(T['ERR_DEPT_POOL_FULL']);
+                    showCustomAlert(T['ERR_DEPT_POOL_FULL']);
                     return;
                 }
 
@@ -732,9 +785,9 @@ return view.extend({
                             
                             // 导入成功
                             renderDeptManager(importedData);
-                            alert(T['MSG_IMPORT_SUCCESS']);
+                            showCustomAlert(T['MSG_IMPORT_SUCCESS']);
                         } catch (err) {
-                            alert(T['ERR_IMPORT_FAIL']);
+                            showCustomAlert(T['ERR_IMPORT_FAIL']);
                         }
                     };
                     reader.readAsText(file);
@@ -766,12 +819,12 @@ return view.extend({
                 };
 
                 if (isNaN(d.start) || isNaN(d.end) || d.start < 2 || d.end > 254 || d.start > d.end) {
-                    alert(T['ERR_DEPT_INVALID']);
+                    showCustomAlert(T['ERR_DEPT_INVALID']);
                     return false;
                 }
                 
                 if (nameSet[d.name]) {
-                    alert(T['ERR_DEPT_NAME_DUP'].replace('{name}', '[' + d.name + ']'));
+                    showCustomAlert(T['ERR_DEPT_NAME_DUP'].replace('{name}', '[' + d.name + ']'));
                     return false;
                 }
                 nameSet[d.name] = true;
@@ -782,7 +835,7 @@ return view.extend({
             for(var i=0; i<newDepts.length; i++) {
                 for(var j=i+1; j<newDepts.length; j++) {
                     if (Math.max(newDepts[i].start, newDepts[j].start) <= Math.min(newDepts[i].end, newDepts[j].end)) {
-                        alert(T['ERR_DEPT_OVERLAP'].replace('{groups}', '[' + newDepts[i].name + '] & [' + newDepts[j].name + ']'));
+                        showCustomAlert(T['ERR_DEPT_OVERLAP'].replace('{groups}', '[' + newDepts[i].name + '] & [' + newDepts[j].name + ']'));
                         return false; 
                     }
                 }
@@ -842,7 +895,7 @@ return view.extend({
                     mInpIp.value = smartIp;
                 } else {
                     mInpIp.value = '';
-                    alert(T['ERR_POOL_FULL']);
+                    showCustomAlert(T['ERR_POOL_FULL']);
                 }
             } else if (val === 'dept') {
                 var dId = mSingleTagSelect.value;
@@ -853,7 +906,7 @@ return view.extend({
                     if(tgt) {
                         var dip = getAvailableIpInRange(basePrefix, tgt.start, tgt.end, usedIps);
                         mInpIp.value = dip || '';
-                        if(!dip) alert(T['ERR_DEPT_FULL']);
+                        if(!dip) showCustomAlert(T['ERR_DEPT_FULL']);
                     }
                 }
             } else if (val === 'seq') {
@@ -995,11 +1048,11 @@ return view.extend({
                     // DMZ校验
                     if (dmzEn && dmzEl.dataset.orig !== 'true') {
                         if (!fwCurrentIp || fwCurrentIp === 'Unknown IP') {
-                            alert(T['ERR_DMZ_NO_IP']); return;
+                            showCustomAlert(T['ERR_DMZ_NO_IP']); return;
                         }
                         var otherDmz = globalDevices.find(function(d){ return (d.fw_dmz === 'true' || d.fw_dmz === true) && d.mac !== fwCurrentMac; });
                         if (otherDmz) {
-                            alert(T['ERR_DMZ_OCCUPIED_1'] + (otherDmz.name||otherDmz.mac) + T['ERR_DMZ_OCCUPIED_2']);
+                            showCustomAlert(T['ERR_DMZ_OCCUPIED_1'] + (otherDmz.name||otherDmz.mac) + T['ERR_DMZ_OCCUPIED_2']);
                             return;
                         }
                     }
@@ -1014,7 +1067,7 @@ return view.extend({
                         
                         // 策略选了“按部门网段分配”，那目标部门就绝对不能是“保持不变”或“未分组”，必须指定一个具体部门
                         if (activeStrategy === 'dept' && (batchDeptId === 'none' || batchDeptId === 'keep')) {
-                            alert(T['ERR_DEPT_NOT_SEL']);
+                            showCustomAlert(T['ERR_DEPT_NOT_SEL']);
                             return;
                         }
 
@@ -1046,15 +1099,15 @@ return view.extend({
                         var activeSingleRadio = modalOverlay.querySelector('input[name="single_strategy"]:checked');
                         
                         if (activeSingleRadio && activeSingleRadio.value === 'dept' && singleDeptId === 'none') {
-                            alert(T['ERR_DEPT_NOT_SEL']);
+                            showCustomAlert(T['ERR_DEPT_NOT_SEL']);
                             return;
                         }
 
-                        if (!submitIp) { alert(T['ERR_IP_EMPTY']); return; }
+                        if (!submitIp) { showCustomAlert(T['ERR_IP_EMPTY']); return; }
 
                         var ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
                         if (!ipRegex.test(submitIp)) {
-                            alert(T['ERR_IP_FORMAT']); 
+                            showCustomAlert(T['ERR_IP_FORMAT']); 
                             return; 
                         }
 
@@ -1064,7 +1117,7 @@ return view.extend({
                         
                         if (conflictDev) {
                             var cName = conflictDev.name === 'Unknown' ? conflictDev.mac.toUpperCase() : conflictDev.name;
-                            alert(T['ERR_IP_CONFLICT'].replace('{ip}', submitIp).replace('{name}', cName));
+                            showCustomAlert(T['ERR_IP_CONFLICT'].replace('{ip}', submitIp).replace('{name}', cName));
                             return; 
                         }
 
@@ -1073,7 +1126,7 @@ return view.extend({
                         var oldDeptId = currentSingleDev.dept || 'none';
                         
                         if (isCurrentlyStatic && submitIp === currentOriginalIp && newName === options.defName && singleDeptId === oldDeptId) {
-                            alert(T['TIP_NO_CHANGE']);
+                            showCustomAlert(T['TIP_NO_CHANGE']);
                             return;
                         }
                         
@@ -1296,7 +1349,7 @@ return view.extend({
                                 catTabs.style.display = 'none';
                                 callSaveDepts(JSON.stringify(newDepts)).then(function() { setTimeout(loadDevices, 800); })
                                 .catch(function(e) { 
-                                    alert(T['ERR_FW_SAVE_FAIL'].replace('{err}', e));
+                                    showCustomAlert(T['ERR_FW_SAVE_FAIL'].replace('{err}', e));
                                     setTimeout(loadDevices, 1000); 
                                 });
                             }
@@ -1720,7 +1773,7 @@ return view.extend({
                     
                     if (navigator.clipboard && window.isSecureContext) {
                         navigator.clipboard.writeText(v6text).then(function() {
-                            alert('✅ ' + (T['MSG_V6_COPIED'] || 'IPv6 address copied successfully:') + '\n\n' + v6text);
+                            showCustomAlert('✅ ' + (T['MSG_V6_COPIED'] || 'IPv6 address copied successfully:') + '\n\n' + v6text);
                         });
                     } else {
                         var textArea = document.createElement("textarea");
@@ -1731,7 +1784,7 @@ return view.extend({
                         textArea.select();
                         try { 
                             document.execCommand('copy'); 
-                            alert('✅ ' + (T['MSG_V6_COPIED'] || 'IPv6 address copied successfully:') + '\n\n' + v6text); 
+                            showCustomAlert('✅ ' + (T['MSG_V6_COPIED'] || 'IPv6 address copied successfully:') + '\n\n' + v6text); 
                         } catch (err) {}
                         document.body.removeChild(textArea);
                     }
@@ -1755,7 +1808,7 @@ return view.extend({
                     
                     var dName = dev.name === 'Unknown' ? mac.toUpperCase() : dev.name;
                     
-                    // 1. 打開彈窗面板
+                    // 1. 打开弹窗面板
                     openModal({
                         title: T['TIT_FW_CONTROL'] + ' - ' + dName,
                         isFwPanel: true, targetMac: mac, targetIp: ip, targetDev: dev, okText: T['BTN_SAVE'],
@@ -1765,23 +1818,23 @@ return view.extend({
                             callFwSet(data.mac, data.ip, data.blk_en, data.iso_en, data.dmz_en)
                             .then(function() { setTimeout(loadDevices, 1000); })
                             .catch(function(e) { 
-                                alert(T['ERR_SAVE_FAIL_SHORT'].replace('{err}', e));
+                                showCustomAlert(T['ERR_SAVE_FAIL_SHORT'].replace('{err}', e));
                                 setTimeout(loadDevices, 1000); 
                             });
                         }
                     });
 
-                    // 2. 🌟 動態控制 WOL 區塊的顯示與獨立點擊事件
+                    // 2. 控制 WOL 区块显示按鈕绑定事件
                     var wolZone = modalOverlay.querySelector('#fw-panel-wol-zone');
                     var wolBtn = modalOverlay.querySelector('#btn-fw-panel-wol');
                     var isOnline = (dev.online === true || dev.online === 'true');
 
                     if (wolZone && wolBtn) {
-                        // 自動過濾掉字典可能自帶的閃電，確保兩側完美對稱
-                        var pureWolText = (T['BTN_WOL'] || '局域網喚醒').replace(/⚡/g, '').trim();
+                        // 过滤字典闪电符号
+                        var pureWolText = (T['BTN_WOL'] || '局域网唤醒').replace(/⚡/g, '').trim();
 
                         if (!isOnline) {
-                            // 設備離線，顯示 WOL 按鈕並綁定事件
+                            // 设备离线，显示按鈕绑定事件
                             wolZone.style.display = 'flex';
                             wolBtn.disabled = false;
                             wolBtn.innerText = '⚡ ' + pureWolText + ' ⚡';
@@ -1789,12 +1842,12 @@ return view.extend({
 
                             wolBtn.onclick = function(e) {
                                 e.preventDefault();
-                                wolBtn.innerText = '⚡ 喚醒中... ⚡';
+                                wolBtn.innerText = '⚡ 唤醒中... ⚡';
                                 wolBtn.disabled = true;
                                 wolBtn.style.opacity = '0.6';
 
                                 callWakeDevice(mac).then(function() {
-                                    alert(T['MSG_WOL_SENT_1'].replace('{mac}', mac.toUpperCase()) + '\n' + T['MSG_WOL_SENT_2']);
+                                    showCustomAlert(T['MSG_WOL_SENT_1'].replace('{mac}', mac.toUpperCase()) + '\n' + T['MSG_WOL_SENT_2']);
                                     wolBtn.innerText = '⚡ ' + pureWolText + ' ⚡';
                                     wolBtn.disabled = false;
                                     wolBtn.style.opacity = '1';
@@ -1925,7 +1978,7 @@ return view.extend({
             });
 
             if (validUnbinds.length === 0) {
-                alert(T['TIP_ALL_UNBOUND'].replace('{count}', selectedDevices.length));
+                showCustomAlert(T['TIP_ALL_UNBOUND'].replace('{count}', selectedDevices.length));
                 return;
             }
 
@@ -1982,12 +2035,12 @@ return view.extend({
                     
                     if (strategy === 'seq') {
                         var suf = parseInt(data.startSuffix, 10);
-                        if (isNaN(suf) || suf < 2 || suf > 254) { alert(T['ERR_SUF_RANGE']); return; }
+                        if (isNaN(suf) || suf < 2 || suf > 254) { showCustomAlert(T['ERR_SUF_RANGE']); return; }
                         
                         var availSeq = 0;
                         for (var i = suf; i <= 254; i++) { if (usedIps.indexOf(basePrefix + i) === -1) availSeq++; }
                         if (selectedDevices.length > availSeq) {
-                            alert(T['ERR_POOL_INSUFF'].replace('{suf}', suf).replace('{avail}', availSeq).replace('{count}', selectedDevices.length));
+                            showCustomAlert(T['ERR_POOL_INSUFF'].replace('{suf}', suf).replace('{avail}', availSeq).replace('{count}', selectedDevices.length));
                             return;
                         }
                     } else if (strategy === 'smart') {
@@ -2009,7 +2062,7 @@ return view.extend({
                                 var availSmart = 0;
                                 for (var i = zones[k].s; i <= zones[k].e; i++) { if (usedIps.indexOf(basePrefix + i) === -1) availSmart++; }
                                 if (reqCounts[k] > availSmart) {
-                                    alert(T['ERR_CAT_FAIL'].replace('{name}', zones[k].name).replace('{req}', reqCounts[k]).replace('{avail}', availSmart));
+                                    showCustomAlert(T['ERR_CAT_FAIL'].replace('{name}', zones[k].name).replace('{req}', reqCounts[k]).replace('{avail}', availSmart));
                                     return;
                                 }
                             }
@@ -2020,7 +2073,7 @@ return view.extend({
                             var availDept = 0;
                             for (var j = tgt.start; j <= tgt.end; j++) { if (usedIps.indexOf(basePrefix + j) === -1) availDept++; }
                             if (selectedDevices.length > availDept) {
-                                alert(T['ERR_POOL_INSUFF'].replace('{suf}', tgt.start).replace('{avail}', availDept).replace('{count}', selectedDevices.length));
+                                showCustomAlert(T['ERR_POOL_INSUFF'].replace('{suf}', tgt.start).replace('{avail}', availDept).replace('{count}', selectedDevices.length));
                                 return;
                             }
                         }
@@ -2123,7 +2176,7 @@ return view.extend({
                     });
 
                     if (tasks.length === 0) {
-                        alert(T['TIP_BATCH_NO_CHANGE'].replace('{count}', selectedDevices.length));
+                        showCustomAlert(T['TIP_BATCH_NO_CHANGE'].replace('{count}', selectedDevices.length));
                         return; 
                     }
 
@@ -2348,7 +2401,7 @@ return view.extend({
                         callResetAll().then(function() {
                             setTimeout(loadDevices, 2000);
                         }).catch(function(e) {
-                            alert(T['ERR_SAVE_FAIL_SHORT'].replace('{err}', e));
+                            showCustomAlert(T['ERR_SAVE_FAIL_SHORT'].replace('{err}', e));
                             setTimeout(loadDevices, 2000);
                         });
                     }
