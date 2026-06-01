@@ -487,7 +487,7 @@ return view.extend({
             box.style.cssText = 'transform:scale(0.95); transition:transform 0.2s; max-width: 380px; width: 90%; padding: 22px;';
             box.innerHTML = 
                 '<div class="nd-modal-title" style="font-size:17px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #f1f5f9; color:#1e293b;">' + (title || defaultTitle) + '</div>' +
-                '<div style="color:#475569; font-size:14.5px; line-height:1.6; margin-bottom:24px; text-align:left; word-break:break-word; margin: 0 5PX;">' + formattedMsg + '</div>' +
+                '<div style="color:#475569; font-size:14.5px; line-height:1.6; margin-bottom:24px; text-align:left; word-break:break-word; margin: 5PX 10PX;">' + formattedMsg + '</div>' +
                 '<div style="display:flex; justify-content:center;">' +
                     '<button class="nd-btn nd-btn-blue" style="width:100%; border-radius:8px; padding:10px; font-size:15px; letter-spacing:1px;">' + (T['BTN_CLOSE'] || '关闭') + '</button>' +
                 '</div>';
