@@ -273,7 +273,7 @@ var T = {
     'BTN_START_BAK': _('Start Backup'),
     'M_BAK_GEN_TIT': '📦 ' + _('Generating Backup'),
     'M_BAK_GEN_MSG': _('Extracting configs and packing files in background...'),
-    'M_BAK_HINT_FULL': _('Note: Full mode selected, downloading all dependencies. Takes 1-2 mins, please wait.'),
+    'M_BAK_HINT_FULL': _('Note: Full mode selected, downloading all dependencies. Takes 1-3 mins, please wait.'),
     'M_BAK_HINT_LIGHT': _('Note: Lightweight mode selected, packing is very fast (~30s).'),
     'M_BAK_SUCC_TIT': '✅ ' + _('Backup Successful'),
     'M_BAK_SUCC_MSG': _('Backup capsule downloaded. Upload this file after flashing new firmware to restore.'),
