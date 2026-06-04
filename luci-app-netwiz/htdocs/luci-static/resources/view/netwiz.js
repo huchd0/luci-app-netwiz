@@ -291,7 +291,7 @@ var T = {
 
     // 恢复提示
     'M_RST_CONFIRM_TIT': '⚡ ' + _('Confirm System Restore'),
-    'M_RST_CONFIRM_MSG': _('<span style="color:#ef4444; font-weight:bold;">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br>'),
+    'M_RST_CONFIRM_MSG': _('<span style=\"color:#ef4444; font-weight:bold;\">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br>'),
     'M_RST_REGRET_PILL': _('Auto-download current state backup before restore (Regret Pill)'),
     'BTN_CONFIRM_SEL': _('Confirm & Select File'),
     'M_RST_NATIVE_TIT': '⚡ ' + _('Native Fast Restore Mode'),
@@ -321,6 +321,7 @@ var T = {
     'MSG_RST_CONF': _('Extraction successful, applying core configs...'),
     'MSG_RST_PKGS': _('Force offline installing plugins (this takes a while, please wait)...'),
     'MSG_RST_DONE': _('Restore thoroughly complete! Router will auto-reboot!'),
+    'MSG_RST_INVALID': _('Invalid capsule file! NetWiz signature missing, intercepted for security.'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
