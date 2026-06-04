@@ -2397,9 +2397,9 @@ return view.extend({
                 openModal({
                     title: '<div style="position:relative; display:flex; justify-content:center; align-items:center; width:100%;"><span id="btn-restore-close" style="position:absolute; right: 10px; font-size:35px; color:rgba(255,255,255,0.8); cursor:pointer; line-height:1; font-family:Arial,sans-serif; padding:0 5px;" onmouseover="this.style.color=\'#fff\'" onmouseout="this.style.color=\'rgba(255,255,255,0.8)\'">×</span><span>' + T['M_RST_CONFIRM_TIT'] + '</span></div>',
                     msg: '<div style="text-align:left;">' + T['M_RST_CONFIRM_MSG'] +
-                         '    <label style="display:block; text-align:center; cursor:pointer; background:#f8fafc; padding:12px; border-radius:8px; border:1px dashed #cbd5e1; margin:0;">' +
-                         '        <input type="checkbox" id="chk-regret-pill" checked style="vertical-align:-3px; margin:0; width:16px; height:16px; padding:0; top:0;">' +
-                         '        <span style="color:#3b82f6; font-weight:bold; font-size:13.5px; vertical-align:middle;">' + T['M_RST_REGRET_PILL'] + '</span>' +
+                         '    <label style="display:flex; align-items:flex-start; cursor:pointer; background:#f8fafc; padding:12px; border-radius:8px; border:1px dashed #cbd5e1; margin:0;">' +
+                         '        <input type="checkbox" id="chk-regret-pill" checked style="-webkit-appearance:checkbox !important; appearance:checkbox !important; opacity:1 !important; visibility:visible !important; display:inline-block !important; margin:2px 8px 0 0 !important; width:18px !important; height:18px !important; min-width:18px !important; flex-shrink:0 !important;">' +
+                         '        <span style="color:#3b82f6; font-weight:bold; font-size:13.5px; line-height:1.4; text-align:left;">' + T['M_RST_REGRET_PILL'] + '</span>' +
                          '    </label>' +
                          '</div>',
                     okText: T['BTN_CONFIRM_SEL'],
