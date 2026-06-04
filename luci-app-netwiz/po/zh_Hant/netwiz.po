@@ -1421,7 +1421,7 @@ msgid "Confirm System Restore"
 msgstr "確認還原系統"
 
 msgid "<span style=\"color:#ef4444; font-weight:bold;\">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br>"
-msgstr "<span style=\"color:#ef4444; font-weight:bold;\">警告: 此操作將覆蓋當前系統的設定並重裝外掛</span><br><br>還原完成後路由器將自動重啟，請確認上傳的檔案無誤。<br><br>"
+msgstr "<span style=\"color:#ef4444; font-weight:bold;\">⚠️ 安全警告：此操作具有最高系統權限，將徹底覆蓋當前設定！</span><br><br><span style=\"color:#f59e0b; font-weight:bold;\">防駭客提示：請絕對不要上傳來自論壇或陌生人提供的來路不明備份檔，否則您的路由器可能會被植入木馬後門！</span><br><br>還原完成後路由器將自動重啟。<br><br>"
 
 msgid "Auto-download current state backup before restore (Regret Pill)"
 msgstr "還原前先自動下載當前狀態的備份 (後悔藥)"
@@ -1503,3 +1503,6 @@ msgstr "正在強制離線覆蓋外掛 (此過程較長，請耐心等待)..."
 
 msgid "Restore thoroughly complete! Router will auto-reboot!"
 msgstr "還原徹底完成！路由器即將自動重啟！"
+
+msgid "MSG_RST_INVALID"
+msgstr "無效的膠囊檔案！系統未檢測到 NetWiz 專屬特徵碼，為保護系統安全已自動攔截並銷毀。"
