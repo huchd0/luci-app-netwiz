@@ -1320,3 +1320,165 @@ msgstr "密碼設定失敗: "
 
 msgid "No Wi-Fi hardware detected, this step will be skipped automatically.<br>Please click [Next Step] directly."
 msgstr "未檢測到 Wi-Fi 硬體，本步驟自動跳過。<br>請直接點擊右下角【下一步】。"
+
+msgid "Advanced & Lab Features"
+msgstr "進階與實驗室功能"
+
+msgid "Beta"
+msgstr "測試版"
+
+msgid "Full Software Backup & Restore"
+msgstr "全量軟體的備份與還原"
+
+msgid "Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">restore all software and configs perfectly (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset router first.<br>If Netwiz is missing after reset, run this in SSH:"
+msgstr "解決傳統備份容易導致當機、軟磚風險，智能備份兼容跨版本還原。刷入新韌體後，上傳備份即可<span style=\"color:#ef4444; font-weight:bold;\">極速重裝所有軟體並無損還原設定（需聯網）</span>。還原時不會刪除當前軟體。若需達到絕對純淨，請先還原原廠設定。<br>還原出廠後若未安裝 Netwiz，可聯網後在終端機執行："
+
+msgid "Generate Backup"
+msgstr "生成備份檔案"
+
+msgid "Restore System"
+msgstr "還原系統軟體"
+
+msgid "Click to Copy"
+msgstr "點擊複製"
+
+msgid "Copied"
+msgstr "已複製"
+
+msgid "Copy Failed"
+msgstr "複製失敗"
+
+msgid "Select Backup Mode"
+msgstr "選擇備份模式"
+
+msgid "Lightweight Backup"
+msgstr "輕量化備份"
+
+msgid "Recommended"
+msgstr "推薦模式"
+
+msgid "Full Offline Backup"
+msgstr "全量離線備份"
+
+msgid "Includes Dependencies"
+msgstr "包含深層依賴"
+
+msgid "<b style=\"color: #F00;\">Lightweight Backup:</b> Only packs core configs (Passwords/Wi-Fi/IP) and main plugin packages. Fast and requires no extra RAM. Requires internet or built-in dependencies when restoring."
+msgstr "<b style=\"color: #F00;\">輕量化備份說明:</b> 僅打包核心設定(帳號密碼/無線/IP)和主套件包，不抓取底層深層依賴，速度極快。還原時新韌體需自帶對應依賴或處於聯網狀態。"
+
+msgid "<b style=\"color: #F00;\">Full Offline Backup:</b> Packs core configs and recursively downloads ALL underlying dependencies for third-party plugins. Large size, slower generation. <b style=\"color: #F00;\">NO internet required</b> during restore. Recommended for devices with >256MB RAM."
+msgstr "<b style=\"color: #F00;\">全量離線備份說明:</b> 遞迴下載所有第三方套件的完整底層依賴。體積龐大生成較慢，優點是還原時<b style=\"color: #F00;\">完全不需要網路</b>即可重裝成功。建議記憶體 >256M 的設備使用。"
+
+msgid "Start Backup"
+msgstr "確定開始備份"
+
+msgid "Generating Backup"
+msgstr "正在生成備份"
+
+msgid "Extracting configs and packing files in background..."
+msgstr "正在後台提取設定並打包檔案..."
+
+msgid "Note: Full mode selected, downloading all dependencies. Takes 1-2 mins, please wait."
+msgstr "提示 當前為全量模式 需要下載全部底層依賴 大約需 1 到 2 分鐘 請耐心等待"
+
+msgid "Note: Lightweight mode selected, packing is very fast (~30s)."
+msgstr "提示 當前為輕量模式 打包速度極快 大約需要 30 秒左右"
+
+msgid "Backup Successful"
+msgstr "打包成功"
+
+msgid "Backup capsule downloaded. Upload this file after flashing new firmware to restore."
+msgstr "備份膠囊已成功下載 刷入新系統後上傳此檔案即可還原"
+
+msgid "Backup Failed"
+msgstr "打包失敗"
+
+msgid "Unable to start background backup task."
+msgstr "無法啟動後台備份任務"
+
+msgid "Confirm System Restore"
+msgstr "確認還原系統"
+
+msgid "<span style=\"color:#ef4444; font-weight:bold;\">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br>"
+msgstr "<span style=\"color:#ef4444; font-weight:bold;\">警告 此操作將覆蓋當前系統的設定並重裝外掛</span><br><br>還原完成後路由器將自動重啟 請確認上傳的檔案無誤<br><br>"
+
+msgid "Auto-download current state backup before restore (Regret Pill)"
+msgstr "還原前先自動下載當前狀態的備份 (後悔藥)"
+
+msgid "Confirm & Select File"
+msgstr "確認並選擇檔案"
+
+msgid "Native Fast Restore Mode"
+msgstr "原生極速還原模式"
+
+msgid "Transferring capsule via high-speed system channel...<br><br><b style=\"color:#ef4444;\">DO NOT power off. Router will auto-reboot upon completion.</b>"
+msgstr "正在調用系統底層高速通道直傳膠囊...<br><br><b style=\"color:#ef4444;\">請勿斷開電源 路由器將在完成後自動重啟</b>"
+
+msgid "Capsule delivered, preparing offline task..."
+msgstr "膠囊已送達底層，準備執行脫機任務..."
+
+msgid "Restore Blocked by Security"
+msgstr "還原異常被安全攔截"
+
+msgid "Self-healing mechanism triggered. Garbage cleared, router is safe and unharmed."
+msgstr "系統已啟動自癒機制清理了垃圾殘留，您的路由器目前處於安全狀態，並未受損。"
+
+msgid "Transfer Failed"
+msgstr "傳輸失敗"
+
+msgid "Interface rejected reception, status code: "
+msgstr "底層接口拒絕接收，狀態碼: "
+
+msgid "Network Error"
+msgstr "網路錯誤"
+
+msgid "File transfer interrupted unexpectedly, check network!"
+msgstr "檔案傳輸被意外中斷，請檢查網路連線！"
+
+msgid "Preparing Regret Pill"
+msgstr "正在為您調配後悔藥"
+
+msgid "Backing up current state to prevent regrets...<br><br><span style=\"font-size:12px; color:#10b981;\">Tip: Restore will begin automatically after download</span>"
+msgstr "正在備份當前系統狀態 以防還原後反悔<br><br><span style=\"font-size:12px; color:#10b981;\">提示 備份下載完成後將自動開始覆蓋並還原新系統</span>"
+
+msgid "Probing Environment"
+msgstr "正在探測運行環境"
+
+msgid "Calculating system available RAM and storage..."
+msgstr "正在計算系統可用記憶體與儲存空間..."
+
+msgid "Critical RAM Shortage"
+msgstr "實體記憶體嚴重不足"
+
+msgid "Your full capsule size is <b style=\"color:#ef4444;\">{size} MB</b>.<br><br>But /tmp (RAM) only has <b style=\"color:#ef4444;\">{avail} MB</b> free!<br><br>Force uploading will <b style=\"color:#f00;\">cause OOM, crash, and network drop</b>.<br><br><b>Solution:</b> Please <b style=\"color:#10b981;\">reboot the router</b> once to clear RAM fragments, then retry."
+msgstr "檢測到您的全量膠囊大小為 <b style=\"color:#ef4444;\">{size} MB</b>。<br><br>但當前路由器的 /tmp (運行記憶體) 僅剩餘 <b style=\"color:#ef4444;\">{avail} MB</b> 可用空間！<br><br>強行上傳將<b style=\"color:#f00;\">導致路由器記憶體溢出、當機並斷網</b>。<br><br>💡 <b>解決方案：</b>請先<b style=\"color:#10b981;\">重啟一次路由器</b>來清空記憶體碎片，重啟後再進行還原操作。"
+
+msgid "Cancel Restore"
+msgstr "取消還原"
+
+msgid "Waiting for background task to start..."
+msgstr "等待後台任務啟動..."
+
+msgid "Capsule delivered, initializing restore environment..."
+msgstr "膠囊已送達，正在初始化還原環境..."
+
+msgid "Scanning capsule structure to estimate uncompressed size (5-10s)..."
+msgstr "正在掃描膠囊深層結構以預估解壓體積 (約需5-10秒)..."
+
+msgid "Uncompressed size reaches {u}MB, but RAM only has {a}MB left! Intercepted to prevent router crash."
+msgstr "解壓體積達 {u}MB，但記憶體僅剩 {a}MB！為防止當機，已觸發安全攔截。"
+
+msgid "Size safe! Extracting backup capsule..."
+msgstr "體積安全！正在解壓備份膠囊..."
+
+msgid "Extraction failed! Capsule may be corrupted, initiating self-healing..."
+msgstr "解壓失敗！可能是壓縮包損壞，已啟動自癒機制清理記憶體。"
+
+msgid "Extraction successful, applying core configs..."
+msgstr "解壓成功，正在覆蓋系統核心設定..."
+
+msgid "Force offline installing plugins (this takes a while, please wait)..."
+msgstr "正在強制離線覆蓋套件 (此過程較長，請耐心等待)..."
+
+msgid "Restore thoroughly complete! Router will auto-reboot!"
+msgstr "還原徹底完成！路由器即將自動重啟！"
