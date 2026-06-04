@@ -1357,8 +1357,8 @@ msgstr "轻量化备份"
 msgid "Recommended"
 msgstr "推荐模式"
 
-msgid "Full Offline Backup"
-msgstr "全量离线备份"
+msgid "Full Backup"
+msgstr "全量备份"
 
 msgid "Includes Dependencies"
 msgstr "包含深层依赖"
@@ -1367,7 +1367,7 @@ msgid "<b style=\"color: #F00;\">Lightweight Backup:</b> Only packs core configs
 msgstr "<b style=\"color: #F00;\">轻量化备份说明:</b> 仅打包核心配置(账号密码/无线/IP)和主插件包，不抓取底层深层依赖，速度极快。恢复时新固件需自带对应依赖或处于联网状态。"
 
 msgid "<b style=\"color: #F00;\">Full Offline Backup:</b> Packs core configs and recursively downloads ALL underlying dependencies for third-party plugins. Large size, slower generation. <b style=\"color: #F00;\">NO internet required</b> during restore. Recommended for devices with >256MB RAM."
-msgstr "<b style=\"color: #F00;\">全量离线备份说明:</b> 递归下载所有第三方插件的完整底层依赖。体积庞大生成较慢，优点是恢复时<b style=\"color: #F00;\">完全不需要网络</b>即可重装成功。建议内存 >256M 的设备使用。"
+msgstr "<b style=\"color: #F00;\">全量备份说明:</b> 递归下载所有第三方插件的完整底层依赖。体积庞大生成较慢，优点是恢复时<b style=\"color: #F00;\">完全不需要网络</b>即可重装成功。建议内存 >256M 的设备使用。"
 
 msgid "Start Backup"
 msgstr "确定开始备份"
