@@ -4,10 +4,22 @@
 
 LOG_FILE="/tmp/netwiz.log"
 
+# 用法: log "[标签]" "日志内容"
 log() {
-    logger -t Netwiz "$1"
-    echo "$(date '+%F %T') [RPC] $1" >> "$LOG_FILE"
-    # 日志控制 防止文件过大撑爆内存
+    local tag="$1"
+    local msg="$2"
+    # 如果只传了一个参数，默认标签为 [SYSTEM]
+    if [ -z "$msg" ]; then
+        msg="$tag"
+        tag="[SYSTEM]"
+    fi
+    
+    # 写入系统标准日志 (logread 可见)
+    logger -t Netwiz "$tag $msg"
+    # 写入本地统一文件
+    echo "$(date '+%F %T') $tag $msg" >> "$LOG_FILE"
+    
+    # 日志控制 防止文件过大撑爆内存 (保留最新的 600 行)
     if [ $(wc -l < "$LOG_FILE" 2>/dev/null || echo 0) -gt 600 ]; then
         tail -n 500 "$LOG_FILE" > "$LOG_FILE.tmp"
         mv "$LOG_FILE.tmp" "$LOG_FILE"
