@@ -1357,8 +1357,8 @@ msgstr "輕量化備份"
 msgid "Recommended"
 msgstr "推薦模式"
 
-msgid "Full Offline Backup"
-msgstr "全量離線備份"
+msgid "Full Backup"
+msgstr "全量備份"
 
 msgid "Includes Dependencies"
 msgstr "包含深層依賴"
@@ -1366,8 +1366,8 @@ msgstr "包含深層依賴"
 msgid "<b style=\"color: #F00;\">Lightweight Backup:</b> Only packs core configs (Passwords/Wi-Fi/IP) and main plugin packages. Fast and requires no extra RAM. Requires internet or built-in dependencies when restoring."
 msgstr "<b style=\"color: #F00;\">輕量化備份說明:</b> 僅打包核心設定(帳號密碼/無線/IP)和主外掛包，不抓取底層深層依賴，速度極快。還原時新韌體需自帶對應依賴或處於聯網狀態。"
 
-msgid "<b style=\"color: #F00;\">Full Offline Backup:</b> Packs core configs and recursively downloads ALL underlying dependencies for third-party plugins. Large size, slower generation. <b style=\"color: #F00;\">NO internet required</b> during restore. Recommended for devices with >256MB RAM."
-msgstr "<b style=\"color: #F00;\">全量離線備份說明:</b> 遞迴下載所有第三方外掛的完整底層依賴。體積龐大生成較慢，優點是還原時<b style=\"color: #F00;\">完全不需要網路</b>即可重裝成功。建議記憶體 >256M 的設備使用。"
+msgid "<b style=\"color: #F00;\">Full Backup:</b> Packs core configs and recursively downloads ALL underlying dependencies for third-party plugins. Large size, slower generation. <b style=\"color: #F00;\">NO internet required</b> during restore. Recommended for devices with >256MB RAM."
+msgstr "<b style=\"color: #F00;\">全量備份說明:</b> 遞迴下載所有第三方外掛的完整底層依賴。體積龐大生成較慢，優點是還原時<b style=\"color: #F00;\">完全不需要網路</b>即可重裝成功。建議記憶體 >256M 的設備使用。"
 
 msgid "Start Backup"
 msgstr "確定開始備份"
