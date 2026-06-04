@@ -772,7 +772,8 @@ case "$1" in
                     ) &
                 exit 0
                 ;;
-                smart_backup)
+
+            smart_backup)
                 touch /tmp/nw_backup_running
                 
                 # 解析前端传来的备份类型参数
@@ -780,10 +781,7 @@ case "$1" in
                 backup_type=$(echo "$input" | jsonfilter -e '@.type')
                 [ -z "$backup_type" ] && backup_type="light"
 
-                LOG="/tmp/netwiz_backup.log"
-                echo "=== NetWiz 备份诊断日志 ===" > $LOG
-                echo "备份类型: $backup_type" >> $LOG
-                date >> $LOG
+                log "[BACKUP]" "=== 开始执行智能备份 (类型: $backup_type) ==="
                 
                 timestamp=$(date +%Y%m%d_%H%M%S)
                 dl_name="NetWiz_SmartGhost_${backup_type}_${timestamp}.tar.gz"
@@ -792,15 +790,15 @@ case "$1" in
                 link_file="/www/luci-static/${dl_name}"
 
                 (
-                    echo "-> [1/5] 开始备份系统设置..." >> $LOG
-                    sysupgrade -b /tmp/nw_sys_config.tar.gz >> $LOG 2>&1
+                    log "[BACKUP]" "[1/5] 开始备份系统设置..."
+                    sysupgrade -b /tmp/nw_sys_config.tar.gz >> "$LOG_FILE" 2>&1
                     
                     mkdir -p /tmp/nw_offline_pkgs
                     cd /tmp/nw_offline_pkgs
                     
-                    echo "-> [2/5] 准备下载离线套件..." >> $LOG
+                    log "[BACKUP]" "[2/5] 准备下载离线套件..."
                     if command -v apk >/dev/null 2>&1; then
-                        apk update >> $LOG 2>&1
+                        apk update >> "$LOG_FILE" 2>&1
                         pkg_list=$(apk info | grep -e '^luci-app-' -e '^luci-theme-')
                         
                         # 如果是全量备份则加入R参数下载全部底层依赖
@@ -812,28 +810,28 @@ case "$1" in
                         
                         if [ -n "$pkg_list" ]; then
                             for pkg in $pkg_list; do 
-                                apk fetch $fetch_args "$pkg" >> $LOG 2>&1
+                                apk fetch $fetch_args "$pkg" >> "$LOG_FILE" 2>&1
                             done
                         fi
                     elif command -v opkg >/dev/null 2>&1; then
-                        opkg update >> $LOG 2>&1
+                        opkg update >> "$LOG_FILE" 2>&1
                         pkg_list=$(opkg list-installed | awk '{print $1}' | grep -e '^luci-app-' -e '^luci-theme-')
                         
                         if [ -n "$pkg_list" ]; then
                             for pkg in $pkg_list; do 
-                                opkg download "$pkg" >> $LOG 2>&1
+                                opkg download "$pkg" >> "$LOG_FILE" 2>&1
                             done
                         fi
                     fi
 
-                    echo "-> [3/5] 开始在内存中打包..." >> $LOG
+                    log "[BACKUP]" "[3/5] 开始在内存中打包..."
                     cd /tmp 
-                    tar -czf "$backup_file" nw_sys_config.tar.gz nw_offline_pkgs/ >> $LOG 2>&1
+                    tar -czf "$backup_file" nw_sys_config.tar.gz nw_offline_pkgs/ >> "$LOG_FILE" 2>&1
                     
                     chmod 644 "$backup_file"
                     ln -sf "$backup_file" "$link_file"
                     
-                    echo "-> [4/5] 打包结束，清理零碎文件。" >> $LOG
+                    log "[BACKUP]" "[4/5] 打包结束，清理零碎文件。"
                     rm -rf /tmp/nw_sys_config.tar.gz /tmp/nw_offline_pkgs /tmp/nw_backup_running
                     
                     sleep 300
@@ -845,7 +843,7 @@ case "$1" in
                 ;;
 
             check_backup)
-                # 檢查後台是否還在打包
+                # 检查后台是否在打包
                 if [ -f /tmp/nw_backup_running ]; then
                     printf '{"status":"running"}\n'
                 else
@@ -869,24 +867,24 @@ case "$1" in
                     
                     cat << 'EOF' > /tmp/nw_do_restore.sh
 #!/bin/sh
-LOG="/tmp/netwiz_restore.log"
+LOG_FILE="/tmp/netwiz.log"
 STATUS_FILE="/tmp/nw_restore_status.json"
 TARGET="$1"
 
-# 状态更新函数，使用状态码进行国际化传递
+# 状态更新函数，使用状态码进行国际化传递，写入日志
 update_status() {
     local stat="$1"
     local code="$2"
     local arg1="$3"
     local arg2="$4"
     echo "{\"status\":\"$stat\", \"code\":\"$code\", \"arg1\":\"$arg1\", \"arg2\":\"$arg2\"}" > "$STATUS_FILE"
-    echo "-> [$stat] $code $arg1 $arg2" >> $LOG
+    
+    logger -t Netwiz "[RESTORE] $code $arg1 $arg2"
+    echo "$(date '+%F %T') [RESTORE] $code $arg1 $arg2" >> "$LOG_FILE"
 }
 
-echo "=== NetWiz Restore Log ===" > $LOG
-date >> $LOG
+echo "$(date '+%F %T') [RESTORE] === 开始执行极速恢复 ===" >> "$LOG_FILE"
 
-# 扫描压缩包深层结构预估解压体积
 update_status "running" "MSG_RST_SCAN"
 UNCOMPRESSED_BYTES=$(zcat "$TARGET" | wc -c 2>/dev/null)
 UNCOMPRESSED_MB=$((UNCOMPRESSED_BYTES / 1024 / 1024))
@@ -894,7 +892,7 @@ UNCOMPRESSED_MB=$((UNCOMPRESSED_BYTES / 1024 / 1024))
 TMP_AVAIL_KB=$(df -k /tmp | tail -n 1 | awk '{print $4}')
 TMP_AVAIL_MB=$((TMP_AVAIL_KB / 1024))
 
-echo "预估体积: ${UNCOMPRESSED_MB}MB, 可用空间: ${TMP_AVAIL_MB}MB" >> $LOG
+echo "$(date '+%F %T') [RESTORE] 预估体积: ${UNCOMPRESSED_MB}MB, 可用空间: ${TMP_AVAIL_MB}MB" >> "$LOG_FILE"
 
 # 安全拦截：所需空间大于剩余空间时拦截
 if [ $((UNCOMPRESSED_MB + 15)) -gt "$TMP_AVAIL_MB" ]; then
@@ -906,7 +904,7 @@ fi
 
 update_status "running" "MSG_RST_SAFE"
 mkdir -p /tmp/nw_ghost_tmp
-tar -xzf "$TARGET" -C /tmp/nw_ghost_tmp >> $LOG 2>&1
+tar -xzf "$TARGET" -C /tmp/nw_ghost_tmp >> "$LOG_FILE" 2>&1
 
 if [ $? -ne 0 ]; then
     update_status "error" "MSG_RST_FAIL"
@@ -916,15 +914,15 @@ fi
 
 if [ -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ]; then
     update_status "running" "MSG_RST_CONF"
-    tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> $LOG 2>&1
+    tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> "$LOG_FILE" 2>&1
 fi
 
 if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
     update_status "running" "MSG_RST_PKGS"
     if command -v apk >/dev/null 2>&1; then
-        apk add --allow-untrusted --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >> $LOG 2>&1
+        apk add --allow-untrusted --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >> "$LOG_FILE" 2>&1
     elif command -v opkg >/dev/null 2>&1; then
-        opkg install --force-reinstall --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >> $LOG 2>&1
+        opkg install --force-reinstall --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >> "$LOG_FILE" 2>&1
     fi
 fi
 
@@ -940,25 +938,6 @@ EOF
                 else
                     echo '{"error":"No data"}'
                 fi
-                exit 0
-                ;;
-            check_restore_status)
-                # 实时状态读取接口
-                if [ -f "/tmp/nw_restore_status.json" ]; then
-                    cat /tmp/nw_restore_status.json
-                else
-                    echo '{"status":"unknown", "code":"MSG_RST_WAIT"}'
-                fi
-                exit 0
-                ;;
-            check_storage)
-                tmp_avail=$(df -k /tmp | tail -n 1 | awk '{print $4}')
-                if [ -n "$tmp_avail" ] && [ "$tmp_avail" -gt 0 ]; then
-                    tmp_mb=$((tmp_avail / 1024))
-                else
-                    tmp_mb=60
-                fi
-                echo "{\"tmp_avail_mb\":$tmp_mb}"
                 exit 0
                 ;;
         esac
