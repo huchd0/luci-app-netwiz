@@ -912,6 +912,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+if [ ! -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ] && [ ! -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
+    update_status "error" "MSG_RST_INVALID"
+    rm -rf /tmp/nw_ghost_tmp "$TARGET"
+    exit 1
+fi
+
 if [ -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ]; then
     update_status "running" "MSG_RST_CONF"
     tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> "$LOG_FILE" 2>&1
