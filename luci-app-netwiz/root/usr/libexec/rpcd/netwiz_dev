@@ -952,9 +952,34 @@ EOF
                     done
                     tar -czf "$backup_file" -C / $FILE_LIST 2>/dev/null
 
-                    # 解压目标文件覆盖配置
-                    tar -xzf "$restore_file" -C / 2>/dev/null
-                    rm -f "$restore_file"
+                    # --- 开始安全沙盒防呆/防黑客逻辑 ---
+                    mkdir -p /tmp/nw_import_tmp
+                    tar -xzf "$restore_file" -C /tmp/nw_import_tmp/ >/dev/null 2>&1
+
+                    # 1. 检查解压是否报错
+                    if [ $? -ne 0 ]; then
+                        rm -rf /tmp/nw_import_tmp "$restore_file"
+                        echo '{"error":"Invalid archive format"}'
+                        exit 0
+                    fi
+
+                    # 2. 特征码强校验
+                    if [ ! -f "/tmp/nw_import_tmp/etc/config/network" ] && [ ! -f "/tmp/nw_import_tmp/etc/config/dhcp" ] && [ ! -f "/tmp/nw_import_tmp/etc/config/netwiz" ]; then
+                        rm -rf /tmp/nw_import_tmp "$restore_file"
+                        echo '{"error":"Missing signature files"}'
+                        exit 0
+                    fi
+
+                    # 3. 白名单安全覆盖
+                    for f in network wireless dhcp firewall netwiz; do
+                        if [ -f "/tmp/nw_import_tmp/etc/config/$f" ]; then
+                            cp -f "/tmp/nw_import_tmp/etc/config/$f" "/etc/config/$f"
+                        fi
+                    done
+
+                    # 清理沙盒与残留
+                    rm -rf /tmp/nw_import_tmp "$restore_file"
+                    # --- 🛡️ 安全逻辑结束 ---
                     
                     echo '{"result":0}'
                     
