@@ -204,6 +204,12 @@ var T = {
     'TIT_RESTORING': _('Restoring'),
     'TIT_RESTORE_FAIL': _('Restore Failed'),
     'TXT_ERROR': _('Error: '),
+    'TIT_JSON_LARGE': _('File Too Large'),
+    'MSG_JSON_LARGE': _('<div style="text-align:left; color:#ef4444; font-weight:bold;">Config files are usually under 100KB!</div><br>The selected file is too large and has been blocked.'),
+    'TIT_JSON_INVALID': _('Invalid Format'),
+    'MSG_JSON_INVALID': _('The uploaded file is not a valid JSON format and cannot be parsed!'),
+    'TIT_RESTORE_JSON': _('Import Configuration'),
+    'MSG_RESTORE_JSON': _('Are you sure you want to import this configuration? Existing data will be overwritten.'),
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns', 'do_rescan'], expect: { '': {} } });
@@ -782,20 +788,35 @@ return view.extend({
                 fileInput.onchange = function(e) {
                     var file = e.target.files[0];
                     if (!file) return;
+
+                    // 不超 100KB
+                    if (file.size > 100 * 1024) {
+                        showCustomAlert(
+                            T['MSG_JSON_LARGE'] || '<div style="text-align:left; color:#ef4444; font-weight:bold;">配置文件通常小于 100KB！</div><br>您选择的文件过大，已被安全拦截。', 
+                            '⚠️ ' + (T['TIT_JSON_LARGE'] || '文件过大')
+                        );
+                        return;
+                    }
                     
                     var reader = new FileReader();
                     reader.onload = function(evt) {
                         try {
+                            // 是否合法 JSON 格式
                             var importedData = JSON.parse(evt.target.result);
                             if (!Array.isArray(importedData)) throw new Error('Not an array');
                             
-                            // 导入成功
+                            // 成功，渲染到介面
                             renderDeptManager(importedData);
                             showCustomAlert(T['MSG_IMPORT_SUCCESS']);
                         } catch (err) {
-                            showCustomAlert(T['ERR_IMPORT_FAIL']);
+                            // 解析失败
+                            showCustomAlert(
+                                T['MSG_JSON_INVALID'] || '您上传的文件不是有效的 JSON 格式，无法解析！', 
+                                '❌ ' + (T['TIT_JSON_INVALID'] || '格式无效')
+                            );
                         }
                     };
+                    // 注意：這裡使用 readAsText 讀取純文字，不需要 Base64 轉換，效能極高
                     reader.readAsText(file);
                 };
                 
