@@ -250,6 +250,68 @@ var T = {
     'MSG_SETUP_DONE': _('Configuration complete! Automatically logging you in...'),
     'MSG_PWD_FAIL': _('Password setup failed: '),
     'MSG_NO_WIFI_TIP': _('No Wi-Fi hardware detected, this step will be skipped automatically.<br>Please click [Next Step] directly.'),
+    
+    // 高级与实验室功能词条
+    'LBL_LAB_TITLE': _('Advanced & Lab Features'),
+    'LBL_LAB_BETA': _('Beta'),
+    'TXT_FULL_BACKUP_TIT': _('Full Software Backup & Restore'),
+    'TXT_FULL_BACKUP_DESC': _('Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style="color:#ef4444; font-weight:bold;">restore all software and configs perfectly (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset router first.<br>If Netwiz is missing after reset, run this in SSH:'),
+    'BTN_SMART_BACKUP': '📦 ' + _('Generate Backup'),
+    'BTN_SMART_RESTORE': '⚡ ' + _('Restore System'),
+    'TXT_COPY_TIP': '📋 ' + _('Click to Copy'),
+    'TXT_COPIED': '✅ ' + _('Copied'),
+    'TXT_COPY_FAIL': '❌ ' + _('Copy Failed'),
+
+    // 备份提示
+    'M_BAK_SEL_TIT': '📦 ' + _('Select Backup Mode'),
+    'M_BAK_LIGHT_TIT': _('Lightweight Backup'),
+    'M_BAK_LIGHT_SUB': _('Recommended'),
+    'M_BAK_FULL_TIT': _('Full Offline Backup'),
+    'M_BAK_FULL_SUB': _('Includes Dependencies'),
+    'M_BAK_LIGHT_DESC': _('<b style="color: #F00;">Lightweight Backup:</b> Only packs core configs (Passwords/Wi-Fi/IP) and main plugin packages. Fast and requires no extra RAM. Requires internet or built-in dependencies when restoring.'),
+    'M_BAK_FULL_DESC': _('<b style="color: #F00;">Full Offline Backup:</b> Packs core configs and recursively downloads ALL underlying dependencies for third-party plugins. Large size, slower generation. <b style="color: #F00;">NO internet required</b> during restore. Recommended for devices with >256MB RAM.'),
+    'BTN_START_BAK': _('Start Backup'),
+    'M_BAK_GEN_TIT': '📦 ' + _('Generating Backup'),
+    'M_BAK_GEN_MSG': _('Extracting configs and packing files in background...'),
+    'M_BAK_HINT_FULL': _('Note: Full mode selected, downloading all dependencies. Takes 1-2 mins, please wait.'),
+    'M_BAK_HINT_LIGHT': _('Note: Lightweight mode selected, packing is very fast (~30s).'),
+    'M_BAK_SUCC_TIT': '✅ ' + _('Backup Successful'),
+    'M_BAK_SUCC_MSG': _('Backup capsule downloaded. Upload this file after flashing new firmware to restore.'),
+    'M_BAK_FAIL_TIT': '❌ ' + _('Backup Failed'),
+    'M_BAK_FAIL_MSG': _('Unable to start background backup task.'),
+
+    // 恢复提示
+    'M_RST_CONFIRM_TIT': '⚡ ' + _('Confirm System Restore'),
+    'M_RST_CONFIRM_MSG': _('<span style="color:#ef4444; font-weight:bold;">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br>'),
+    'M_RST_REGRET_PILL': _('Auto-download current state backup before restore (Regret Pill)'),
+    'BTN_CONFIRM_SEL': _('Confirm & Select File'),
+    'M_RST_NATIVE_TIT': '⚡ ' + _('Native Fast Restore Mode'),
+    'M_RST_NATIVE_MSG': _('Transferring capsule via high-speed system channel...<br><br><b style="color:#ef4444;">DO NOT power off. Router will auto-reboot upon completion.</b>'),
+    'M_RST_DELIVERED': '✅ ' + _('Capsule delivered, preparing offline task...'),
+    'M_RST_BLOCKED_TIT': '❌ ' + _('Restore Blocked by Security'),
+    'M_RST_BLOCKED_MSG': _('Self-healing mechanism triggered. Garbage cleared, router is safe and unharmed.'),
+    'M_RST_TRANS_FAIL': '❌ ' + _('Transfer Failed'),
+    'M_RST_TRANS_REJECT': _('Interface rejected reception, status code: '),
+    'M_RST_NET_ERR': '❌ ' + _('Network Error'),
+    'M_RST_NET_INTR': _('File transfer interrupted unexpectedly, check network!'),
+    'M_RST_PILL_TIT': '💊 ' + _('Preparing Regret Pill'),
+    'M_RST_PILL_MSG': _('Backing up current state to prevent regrets...<br><br><span style="font-size:12px; color:#10b981;">Tip: Restore will begin automatically after download</span>'),
+    'M_RST_PROBE_TIT': '🔍 ' + _('Probing Environment'),
+    'M_RST_PROBE_MSG': _('Calculating system available RAM and storage...'),
+    'M_RST_OOM_TIT': '⚠️ ' + _('Critical RAM Shortage'),
+    'M_RST_OOM_MSG': _('Your full capsule size is <b style="color:#ef4444;">{size} MB</b>.<br><br>But /tmp (RAM) only has <b style="color:#ef4444;">{avail} MB</b> free!<br><br>Force uploading will <b style="color:#f00;">cause OOM, crash, and network drop</b>.<br><br><b>Solution:</b> Please <b style="color:#10b981;">reboot the router</b> once to clear RAM fragments, then retry.'),
+    'BTN_CANCEL_RST': _('Cancel Restore'),
+
+    // 后端执行状态映射代码
+    'MSG_RST_WAIT': _('Waiting for background task to start...'),
+    'MSG_RST_INIT': _('Capsule delivered, initializing restore environment...'),
+    'MSG_RST_SCAN': _('Scanning capsule structure to estimate uncompressed size (5-10s)...'),
+    'MSG_RST_OOM_INTERCEPT': _('Uncompressed size reaches {u}MB, but RAM only has {a}MB left! Intercepted to prevent router crash.'),
+    'MSG_RST_SAFE': _('Size safe! Extracting backup capsule...'),
+    'MSG_RST_FAIL': _('Extraction failed! Capsule may be corrupted, initiating self-healing...'),
+    'MSG_RST_CONF': _('Extraction successful, applying core configs...'),
+    'MSG_RST_PKGS': _('Force offline installing plugins (this takes a while, please wait)...'),
+    'MSG_RST_DONE': _('Restore thoroughly complete! Router will auto-reboot!'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -260,6 +322,12 @@ var getWanStatus = rpc.declare({ object: 'network.interface', method: 'dump', ex
 var callNetCheckWifi = rpc.declare({ object: 'netwiz', method: 'check_wifi', expect: { has_wifi: false } });
 var callSetPassword = rpc.declare({ object: 'netwiz', method: 'set_password', params: ['password'], expect: { result: 0 } });
 var callSystemBoard = rpc.declare({ object: 'system', method: 'board', expect: { '': {} } });
+// 增加智能备份和恢复的接口声明
+var callSmartBackup = rpc.declare({ object: 'netwiz', method: 'smart_backup', params: ['type'], expect: { '': {} } });
+var callCheckBackup = rpc.declare({ object: 'netwiz', method: 'check_backup', expect: { '': {} } });
+var callSmartRestoreExec = rpc.declare({ object: 'netwiz', method: 'smart_restore_exec', params: ['filepath'], expect: { result: 0 } });
+var callCheckStorage = rpc.declare({ object: 'netwiz', method: 'check_storage', expect: { tmp_avail_mb: 0 } });
+var callCheckRestoreStatus = rpc.declare({ object: 'netwiz', method: 'check_restore_status', expect: { status: 'unknown', msg: '' } });
 
 return view.extend({
     handleSaveApply: null,
@@ -454,7 +522,34 @@ return view.extend({
             '    <div id="current-mode-display" class="nw-current-mode-display">',
             '       <div id="current-mode-text" style="color: #fff;"><div class="nw-spinner" style="width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;"></div><div style="margin-top:10px; font-size:15px; font-weight:bold; color:#fff;">{{LOADING_CONFIG}}</div></div>',
             '    </div>',
-            '  </div>',
+            // 实验室功能区块
+            '    <div style="margin: 20px auto 0; width: 100%; max-width: 820px; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">',
+            '        <div style="background: linear-gradient(90deg, #5E72E4 0%, #f1f5f9 100%); padding: 12px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">',
+            '            <div style="display: flex; align-items: center; gap: 8px;">',
+            '                <span style="font-size: 18px;">🧪</span>',
+            '                <span style="font-size: 15px; font-weight: bold; color: #FFF;">{{LBL_LAB_TITLE}}</span>',
+            '            </div>',
+            '            <span style="font-size: 12px; color: #FFF; background: #5E72E4; padding: 2px 8px; border-radius: 12px; font-weight: bold;">{{LBL_LAB_BETA}}</span>',
+            '        </div>',
+            '        <div style="padding: 20px;">',
+            '            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">',
+            '                <div style="font-size: 16.5px; font-weight: bold; color: #0f172a;">{{TXT_FULL_BACKUP_TIT}}</div>',
+            '                <div style="font-size: 13px; color: #64748b; line-height: 1.6; text-align: left;">',
+            '                    {{TXT_FULL_BACKUP_DESC}}',
+            '                    <div onclick="var t=this.querySelector(\'#nw-copy-tip\'); var el=document.createElement(\'textarea\'); el.value=\'wget -qO- https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh | sh\'; el.style.position=\'absolute\'; el.style.left=\'-9999px\'; document.body.appendChild(el); el.select(); var ok=false; try{ ok=document.execCommand(\'copy\'); }catch(e){} document.body.removeChild(el); if(ok){ t.innerHTML=\'{{TXT_COPIED}}\'; t.style.color=\'#10b981\'; setTimeout(function(){ t.innerHTML=\'{{TXT_COPY_TIP}}\'; t.style.color=\'#64748b\'; }, 2000); }else{ t.innerHTML=\'{{TXT_COPY_FAIL}}\'; setTimeout(function(){ t.innerHTML=\'{{TXT_COPY_TIP}}\'; }, 2000); }" style="margin-top: 10px; padding: 12px 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease;" onmouseover="this.style.background=\'#f1f5f9\'; this.style.borderColor=\'#5E72E4\';" onmouseout="this.style.background=\'#f8fafc\'; this.style.borderColor=\'#cbd5e1\';">',
+            '                        <code style="font-family: monospace; color: #334155; font-size: 13.5px; word-break: break-all; font-weight: bold;">wget -qO- https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh | sh</code>',
+            '                        <span id="nw-copy-tip" style="flex-shrink: 0; margin-left: 15px; font-size: 12px; font-weight: bold; color: #64748b; transition: color 0.2s;">{{TXT_COPY_TIP}}</span>',
+            '                    </div>',
+            '                </div>',
+            '            </div>',
+            '            <div style="display: flex; flex-wrap: wrap; gap: 12px;">',
+            '                <button id="btn-smart-backup" class="nw-u-btn nw-u-btn-blue" style="flex: 1; min-width: 200px; padding: 12px; font-size: 14.5px; box-shadow: 0 4px 12px rgba(59,130,246,0.25);">{{BTN_SMART_BACKUP}}</button>',
+            '                <button id="btn-smart-restore" class="nw-u-btn nw-u-btn-gray" style="flex: 1; min-width: 200px; padding: 12px; font-size: 14.5px;">{{BTN_SMART_RESTORE}}</button>',
+            '                <input type="file" id="file-smart-restore" style="display:none;" accept=".tar.gz">',
+            '            </div>',
+            '        </div>',
+            '    </div>',
+
             '  <div id="step-2" class="nw-step" style="display: none;">',
             '    <div class="nw-form-area">',
             '      <div class="nw-top-back" id="top-back-1" title="{{BTN_HOME}}">',
@@ -2187,6 +2282,293 @@ return view.extend({
                     
                 }).catch(function() {});
             } catch(e) {}
+        }
+
+        // 智能备份与恢复事件绑定
+        var btnSmartBackup = container.querySelector('#btn-smart-backup');
+        var btnSmartRestore = container.querySelector('#btn-smart-restore');
+        var fileSmartRestore = container.querySelector('#file-smart-restore');
+
+        if (btnSmartBackup) {
+            btnSmartBackup.addEventListener('click', function(e) {
+                e.preventDefault();
+                window._selectedBackupType = 'light';
+
+                openModal({
+                    title: '<div style="position:relative; display:flex; justify-content:center; align-items:center; width:100%;"><span id="btn-pop-close" style="position:absolute; right: 10px; font-size:35px; color:rgba(255,255,255,0.8); cursor:pointer; line-height:1; font-family:Arial,sans-serif; padding:0 5px;" onmouseover="this.style.color=\'#fff\'" onmouseout="this.style.color=\'rgba(255,255,255,0.8)\'">×</span><span>' + T['M_BAK_SEL_TIT'] + '</span></div>',
+                    msg: '<div id="nw-pop-container" style="text-align: left;">' +
+                         '    <div style="display: flex; gap: 12px; margin-bottom: 15px;">' +
+                         '        <div id="opt-type-light" style="flex: 1; text-align: center; padding: 12px; border: 2px solid #3b82f6; background: #eff6ff; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: #1d4ed8;">' + T['M_BAK_LIGHT_TIT'] + '<br><span style="font-size:14px; font-weight:normal; color:#3b82f6;">' + T['M_BAK_LIGHT_SUB'] + '</span></div>' +
+                         '        <div id="opt-type-full" style="flex: 1; text-align: center; padding: 12px; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: #475569;">' + T['M_BAK_FULL_TIT'] + '<br><span style="font-size:14px; font-weight:normal; color:#64748b;">' + T['M_BAK_FULL_SUB'] + '</span></div>' +
+                         '    </div>' +
+                         '    <div id="pop-backup-desc" style="font-size: 12.5px; color: #475569; line-height: 1.6; min-height: 60px; background:#f8fafc; padding:10px; border-radius:6px;">' + T['M_BAK_LIGHT_DESC'] + '</div>' +
+                         '</div>',
+                    okText: T['BTN_START_BAK'],
+                    onOk: function() {
+                        var bType = window._selectedBackupType;
+                        var hintText = bType === 'full' ? T['M_BAK_HINT_FULL'] : T['M_BAK_HINT_LIGHT'];
+
+                        openModal({
+                            title: T['M_BAK_GEN_TIT'],
+                            msg: '<div style="text-align:center; padding:10px 0; color:#64748b;">' + T['M_BAK_GEN_MSG'] + '<br><br><span style="font-size:12px; color:#d97706;">' + hintText + '</span></div>',
+                            spin: true
+                        });
+
+                        callSmartBackup(bType).then(function(res) {
+                            if (res && res.url) {
+                                var isDone = false;
+                                var checkTimer = setInterval(function() {
+                                    if (isDone) { clearInterval(checkTimer); return; }
+                                    callCheckBackup().then(function(cRes) {
+                                        if (cRes && cRes.status === 'done' && !isDone) {
+                                            isDone = true;
+                                            clearInterval(checkTimer);
+                                            var a = document.createElement("a");
+                                            a.href = res.url;
+                                            a.download = res.filename || "NetWiz_SmartGhost.tar.gz";
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            document.body.removeChild(a);
+                                            openModal({ title: T['M_BAK_SUCC_TIT'], msg: T['M_BAK_SUCC_MSG'], hideCancel: true, okText: T['M_CLOSE'] });
+                                        }
+                                    }).catch(function() {});
+                                }, 3000);
+                            } else {
+                                openModal({ title: T['M_BAK_FAIL_TIT'], msg: T['M_BAK_FAIL_MSG'], hideCancel: true, okText: T['M_CLOSE'] });
+                            }
+                        }).catch(function(err) {
+                            openModal({ title: T['M_SYS_ERR'], msg: err, hideCancel: true, okText: T['M_CLOSE'] });
+                        });
+                    }
+                });
+
+                var btnPopClose = document.getElementById('btn-pop-close');
+                if (btnPopClose) {
+                    btnPopClose.addEventListener('click', function() {
+                        document.getElementById('nw-global-modal').style.display = 'none';
+                    });
+                }
+
+                var optLight = document.getElementById('opt-type-light');
+                var optFull = document.getElementById('opt-type-full');
+                var popDesc = document.getElementById('pop-backup-desc');
+
+                if (optLight && optFull && popDesc) {
+                    optLight.addEventListener('click', function() {
+                        window._selectedBackupType = 'light';
+                        optLight.style.border = '2px solid #3b82f6';
+                        optLight.style.background = '#eff6ff';
+                        optLight.style.color = '#1d4ed8';
+                        optFull.style.border = '1px solid #cbd5e1';
+                        optFull.style.background = '#fff';
+                        optFull.style.color = '#475569';
+                        popDesc.innerHTML = T['M_BAK_LIGHT_DESC'];
+                    });
+
+                    optFull.addEventListener('click', function() {
+                        window._selectedBackupType = 'full';
+                        optFull.style.border = '2px solid #3b82f6';
+                        optFull.style.background = '#eff6ff';
+                        optFull.style.color = '#1d4ed8';
+                        optLight.style.border = '1px solid #cbd5e1';
+                        optLight.style.background = '#fff';
+                        optLight.style.color = '#475569';
+                        popDesc.innerHTML = T['M_BAK_FULL_DESC'];
+                    });
+                }
+            });
+        }
+
+        if (btnSmartRestore && fileSmartRestore) {
+            btnSmartRestore.addEventListener('click', function(e) {
+                e.preventDefault();
+                openModal({
+                    title: '<div style="position:relative; display:flex; justify-content:center; align-items:center; width:100%;"><span id="btn-restore-close" style="position:absolute; right: 10px; font-size:35px; color:rgba(255,255,255,0.8); cursor:pointer; line-height:1; font-family:Arial,sans-serif; padding:0 5px;" onmouseover="this.style.color=\'#fff\'" onmouseout="this.style.color=\'rgba(255,255,255,0.8)\'">×</span><span>' + T['M_RST_CONFIRM_TIT'] + '</span></div>',
+                    msg: '<div style="text-align:left;">' + T['M_RST_CONFIRM_MSG'] +
+                         '    <label style="display:block; text-align:center; cursor:pointer; background:#f8fafc; padding:12px; border-radius:8px; border:1px dashed #cbd5e1; margin:0;">' +
+                         '        <input type="checkbox" id="chk-regret-pill" checked style="vertical-align:-3px; margin:0; width:16px; height:16px; padding:0; top:0;">' +
+                         '        <span style="color:#3b82f6; font-weight:bold; font-size:13.5px; vertical-align:middle;">' + T['M_RST_REGRET_PILL'] + '</span>' +
+                         '    </label>' +
+                         '</div>',
+                    okText: T['BTN_CONFIRM_SEL'],
+                    onOk: function() {
+                        var chk = document.getElementById('chk-regret-pill');
+                        window._wantRegretPill = chk ? chk.checked : true;
+                        fileSmartRestore.click(); 
+                    }
+                });
+
+                var btnRestoreClose = document.getElementById('btn-restore-close');
+                if (btnRestoreClose) {
+                    btnRestoreClose.addEventListener('click', function() {
+                        document.getElementById('nw-global-modal').style.display = 'none';
+                    });
+                }
+            });
+
+            fileSmartRestore.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                
+                var startProcess = function() {
+                    var execRestore = function() {
+                        openModal({
+                            title: T['M_RST_NATIVE_TIT'],
+                            msg: '<div style="text-align:center; padding:10px 0; color:#64748b;">' + T['M_RST_NATIVE_MSG'] + '<br><div id="nw-upload-progress" style="font-size:24px; color:#3b82f6; font-weight:bold; margin-top:10px; font-family:monospace;">0%</div></div>',
+                            spin: true 
+                        });
+                        
+                        var fd = new FormData();
+                        var sid = (typeof L !== 'undefined' && L.env && L.env.sessionid) ? L.env.sessionid : "";
+                        if (!sid) {
+                            var match = document.cookie.match(/sysauth_http=([^;]+)/) || document.cookie.match(/sysauth=([^;]+)/);
+                            if (match) sid = match[1];
+                        }
+                        
+                        fd.append("sessionid", sid);
+                        fd.append("filename", "/tmp/NetWiz_SmartGhost.tar.gz"); 
+                        fd.append("file", file); 
+                        
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/cgi-bin/cgi-upload', true);
+                        
+                        xhr.upload.onprogress = function(evt) {
+                            if (evt.lengthComputable) {
+                                var percent = Math.floor((evt.loaded / evt.total) * 100);
+                                var pEl = document.getElementById('nw-upload-progress');
+                                if (pEl) pEl.innerText = percent + '%';
+                            }
+                        };
+                        
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                var realPath = "/tmp/NetWiz_SmartGhost.tar.gz";
+                                try { 
+                                    var res = JSON.parse(xhr.responseText); 
+                                    if (res.filepath || res.file || res.path) realPath = res.filepath || res.file || res.path;
+                                } catch(e) {}
+                                
+                                var pEl = document.getElementById('nw-upload-progress');
+                                if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:16px;">' + T['M_RST_DELIVERED'] + '</span>';
+                                
+                                callSmartRestoreExec(realPath).then(function() {
+                                    // 状态探针轮询，按 Code 解析字典
+                                    var checkTimer = setInterval(function() {
+                                        callCheckRestoreStatus().then(function(res) {
+                                            var s = res.status;
+                                            var code = res.code;
+                                            var m = T[code] || code;
+                                            
+                                            // 解析动态变量
+                                            if (code === 'MSG_RST_OOM_INTERCEPT') {
+                                                m = m.replace('{u}', res.arg1).replace('{a}', res.arg2);
+                                            }
+                                            if (!m || m === 'undefined') m = T['MSG_RST_WAIT'];
+                                            
+                                            if (s === 'running') {
+                                                if (pEl) pEl.innerHTML = '<span style="color:#3b82f6; font-size:16px;">🔄 ' + m + '</span>';
+                                            } else if (s === 'error') {
+                                                clearInterval(checkTimer);
+                                                fileSmartRestore.value = '';
+                                                openModal({ 
+                                                    title: T['M_RST_BLOCKED_TIT'], 
+                                                    msg: '<div style="color:#ef4444; font-weight:bold; margin-bottom:10px;">' + m + '</div><div style="font-size:13.5px; color:#64748b;">' + T['M_RST_BLOCKED_MSG'] + '</div>', 
+                                                    hideCancel: true, 
+                                                    okText: T['M_CLOSE'] 
+                                                });
+                                            } else if (s === 'done') {
+                                                clearInterval(checkTimer);
+                                                if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:18px;">🎉 ' + m + '</span>';
+                                                setTimeout(function() { window.location.reload(); }, 25000); 
+                                            }
+                                        }).catch(function() {});
+                                    }, 2500);
+                                }).catch(function() {
+                                    setTimeout(function() { window.location.reload(); }, 60000);
+                                });
+                            } else {
+                                fileSmartRestore.value = '';
+                                openModal({ title: T['M_RST_TRANS_FAIL'], msg: T['M_RST_TRANS_REJECT'] + xhr.status, hideCancel: true, okText: T['M_CLOSE'] });
+                            }
+                        };
+                        
+                        xhr.onerror = function() {
+                            fileSmartRestore.value = '';
+                            openModal({ title: T['M_RST_NET_ERR'], msg: T['M_RST_NET_INTR'], hideCancel: true, okText: T['M_CLOSE'] });
+                        };
+                        
+                        xhr.send(fd);
+                    };
+
+                    if (window._wantRegretPill) {
+                        openModal({
+                            title: T['M_RST_PILL_TIT'],
+                            msg: '<div style="text-align:center; padding:10px 0; color:#64748b;">' + T['M_RST_PILL_MSG'] + '</div>',
+                            spin: true
+                        });
+                        
+                        callSmartBackup('light').then(function(res) {
+                            if (res && res.url) {
+                                var isRegretDone = false;
+                                var checkTimer = setInterval(function() {
+                                    if (isRegretDone) { clearInterval(checkTimer); return; }
+                                    callCheckBackup().then(function(cRes) {
+                                        if (cRes && cRes.status === 'done' && !isRegretDone) {
+                                            isRegretDone = true;
+                                            clearInterval(checkTimer);
+                                            var a = document.createElement("a");
+                                            a.href = res.url;
+                                            a.download = "NetWiz_RegretPill_" + Date.now() + ".tar.gz";
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            document.body.removeChild(a);
+                                            setTimeout(execRestore, 1500);
+                                        }
+                                    }).catch(function(){});
+                                }, 3000);
+                            } else {
+                                execRestore();
+                            }
+                        }).catch(function() {
+                            execRestore();
+                        });
+                    } else {
+                        execRestore();
+                    }
+                };
+
+                // 动态探测真实可用空间
+                var sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                
+                openModal({ 
+                    title: T['M_RST_PROBE_TIT'], 
+                    msg: '<div style="text-align:center; padding:15px 0; color:#64748b;">' + T['M_RST_PROBE_MSG'] + '</div>', 
+                    spin: true 
+                });
+                
+                callCheckStorage().then(function(res) {
+                    var availMB = res.tmp_avail_mb || 60;
+                    
+                    if (sizeMB > (availMB * 0.85)) {
+                        openModal({
+                            title: T['M_RST_OOM_TIT'],
+                            msg: '<div style="text-align:left; font-size:14px; color:#475569; line-height:1.6;">' +
+                                 T['M_RST_OOM_MSG'].replace('{size}', sizeMB).replace('{avail}', availMB) + '</div>',
+                            hideCancel: true,
+                            okText: T['BTN_CANCEL_RST'],
+                            isDanger: true,
+                            onOk: function() {
+                                fileSmartRestore.value = '';
+                                document.getElementById('nw-global-modal').style.display = 'none';
+                            }
+                        });
+                    } else {
+                        startProcess();
+                    }
+                }).catch(function() {
+                    startProcess(); 
+                });
+            });
         }
 
         updateStatusDisplay(false);
