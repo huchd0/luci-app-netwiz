@@ -1572,3 +1572,6 @@ msgstr "由于无法获取 IPv4，显示设备底层自签的本地 IPv6"
 
 msgid "Local IPv6"
 msgstr "自签 IPv6"
+
+msgid "System is rebooting, please wait..."
+msgstr "系统重启中，请稍候..."
