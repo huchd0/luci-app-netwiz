@@ -187,7 +187,25 @@ case "$1" in
                 visitor_ips=$(netstat -nt 2>/dev/null | awk '$4 ~ /:(80|443)$/ && $6 ~ /ESTABLISHED/ {split($5, a, ":"); if(a[1]!="") print a[1]}' | sort -u | tr '\n' ' ')
                 curr_time=$(date +%s)
 
-                json_data=$(awk -v current_time="$curr_time" -v wifi_str="$wifi_macs" -v arp_str="$arp_cache" -v lease_str="$leases" -v hosts_str="$hosts_str" -v ubus_str="$ubus_leases" -v uci_str="$uci_hosts" -v gw_ip="$gw_ip" -v lan_ip="$lan_ip" -v lan_mac="$lan_mac" -v local_ips_str="$local_ips" -v visitor_ips_str="$visitor_ips" -v fw_str_input="$fw_str" -v ipv6_str="$ipv6_neigh" '
+                # --- ⚠️ 新增：IPv6 与 LAN NAT 冲突检测 ---
+                lan_zone_idx=$(uci show firewall 2>/dev/null | grep -E "\.name='?lan'?" | cut -d'.' -f2 | head -n 1)
+                lan_nat_conflict="false"
+                if [ -n "$lan_zone_idx" ]; then
+                    lan_masq=$(uci -q get firewall.$lan_zone_idx.masq)
+                    if [ "$lan_masq" = "1" ]; then
+                        lan_nat_conflict="true"
+                    fi
+                fi
+                
+                # 新增：让后端自己查 IPv6 有没有开
+                ipv6_enabled="false"
+                v6_dhcp=$(uci -q get dhcp.lan.dhcpv6)
+                if [ "$v6_dhcp" = "server" ] || [ "$v6_dhcp" = "relay" ]; then
+                    ipv6_enabled="true"
+                fi
+                # ------------------------------------------
+
+                json_data=$(awk -v current_time="$curr_time" -v lan_nat_conflict="$lan_nat_conflict" -v ipv6_enabled="$ipv6_enabled" -v wifi_str="$wifi_macs" -v arp_str="$arp_cache" -v lease_str="$leases" -v hosts_str="$hosts_str" -v ubus_str="$ubus_leases" -v uci_str="$uci_hosts" -v gw_ip="$gw_ip" -v lan_ip="$lan_ip" -v lan_mac="$lan_mac" -v local_ips_str="$local_ips" -v visitor_ips_str="$visitor_ips" -v fw_str_input="$fw_str" -v ipv6_str="$ipv6_neigh" '
                 BEGIN {
                     now_ts = current_time;
                     exp_ts = 2592000; # 30天过期时间
@@ -416,7 +434,7 @@ case "$1" in
                     }
                     close("/tmp/nw_conns_cache.txt");
 
-                    printf "{\"devices\": [";
+                    printf "{\"lan_nat_conflict\": %s, \"ipv6_enabled\": %s, \"devices\": [", lan_nat_conflict, ipv6_enabled;
                     first=1;
                     for(mac in all_macs) {
                         is_online = (arp_online[mac]==1 || wifi_online[mac]==1) ? 1 : 0;
