@@ -210,6 +210,10 @@ var T = {
     'MSG_JSON_INVALID': _('The uploaded file is not a valid JSON format and cannot be parsed!'),
     'TIT_RESTORE_JSON': _('Import Configuration'),
     'MSG_RESTORE_JSON': _('Are you sure you want to import this configuration? Existing data will be overwritten.'),
+    'V6_NAT_ERR_TIT1': _('🚨 Severe Network Topology Conflict!'),
+    'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!<br>This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please <b style="color:#ef4444;">Disable IPv6</b> here immediately, or go to <code>Network -> Firewall</code> to disable NAT.'),
+    'TIT_RESTORE_DATA': _('Restore Device Data'),
+    'MSG_RESTORE_CONFIRM': _('This action will overwrite existing device groups and static IP bindings, and restart the network.<br><br><span style="color:#f59e0b; font-weight:bold;">⚠️ Security Warning: Do not upload backups from unknown sources to prevent DNS hijacking.</span><br><br>Confirm to restore?'),
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns', 'do_rescan'], expect: { '': {} } });
@@ -2259,6 +2263,36 @@ return view.extend({
                 loadingEl.style.display = 'none';
                 
                 var resList = results[0];
+                window._lanNatConflict = (resList && (resList.lan_nat_conflict === true || String(resList.lan_nat_conflict) === 'true'));
+                window._ipv6Enabled = (resList && (resList.ipv6_enabled === true || String(resList.ipv6_enabled) === 'true'));
+
+                // --- 全局 NAT 冲突警告 ---
+                var globalWarnContainer = container.querySelector('#global-nat-v6-warn');
+                
+                if (!globalWarnContainer) {
+                    globalWarnContainer = document.createElement('div');
+                    globalWarnContainer.id = 'global-nat-v6-warn';
+                    globalWarnContainer.style.cssText = 'box-sizing: border-box; margin: 10px 0 0 0; width: 100% !important; max-width: 1080px !important;'; 
+                    
+                    var ctrlBar = container.querySelector('.nd-control-bar');
+                    if (ctrlBar) {
+                        ctrlBar.parentNode.insertBefore(globalWarnContainer, ctrlBar.nextSibling);
+                    }
+                }
+
+                if (window._lanNatConflict === true && window._ipv6Enabled === true) {
+                    globalWarnContainer.style.display = 'block';
+                    // 内部样式微调：去掉这里多余的 margin，依靠外层的 margin: 15px 0 即可
+                    globalWarnContainer.innerHTML = '<div style="font-size: 14px; line-height: 1.6; color: #7f1d1d; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px; padding: 15px 20px; text-align: left; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); box-sizing: border-box;">' +
+                                                    '<b style="font-size: 15px;">🚨 ' + (T['V6_NAT_ERR_TIT1'] || '严重网络冲突') + '</b><br>' + 
+                                                    '<div style="margin-top: 4px;">' + (T['V6_NAT_ERR_MSG1'] || '系统检测到 IPv6 与“动态伪装(NAT)”同时开启，会导致寻址瘫痪。请前往官方网络设置中关闭 NAT，或关闭 IPv6。') + '</div>' +
+                                                    '</div>';
+                } else {
+                    globalWarnContainer.style.display = 'none';
+                    globalWarnContainer.innerHTML = '';
+                }
+                // --------------------------------
+
                 var resDepts = results[1];
                 var resSmart = results[2];
 
@@ -2482,11 +2516,10 @@ return view.extend({
         }
 
         function confirmAndRestore(payload) {
-            var defaultWarn = '此操作将覆盖现有的设备分组与静态 IP 绑定数据，并重启网络。<br><br><span style="color:#f59e0b; font-weight:bold;">⚠️ 安全警告：请勿上传来路不明的备份文件，以免 DNS 被恶意劫持。</span><br><br>确认要执行还原吗？';
             openModal({
-                title: '⚡ ' + (T['TIT_RESTORE_DATA'] || '还原设备数据'),
-                content: '<div style="text-align:left;">' + (T['MSG_RESTORE_CONFIRM'] || defaultWarn) + '</div>',
-                okText: T['BTN_CONFIRM'] || '确认',
+                title: '⚡ ' + (T['TIT_RESTORE_DATA'] || 'Restore Device Data'),
+                content: '<div style="text-align:left;">' + (T['MSG_RESTORE_CONFIRM'] || 'Confirm to restore?') + '</div>',
+                okText: T['BTN_CONFIRM'] || 'Confirm',
                 danger: true,
                 onOk: function() {
                     listHeader.style.display = 'none';
