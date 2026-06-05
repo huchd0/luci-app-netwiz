@@ -214,6 +214,11 @@ var T = {
     'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!<br>This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please <b style="color:#ef4444;">Disable IPv6</b> here immediately, or go to <code>Network -> Firewall</code> to disable NAT.'),
     'TIT_RESTORE_DATA': _('Restore Device Data'),
     'MSG_RESTORE_CONFIRM': _('This action will overwrite existing device groups and static IP bindings, and restart the network.<br><br><span style="color:#f59e0b; font-weight:bold;">⚠️ Security Warning: Do not upload backups from unknown sources to prevent DNS hijacking.</span><br><br>Confirm to restore?'),
+    'TXT_SUCCESS': _('Success'),
+    'TXT_WARNING': _('Warning'),
+    'TXT_WAKING_UP': _('Waking up...'),
+    'TIP_LOCAL_V6': _('Displaying self-assigned local IPv6 as IPv4 is unavailable'),
+    'BDG_LOCAL_V6': _('Local IPv6'),
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns', 'do_rescan'], expect: { '': {} } });
@@ -1658,7 +1663,7 @@ return view.extend({
                     // 优先寻找 fe80 或 fd 开头的自签/本地 IPv6
                     var localV6 = allV6.find(function(v) { return v.indexOf('fe80:') === 0 || v.indexOf('fd') === 0; }) || allV6[0];
                     if (localV6) {
-                        ipText = '<span style="font-size:12px; color:#8b5cf6; font-family:monospace;" title="由于无法获取 IPv4，显示设备底层自签的本地 IPv6">' + localV6 + ' <span style="font-size:10px; border:1px solid #ddd6fe; padding:1px 4px; border-radius:4px; background:#ede9fe; font-weight:bold;">自签 IPv6</span></span>';
+                        ipText = '<span style="font-size:12px; color:#8b5cf6; font-family:monospace;" title="' + (T['TIP_LOCAL_V6'] || 'Displaying self-assigned local IPv6 as IPv4 is unavailable') + '">' + localV6 + ' <span style="font-size:10px; border:1px solid #ddd6fe; padding:1px 4px; border-radius:4px; background:#ede9fe; font-weight:bold;">' + (T['BDG_LOCAL_V6'] || 'Local IPv6') + '</span></span>';
                     }
                 }
                 // -------------------------------------------------------------
@@ -1885,7 +1890,7 @@ return view.extend({
 
                             wolBtn.onclick = function(e) {
                                 e.preventDefault();
-                                wolBtn.innerText = '⚡ 唤醒中... ⚡';
+                                wolBtn.innerText = '⚡ ' + (T['TXT_WAKING_UP'] || 'Waking up...') + ' ⚡';
                                 wolBtn.disabled = true;
                                 wolBtn.style.opacity = '0.6';
 
