@@ -975,7 +975,11 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
     fi
 fi
 
-update_status "done" "MSG_RST_DONE"
+# 提取备份中 LAN IP
+NEW_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
+
+# 把新 IP 作为 arg1 传递给前端进行双向探测
+update_status "done" "MSG_RST_DONE" "$NEW_IP"
 rm -rf /tmp/nw_ghost_tmp "$TARGET"
 sleep 3
 reboot
