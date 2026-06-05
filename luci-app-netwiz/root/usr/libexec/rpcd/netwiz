@@ -786,6 +786,7 @@ case "$1" in
                 ;;
 
             smart_backup)
+                tLOG_FILE="/etc/netwiz_recovery.log"
                 touch /tmp/nw_backup_running
                 
                 # 解析前端传来的备份类型参数
@@ -864,6 +865,24 @@ case "$1" in
                 exit 0
                 ;;
 
+            check_storage)
+                # 动态获取 /tmp 的真实可用空间 (从 KB 转换为 MB)
+                TMP_AVAIL_KB=$(df -k /tmp | awk 'END{print $(NF-2)}')
+                TMP_AVAIL_MB=$((TMP_AVAIL_KB / 1024))
+                printf '{"tmp_avail_mb": %d}\n' "$TMP_AVAIL_MB"
+                exit 0
+                ;;
+
+            check_restore_status)
+                # 读取恢复任务的实时状态，供前端进度条轮询
+                if [ -f /tmp/nw_restore_status.json ]; then
+                    cat /tmp/nw_restore_status.json
+                else
+                    printf '{"status":"unknown", "code":"MSG_RST_WAIT"}\n'
+                fi
+                exit 0
+                ;;
+
             smart_restore_exec)
                 input=$(cat)
                 target_file=$(echo "$input" | jsonfilter -e '@.filepath')
@@ -879,7 +898,8 @@ case "$1" in
                     
                     cat << 'EOF' > /tmp/nw_do_restore.sh
 #!/bin/sh
-LOG_FILE="/tmp/netwiz.log"
+# 恢复操作需要重启，将核心日志写入实体存储
+LOG_FILE="/etc/netwiz_recovery.log"
 STATUS_FILE="/tmp/nw_restore_status.json"
 TARGET="$1"
 
@@ -901,7 +921,7 @@ update_status "running" "MSG_RST_SCAN"
 UNCOMPRESSED_BYTES=$(zcat "$TARGET" | wc -c 2>/dev/null)
 UNCOMPRESSED_MB=$((UNCOMPRESSED_BYTES / 1024 / 1024))
 
-TMP_AVAIL_KB=$(df -k /tmp | tail -n 1 | awk '{print $4}')
+TMP_AVAIL_KB=$(df -k /tmp | awk 'END{print $(NF-2)}')
 TMP_AVAIL_MB=$((TMP_AVAIL_KB / 1024))
 
 echo "$(date '+%F %T') [RESTORE] 预估体积: ${UNCOMPRESSED_MB}MB, 可用空间: ${TMP_AVAIL_MB}MB" >> "$LOG_FILE"
