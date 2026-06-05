@@ -327,6 +327,7 @@ var T = {
     'V6_NAT_ERR_TIT2': _('⚠️ IPv6 Configuration Blocked'),
     'V6_NAT_ERR_MSG2': _('Detected that LAN "IP Masquerading (NAT)" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first.'),
     'MSG_REBOOTING': _('System is rebooting, please wait...'),
+    'MSG_WAIT_OFFLINE': _('Waiting for device to disconnect...'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -2494,29 +2495,45 @@ return view.extend({
                     });
                     
                     // 探测心跳包函数
+                    // 👉 终极神级版：状态机双向探测雷达 (先等断网，再等连通)
                     var executeRebootProbe = function(newIp) {
                         var rebootSec = 0;
                         var h = window.location.hostname;
                         var pEl = document.getElementById('nw-upload-progress');
-                        var isRedirecting = false; // 防止成功后重复跳转
+                        var isRedirecting = false;
                         
-                        // 定义核心探测器
-                        var checkIp = function(targetIp) {
+                        var isOffline = false;       // 状态标记：是否已经检测到断网
+                        var offlineCount = 0;        // 连续断网确认计数
+
+                        // 定义核心探测器，加入检查模式 (checkMode)
+                        var checkIp = function(targetIp, checkMode) {
                             var controller = new AbortController();
                             var tid = setTimeout(function() { controller.abort(); }, 1500);
+                            
                             fetch('http://' + targetIp + '/cgi-bin/luci/?_t=' + Date.now(), { 
-                                method: 'GET',
+                                method: 'GET', 
                                 signal: controller.signal,
                                 mode: 'no-cors' 
                             })
                             .then(function() {
                                 clearTimeout(tid);
-                                if (!isRedirecting) {
+                                if (checkMode === 'wait_offline') {
+                                    // 阶段1：还在连通，说明路由器还没关机，重置断网计数
+                                    offlineCount = 0;
+                                } else if (checkMode === 'wait_online' && !isRedirecting) {
+                                    // 阶段2：已经断过网，现在又连通了！说明重启完毕！
                                     isRedirecting = true;
                                     window.location.href = 'http://' + targetIp + '/cgi-bin/luci/';
                                 }
                             }).catch(function() {
                                 clearTimeout(tid);
+                                if (checkMode === 'wait_offline') {
+                                    // 阶段1：探测到掉线，增加确认计数
+                                    offlineCount++;
+                                    if (offlineCount >= 2) {
+                                        isOffline = true; // 连续2次失败，确认路由器已正式断网！
+                                    }
+                                }
                             });
                         };
 
@@ -2526,21 +2543,30 @@ return view.extend({
                                 return;
                             }
                             rebootSec += 2;
-                            if (pEl) pEl.innerHTML = '<span style="color:#3b82f6; font-size:16px;">🔄 ' + (T['MSG_REBOOTING'] || 'System is rebooting...') + ' (' + rebootSec + 's / 300s)</span>';
                             
-                            if (rebootSec < 15) return; // 前 15 秒给路由器充足的断网关机时间
-                            
-                            // 同时向旧 IP 和新 IP 丢心跳包
-                            checkIp(h);
-                            if (newIp && newIp !== h && newIp !== 'undefined' && newIp !== '') {
-                                checkIp(newIp);
-                            }
-                            
-                            // 如果 300 秒后还没有任何一个 IP 连通
-                            if (rebootSec > 300) {
-                                isRedirecting = true;
-                                clearInterval(rebootTimer);
-                                if (pEl) pEl.innerHTML = '<span style="color:#f59e0b; font-size:16px;">⚠️ ' + (T['MSG_MANUAL_VISIT'] || 'If IP changed, please update PC IP and visit manually.') + '</span>';
+                            if (!isOffline) {
+                                // ===== 阶段 1：等待路由器关机断网 =====
+                                if (pEl) pEl.innerHTML = '<span style="color:#f59e0b; font-size:16px;">⏳ ' + (T['MSG_WAIT_OFFLINE'] || 'Waiting for device to disconnect...') + ' (' + rebootSec + 's)</span>';
+                                checkIp(h, 'wait_offline');
+                                
+                                // 防呆兜底：如果等了 60 秒还没断开（可能是浏览器缓存了探针），强制进入下一阶段
+                                if (rebootSec > 60) {
+                                    isOffline = true;
+                                }
+                            } else {
+                                // ===== 阶段 2：已经断网，等待路由器重新开机连通 =====
+                                if (pEl) pEl.innerHTML = '<span style="color:#3b82f6; font-size:16px;">🔄 ' + (T['MSG_REBOOTING'] || 'System is rebooting...') + ' (' + rebootSec + 's / 300s)</span>';
+                                
+                                checkIp(h, 'wait_online');
+                                if (newIp && newIp !== h && newIp !== 'undefined' && newIp !== '') {
+                                    checkIp(newIp, 'wait_online');
+                                }
+                                
+                                if (rebootSec > 300) {
+                                    isRedirecting = true;
+                                    clearInterval(rebootTimer);
+                                    if (pEl) pEl.innerHTML = '<span style="color:#f59e0b; font-size:16px;">⚠️ ' + (T['MSG_MANUAL_VISIT'] || 'If IP changed, please update PC IP and visit manually.') + '</span>';
+                                }
                             }
                         }, 2000);
                     };
