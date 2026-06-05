@@ -326,6 +326,7 @@ var T = {
     'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style="color:#ef4444;">Disable IPv6</b> in the LAN settings on the Netwiz homepage.'),
     'V6_NAT_ERR_TIT2': _('⚠️ IPv6 Configuration Blocked'),
     'V6_NAT_ERR_MSG2': _('Detected that LAN "IP Masquerading (NAT)" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first.'),
+    'MSG_REBOOTING': _('System is rebooting, please wait...'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -341,7 +342,7 @@ var callSmartBackup = rpc.declare({ object: 'netwiz', method: 'smart_backup', pa
 var callCheckBackup = rpc.declare({ object: 'netwiz', method: 'check_backup', expect: { '': {} } });
 var callSmartRestoreExec = rpc.declare({ object: 'netwiz', method: 'smart_restore_exec', params: ['filepath'], expect: { result: 0 } });
 var callCheckStorage = rpc.declare({ object: 'netwiz', method: 'check_storage', expect: { '': {} } });
-var callCheckRestoreStatus = rpc.declare({ object: 'netwiz', method: 'check_restore_status', expect: { status: 'unknown', msg: '' } });
+var callCheckRestoreStatus = rpc.declare({ object: 'netwiz', method: 'check_restore_status', expect: { '': {} } });
 
 return view.extend({
     handleSaveApply: null,
@@ -2504,7 +2505,7 @@ return view.extend({
                             var controller = new AbortController();
                             var tid = setTimeout(function() { controller.abort(); }, 1500);
                             fetch('http://' + targetIp + '/cgi-bin/luci/?_t=' + Date.now(), { 
-                                method: 'HEAD', 
+                                method: 'GET',
                                 signal: controller.signal,
                                 mode: 'no-cors' 
                             })
