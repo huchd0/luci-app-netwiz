@@ -365,6 +365,7 @@ return view.extend({
             '  .nw-top-back svg { width: 25px; height: 25px; }',
             '  .nw-step-line svg { width: 20px; height: 20px; display: block; }',
             '  body #view #netwiz-container #wiz-step-indicator .nw-step-line svg, body #maincontent #netwiz-container #wiz-step-indicator .nw-step-line svg { background: transparent !important; background-color: transparent !important; border: none !important; box-shadow: none !important; }',
+            '  body #view #netwiz-container .nw-badge svg, body #maincontent #netwiz-container .nw-badge svg { background: transparent !important; background-color: transparent !important; }',
             '  .alert-message, .alert-danger, .alert, #sysmsg { display: none !important; }', 
   
             '  #nw-wizard-modal .nw-wiz-modal-box > div:nth-child(2) { flex: 1 1 auto !important; overflow-y: auto !important; padding: 20px 25px 10px !important; }',
