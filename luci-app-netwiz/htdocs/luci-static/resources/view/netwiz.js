@@ -2493,21 +2493,54 @@ return view.extend({
                     });
                     
                     // 探测心跳包函数
-                    var executeRebootProbe = function() {
+                    var executeRebootProbe = function(newIp) {
                         var rebootSec = 0;
-                        var rebootTimer = setInterval(function() {
-                            rebootSec += 2;
-                            if (rebootSec < 15) return; // 前 15 秒静默等待
+                        var h = window.location.hostname;
+                        var pEl = document.getElementById('nw-upload-progress');
+                        var isRedirecting = false; // 防止成功后重复跳转
+                        
+                        // 定义核心探测器
+                        var checkIp = function(targetIp) {
                             var controller = new AbortController();
-                            var timeoutId = setTimeout(function() { controller.abort(); }, 1500); // 1.5秒超時防卡死
-                            fetch('/cgi-bin/luci/?_t=' + Date.now(), { method: 'HEAD', signal: controller.signal })
+                            var tid = setTimeout(function() { controller.abort(); }, 1500);
+                            fetch('http://' + targetIp + '/cgi-bin/luci/?_t=' + Date.now(), { 
+                                method: 'HEAD', 
+                                signal: controller.signal,
+                                mode: 'no-cors' 
+                            })
                             .then(function() {
-                                clearTimeout(timeoutId);
-                                clearInterval(rebootTimer);
-                                window.location.href = '/cgi-bin/luci/'; // 切入登陆页
+                                clearTimeout(tid);
+                                if (!isRedirecting) {
+                                    isRedirecting = true;
+                                    window.location.href = 'http://' + targetIp + '/cgi-bin/luci/';
+                                }
                             }).catch(function() {
-                                clearTimeout(timeoutId);
+                                clearTimeout(tid);
                             });
+                        };
+
+                        var rebootTimer = setInterval(function() {
+                            if (isRedirecting) {
+                                clearInterval(rebootTimer);
+                                return;
+                            }
+                            rebootSec += 2;
+                            if (pEl) pEl.innerHTML = '<span style="color:#3b82f6; font-size:16px;">🔄 ' + (T['MSG_REBOOTING'] || 'System is rebooting...') + ' (' + rebootSec + 's / 300s)</span>';
+                            
+                            if (rebootSec < 15) return; // 前 15 秒给路由器充足的断网关机时间
+                            
+                            // 同时向旧 IP 和新 IP 丢心跳包
+                            checkIp(h);
+                            if (newIp && newIp !== h && newIp !== 'undefined' && newIp !== '') {
+                                checkIp(newIp);
+                            }
+                            
+                            // 如果 300 秒后还没有任何一个 IP 连通
+                            if (rebootSec > 300) {
+                                isRedirecting = true;
+                                clearInterval(rebootTimer);
+                                if (pEl) pEl.innerHTML = '<span style="color:#f59e0b; font-size:16px;">⚠️ ' + (T['MSG_MANUAL_VISIT'] || 'If IP changed, please update PC IP and visit manually.') + '</span>';
+                            }
                         }, 2000);
                     };
                     
@@ -2545,14 +2578,15 @@ return view.extend({
                                 if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:16px;">' + T['M_RST_DELIVERED'] + '</span>';
                                 
                                 callSmartRestoreExec(realPath).then(function() {
-                                    // 状态探针轮询，按 Code 解析字典
+                                    var errCount = 0;
+                                    var futureIp = ''; // 储存未来的新 IP
                                     var checkTimer = setInterval(function() {
                                         callCheckRestoreStatus().then(function(res) {
+                                            errCount = 0;
                                             var s = res.status;
                                             var code = res.code;
                                             var m = T[code] || code;
                                             
-                                            // 解析动态变量
                                             if (code === 'MSG_RST_OOM_INTERCEPT') {
                                                 m = m.replace('{u}', res.arg1).replace('{a}', res.arg2);
                                             }
@@ -2572,12 +2606,20 @@ return view.extend({
                                             } else if (s === 'done') {
                                                 clearInterval(checkTimer);
                                                 if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:18px;">🎉 ' + m + '</span>';
-                                                executeRebootProbe();
+                                                futureIp = res.arg1 || ''; // 从后端获取未来的新 IP
+                                                executeRebootProbe(futureIp); 
                                             }
-                                        }).catch(function() {});
+                                        }).catch(function() {
+                                            errCount++;
+                                            if (errCount >= 3) {
+                                                clearInterval(checkTimer);
+                                                if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:18px;">🎉 ' + (T['MSG_RST_DONE'] || 'Restore thoroughly complete! Router will auto-reboot!') + '</span>';
+                                                executeRebootProbe(futureIp); // 断网发生时，带着已有记录的新 IP 启动双向探针
+                                            }
+                                        });
                                     }, 2500);
                                 }).catch(function() {
-                                    executeRebootProbe();
+                                    executeRebootProbe('');
                                 });
                             } else {
                                 fileSmartRestore.value = '';
