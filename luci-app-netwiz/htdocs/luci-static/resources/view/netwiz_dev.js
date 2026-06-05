@@ -211,7 +211,7 @@ var T = {
     'TIT_RESTORE_JSON': _('Import Configuration'),
     'MSG_RESTORE_JSON': _('Are you sure you want to import this configuration? Existing data will be overwritten.'),
     'V6_NAT_ERR_TIT1': _('🚨 Severe Network Topology Conflict!'),
-    'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!<br>This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style="color:#ef4444;">Disable IPv6</b> in the LAN settings on the Netwiz homepage.'),
+    'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style="color:#ef4444;">Disable IPv6</b> in the LAN settings on the Netwiz homepage.'),
     'TIT_RESTORE_DATA': _('Restore Device Data'),
     'MSG_RESTORE_CONFIRM': _('This action will overwrite existing device groups and static IP bindings, and restart the network.<br><br><span style="color:#f59e0b; font-weight:bold;">⚠️ Security Warning: Do not upload backups from unknown sources to prevent DNS hijacking.</span><br><br>Confirm to restore?'),
     'TXT_SUCCESS': _('Success'),
