@@ -1575,3 +1575,6 @@ msgstr "自簽 IPv6"
 
 msgid "System is rebooting, please wait..."
 msgstr "系統重啟中，請稍候..."
+
+msgid "Waiting for device to disconnect..."
+msgstr "等待設備斷開連接..."
