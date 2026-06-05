@@ -322,6 +322,10 @@ var T = {
     'MSG_RST_PKGS': _('Force offline installing plugins (this takes a while, please wait)...'),
     'MSG_RST_DONE': _('Restore thoroughly complete! Router will auto-reboot!'),
     'MSG_RST_INVALID': _('Invalid capsule file! NetWiz signature missing, intercepted for security.'),
+    'V6_NAT_ERR_TIT1': _('🚨 Severe Network Topology Conflict!'),
+    'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!<br>This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please <b style="color:#ef4444;">Disable IPv6</b> here immediately, or go to <code>Network -> Firewall</code> to disable NAT.'),
+    'V6_NAT_ERR_TIT2': _('⚠️ IPv6 Configuration Blocked'),
+    'V6_NAT_ERR_MSG2': _('Detected that LAN "IP Masquerading (NAT)" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first.'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -329,7 +333,7 @@ var callNetDefuse = rpc.declare({ object: 'netwiz', method: 'confirm', expect: {
 // 调用系统底层 iwinfo 扫描 Wi-Fi
 var callIwinfoScan = rpc.declare({ object: 'iwinfo', method: 'scan', params: ['device'], expect: { results: [] } });
 var getWanStatus = rpc.declare({ object: 'network.interface', method: 'dump', expect: { '': {} } });
-var callNetCheckWifi = rpc.declare({ object: 'netwiz', method: 'check_wifi', expect: { has_wifi: false } });
+var callNetCheckWifi = rpc.declare({ object: 'netwiz', method: 'check_wifi', expect: { '': {} } });
 var callSetPassword = rpc.declare({ object: 'netwiz', method: 'set_password', params: ['password'], expect: { result: 0 } });
 var callSystemBoard = rpc.declare({ object: 'system', method: 'board', expect: { '': {} } });
 // 增加智能备份和恢复的接口声明
@@ -1454,7 +1458,8 @@ return view.extend({
                 if (modeTextEl && !isSilent) modeTextEl.innerHTML = "<div class='nw-spinner' style='width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;'></div><div style='margin-top:10px; font-size:15px; font-weight:bold; color:#fff;'>" + T['LOADING_CONFIG'] + "</div>";
                 try { uci.unload('network'); uci.unload('dhcp'); uci.unload('wireless'); } catch(e) {}
                 
-                Promise.all([ safePromise(uci.load('network'), null), safePromise(uci.load('dhcp'), null), safePromise(uci.load('wireless'), null), safePromise(getWanStatus(), {}) ]).then(function(results) {
+                Promise.all([ safePromise(uci.load('network'), null), safePromise(uci.load('dhcp'), null), safePromise(uci.load('wireless'), null), safePromise(getWanStatus(), {}), safePromise(callNetCheckWifi(), {}) ]).then(function(results) {
+                    var wifiRes = results[4] || {};
                     var rawIfaces = results[3] || {}, ifaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
                     var activeWan = ifaces.find(function(i) { 
@@ -1688,6 +1693,62 @@ return view.extend({
                     if (v6Warn) {
                         v6Warn.style.display = isV6Inconsistent ? 'block' : 'none';
                     }
+
+                    // --- IPv6 NAT 冲突防呆逻辑 ---
+                    var warningDiv = container.querySelector('#v6-nat-warning');
+                    if (warningDiv) warningDiv.remove(); // 先清理旧警告
+
+                    if (wifiRes && (wifiRes.lan_nat_conflict === true || String(wifiRes.lan_nat_conflict) === 'true')) {
+                        if (ipv6Toggle) {
+                            var v6Label = ipv6Toggle.closest('.nw-switch-row-padded');
+                            if (v6Label) {
+                                warningDiv = document.createElement('div');
+                                warningDiv.id = 'v6-nat-warning';
+                                warningDiv.style.cssText = 'margin-bottom: 15px; font-size: 13.5px; line-height: 1.5; border-radius: 6px; padding: 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
+
+                                if (window._trueIpv6State === '1') {
+                                    // 1、IPv6 已开启，且存在冲突，允许关闭，发出红色严重警告
+                                    ipv6Toggle.disabled = false;
+                                    v6Label.style.opacity = '1';
+                                    v6Label.style.cursor = 'pointer';
+                                    v6Label.style.filter = 'none';
+                                    v6Label.style.pointerEvents = 'auto';
+                                    
+                                    warningDiv.style.color = '#7f1d1d';
+                                    warningDiv.style.background = '#fef2f2';
+                                    warningDiv.style.borderLeft = '4px solid #ef4444';
+                                    warningDiv.innerHTML = '<b>' + (T['V6_NAT_ERR_TIT1'] || '🚨 Severe Conflict!') + '</b><br>' + (T['V6_NAT_ERR_MSG1'] || 'Conflict detected.');
+                                    v6Label.parentNode.insertBefore(warningDiv, v6Label.nextSibling);
+                                } else {
+                                    // 2、IPv6 未开启，且存在冲突，暴力反灰死锁，禁止开启！
+                                    ipv6Toggle.disabled = true;
+                                    v6Label.style.opacity = '0.35';
+                                    v6Label.style.cursor = 'not-allowed';
+                                    v6Label.style.filter = 'grayscale(100%)';
+                                    v6Label.style.pointerEvents = 'none';
+                                    
+                                    warningDiv.style.color = '#dc2626';
+                                    warningDiv.style.background = '#fff5f5';
+                                    warningDiv.style.borderLeft = '4px solid #dc2626';
+                                    warningDiv.innerHTML = '<b>' + (T['V6_NAT_ERR_TIT2'] || '⚠️ Blocked') + '</b><br>' + (T['V6_NAT_ERR_MSG2'] || 'NAT is enabled.');
+                                    v6Label.parentNode.insertBefore(warningDiv, v6Label.nextSibling);
+                                }
+                            }
+                        }
+                    } else {
+                        // 没有冲突，确保开关恢复正常
+                        if (ipv6Toggle) {
+                            ipv6Toggle.disabled = false;
+                            var v6Label = ipv6Toggle.closest('.nw-switch-row-padded');
+                            if (v6Label) {
+                                v6Label.style.opacity = '1';
+                                v6Label.style.cursor = 'pointer';
+                                v6Label.style.filter = 'none';
+                                v6Label.style.pointerEvents = 'auto';
+                            }
+                        }
+                    }
+                    // -------------------------------------
 
                     if (!window._wifiLoaded) {
                         try {
