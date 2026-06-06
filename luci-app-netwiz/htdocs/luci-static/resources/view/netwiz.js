@@ -338,6 +338,11 @@ var T = {
     'MSG_CUSTOM_PKG_ACT': _('If you proceed, these plugins WILL NOT be restored automatically!'),
     'MSG_CUSTOM_PKG_TIP': _('Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again.'),
     'BTN_FORCE_BACKUP': _('Ignore & Backup Anyway'),
+    'TXT_MISSING_PKGS': _('Missing packages:'),
+    'TXT_PROVIDED_PKGS': _('Already prepared in custom_pkgs:'),
+    'TIT_CUSTOM_PKG_READY': _('Custom Plugins Ready'),
+    'MSG_CUSTOM_PKG_READY_DESC': _('Great! Your custom plugins are safely stored in the local directory and will be included in the backup capsule.'),
+    'BTN_CONFIRM_BACKUP': _('Confirm Backup'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -354,8 +359,8 @@ var callCheckBackup = rpc.declare({ object: 'netwiz', method: 'check_backup', ex
 var callSmartRestoreExec = rpc.declare({ object: 'netwiz', method: 'smart_restore_exec', params: ['filepath'], expect: { result: 0 } });
 var callCheckStorage = rpc.declare({ object: 'netwiz', method: 'check_storage', expect: { '': {} } });
 var callCheckRestoreStatus = rpc.declare({ object: 'netwiz', method: 'check_restore_status', expect: { '': {} } });
-var callCheckIpConflict = rpc.declare({ object: 'netwiz', method: 'check_ip_conflict', params: ['ip'], expect: { status: '' } });
-var callCheckMissingPkgs = rpc.declare({ object: 'netwiz', method: 'check_missing_pkgs', expect: { missing: [] } });
+var callCheckIpConflict = rpc.declare({ object: 'netwiz', method: 'check_ip_conflict', params: ['ip'], expect: { '': {} } });
+var callCheckMissingPkgs = rpc.declare({ object: 'netwiz', method: 'check_missing_pkgs', expect: { '': {} } });
 
 return view.extend({
     handleSaveApply: null,
@@ -2468,39 +2473,68 @@ return view.extend({
                         // 2. 呼叫后端扫描
                         callCheckMissingPkgs().then(function(res) {
                             var missing = res.missing || [];
+                            var provided = res.provided || [];
+                            
                             if (missing.length > 0) {
-                                // 发现不在源内的插件！拦截并警告用户
-                                var pkgListHtml = '<ul style="text-align:left; background:#fee2e2; padding:10px 20px; border-radius:6px; color:#b91c1c; font-family:monospace; margin-top:10px;">';
-                                for (var i = 0; i < missing.length; i++) {
-                                    pkgListHtml += '<li>' + missing[i] + '</li>';
-                                }
+                                // 1：存在完全缺失的插件 -> 显示红色警告 + 混合列表
+                                var pkgListHtml = '<div style="text-align:left; margin-top:10px;">';
+                                
+                                // 缺失部分 (紅)
+                                pkgListHtml += '<div style="color:#b91c1c; font-weight:bold; margin-bottom:5px;">❌ ' + (T['TXT_MISSING_PKGS'] || 'Missing packages:') + '</div>';
+                                pkgListHtml += '<ul style="background:#fee2e2; padding:10px 20px; border-radius:6px; color:#b91c1c; font-family:monospace; margin-bottom:10px; margin-top:0;">';
+                                for (var i = 0; i < missing.length; i++) { pkgListHtml += '<li>' + missing[i] + '</li>'; }
                                 pkgListHtml += '</ul>';
+
+                                // 如果有部分已经准备好的，順便显示绿色
+                                if (provided.length > 0) {
+                                    pkgListHtml += '<div style="color:#059669; font-weight:bold; margin-bottom:5px;">✅ ' + (T['TXT_PROVIDED_PKGS'] || 'Ready in custom_pkgs:') + '</div>';
+                                    pkgListHtml += '<ul style="background:#d1fae5; padding:10px 20px; border-radius:6px; color:#059669; font-family:monospace; margin-bottom:10px; margin-top:0;">';
+                                    for (var j = 0; j < provided.length; j++) { pkgListHtml += '<li>' + provided[j] + '</li>'; }
+                                    pkgListHtml += '</ul>';
+                                }
+                                pkgListHtml += '</div>';
 
                                 openModal({
                                     title: '⚠️ ' + (T['TIT_CUSTOM_PKG_WARN'] || 'Custom Plugins Detected'),
                                     msg: '<div style="font-size:15px; color:#475569;">' + 
                                          (T['MSG_CUSTOM_PKG_DESC'] || 'We detected the following plugins are NOT available in your current software feeds:') + 
                                          pkgListHtml + 
-                                         '<br><span style="color:#ef4444; font-weight:bold;">' + 
-                                         (T['MSG_CUSTOM_PKG_ACT'] || 'If you proceed, these plugins WILL NOT be restored automatically!') + 
+                                         '<span style="color:#ef4444; font-weight:bold;">' + 
+                                         (T['MSG_CUSTOM_PKG_ACT'] || 'If you proceed, missing plugins WILL NOT be restored automatically!') + 
                                          '</span><br><br>' + 
-                                         (T['MSG_CUSTOM_PKG_TIP'] || 'Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again.') + 
+                                         (T['MSG_CUSTOM_PKG_TIP'] || 'Tip: To include them, please cancel, put their files into /etc/netwiz/custom_pkgs/, and backup again.') + 
                                          '</div>',
                                     okText: '🚀 ' + (T['BTN_FORCE_BACKUP'] || 'Ignore & Backup Anyway'),
                                     cancelText: T['BTN_CANCEL_RST'] || 'Cancel',
                                     isDanger: true,
-                                    onOk: function() {
-                                        // 强制备份
-                                        executeRealBackup(); 
-                                    }
+                                    onOk: function() { executeRealBackup(); }
                                 });
+
+                            } else if (provided.length > 0) {
+                                // 2：沒有缺失，所有自定义插件都在文件夹里！-> 绿色确定
+                                var pkgListHtml = '<div style="text-align:left; margin-top:15px;">';
+                                pkgListHtml += '<div style="color:#059669; font-weight:bold; margin-bottom:5px;">✅ ' + (T['TXT_PROVIDED_PKGS'] || 'Ready in custom_pkgs:') + '</div>';
+                                pkgListHtml += '<ul style="background:#d1fae5; padding:10px 20px; border-radius:6px; color:#059669; font-family:monospace; margin-bottom:10px; margin-top:0;">';
+                                for (var j = 0; j < provided.length; j++) { pkgListHtml += '<li>' + provided[j] + '</li>'; }
+                                pkgListHtml += '</ul></div>';
+
+                                openModal({
+                                    title: '✅ ' + (T['TIT_CUSTOM_PKG_READY'] || 'Custom Plugins Ready'),
+                                    msg: '<div style="font-size:15px; color:#475569;">' + 
+                                         (T['MSG_CUSTOM_PKG_READY_DESC'] || 'Great! Your custom plugins are safely stored in the local directory and will be included in the backup capsule.') + 
+                                         pkgListHtml + 
+                                         '</div>',
+                                    okText: '📦 ' + (T['BTN_CONFIRM_BACKUP'] || 'Confirm Backup'),
+                                    cancelText: T['BTN_CANCEL_RST'] || 'Cancel',
+                                    onOk: function() { executeRealBackup(); }
+                                });
+
                             } else {
-                                // 源内都有，直接备份
+                                // 3：源內都有，直接备份
                                 executeRealBackup();
                             }
                         }).catch(function() {
-                            // 扫描失败（兜底），直接执行备份
-                            executeRealBackup();
+                            executeRealBackup(); // 防呆兜底
                         });
                     }
                 });
