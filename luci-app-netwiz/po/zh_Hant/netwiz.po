@@ -1600,8 +1600,8 @@ msgstr "檢測到自定義插件"
 msgid "We detected the following plugins are NOT available in your current software feeds:"
 msgstr "系統檢測到以下您已安裝的插件，並不存在於當前的軟體源中："
 
-msgid "If you proceed, these plugins WILL NOT be restored automatically!"
-msgstr "如果現在執行備份，這些插件在未來還原時將無法被自動下載與恢復！"
+msgid "If you proceed, missing plugins WILL NOT be restored automatically!"
+msgstr "如果現在執行備份，缺失安裝包的插件在未來還原時將無法被自動下載與恢復！"
 
 msgid "Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again."
 msgstr "強烈建議：請先取消備份，透過 SSH 將這些插件的離線安裝包（.ipk/.apk）放入 /etc/netwiz/custom_pkgs/ 目錄下，然後再次執行備份。"
