@@ -25,7 +25,7 @@ msgstr "在本設備上直接使用寬頻帳號和密碼進行撥號。"
 msgid "LAN Settings"
 msgstr "區域網路設定"
 
-msgid "Change device LAN IP, or switch to AP Wired Relay mode."
+msgid "Change device LAN IP, switch to AP Wired Relay mode, or one-click IPv6 distribution."
 msgstr "修改設備區域網 IP，或切換至旁路由（AP有線中繼）模式，一鍵下發IPv6。"
 
 msgid "Reading underlying config..."
