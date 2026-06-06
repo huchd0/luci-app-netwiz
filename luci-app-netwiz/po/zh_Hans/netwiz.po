@@ -1590,3 +1590,21 @@ msgstr "强烈建议更改为新 IP，以防止网络瘫痪或断网。"
 
 msgid "Fix to"
 msgstr "一键修复为"
+
+msgid "Scanning installed plugins..."
+msgstr "正在扫描已安装的插件清单..."
+
+msgid "Custom Plugins Detected"
+msgstr "检测到自定义插件"
+
+msgid "We detected the following plugins are NOT available in your current software feeds:"
+msgstr "系统检测到以下您已安装的插件，并不存在于当前的软件源中："
+
+msgid "If you proceed, these plugins WILL NOT be restored automatically!"
+msgstr "如果现在执行备份，这些插件在未来还原时将无法被自动下载与恢复！"
+
+msgid "Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again."
+msgstr "强烈建议：请先取消备份，通过 SSH 将这些插件的离线安装包（.ipk/.apk）放入 /etc/netwiz/custom_pkgs/ 目录下，然后再执行全量备份。"
+
+msgid "Ignore & Backup Anyway"
+msgstr "忽略警告，强行备份"
