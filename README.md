@@ -2,9 +2,25 @@
 
 [English](#english) | [简体中文](#简体中文)
 
-**NetWiz**专属OpenWrt网络设置向导-极简，开箱即用，是一款逻辑严谨缜密，搭载企业级Lan口防失联机制，WAN口上网方式智能切换（间隔10秒接入WAN口启动），智能防错校验，智能WiFi满血释放（无硬件时自动隐藏）、一键开启IPV6、智能IP、网关、WAN口、Lan口冲突排雷，全方位的守护，NetWiz不仅提供直观的 UI，大小屏极致的丝滑体验，更深入系统内核，提供企业级的一键批量绑定静态IP策略组、网络管控体验——从终端流量透视、IP 智能分组，到一键防火墙控制与灾备级全自动配置管理。
+**NetWiz** —— 您的专属 OpenWrt 极简网络设置向导。开箱即用，化繁为简。
 
-**NetWiz(NetWiz Network Wizard)** — minimalist and ready out of the box. Built with rigorous, well-structured logic, it features an enterprise-grade LAN fail-safe mechanism, intelligent WAN mode switching (Auto-detect will be triggered only when the WAN cable is reinserted after a 10-second disconnection), smart validation and error prevention, and full-performance WiFi with automatic hiding when hardware is unavailable. It also enables one-click IPv6 activation, proactively resolves IP, gateway, WAN, and LAN conflicts, and delivers comprehensive protection with a seamless, intuitive experience across both large and small screens.
+凭借严谨缜密的底层逻辑，NetWiz 不仅为您提供直观的交互与大小屏极致丝滑的 UI 体验，更带来全方位的企业级网络守护：
+
+🛡️ 智能配置与防呆守护：搭载企业级 LAN 口防失联机制与全网段冲突排雷（智能解决 IP、网关、WAN/LAN 冲突）。支持 WAN 口上网方式盲插智能切换（断开 10 秒后重新接入自动侦测）、智能防错校验、一键开启 IPv6，以及智能 Wi-Fi 满血释放（无物理硬件时自动隐藏）。
+
+📊 企业级网络管控：深入系统内核，提供灾备级全自动配置管理。涵盖终端流量透视、IP 智能分组、一键批量绑定静态 IP 策略组以及一键防火墙控制，让复杂网络管理得心应手。
+
+📦 首创 SmartGhost 智能恢复：NetWiz 不仅仅是设置向导，更打造了独家首创智能备份与恢复的完美闭环。搭载「SmartGhost 全量离线系统恢复」技术，无需全程联网，无惧跨版本刷机！能在彻底断网的新固件上，一键完美恢复您的插件与复杂网络配置，并提供商用级的防内存溢出（OOM）保护与跨网段无缝跃迁的丝滑恢复体验。
+
+**NetWiz (Network Wizard)** — Your exclusive, minimalist OpenWrt network setup wizard. Ready out of the box, turning complexity into simplicity.
+
+Built upon rigorous and well-structured underlying logic, NetWiz delivers not only a seamlessly smooth and responsive UI across all screen sizes but also comprehensive, enterprise-grade network protection:
+
+🛡️ Intelligent Setup & Failsafe Protection: Features an enterprise-grade LAN fail-safe mechanism and proactive conflict resolution across IP, Gateway, WAN, and LAN subnets. It supports smart WAN mode blind-switching (auto-detects when the cable is reinserted after a 10-second disconnection), smart error-prevention validation, one-click IPv6 activation, and full-performance Wi-Fi configuration (automatically hides when no physical hardware is detected).
+
+📊 Enterprise-Grade Network Management: Diving deep into the system kernel, NetWiz empowers you with disaster-recovery-level automated management. It offers terminal traffic visibility, smart IP grouping, one-click batch binding for static IP policy groups, and one-click firewall control.
+
+📦 SmartGhost Offline Full Recovery: Much more than just a setup wizard, NetWiz pioneers a perfect closed-loop backup and restore ecosystem. Powered by the original "SmartGhost Full Offline System Recovery" technology, it requires no continuous internet connection and eliminates the fear of cross-version firmware flashing. It can perfectly clone and restore all your third-party plugins and complex network configs onto newly flashed, completely offline firmware—all while delivering commercial-grade Out-of-Memory (OOM) protection and a seamless cross-subnet recovery experience.
 
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg) ![OpenWrt](https://img.shields.io/badge/OpenWrt-23.05_|_25.x+-blue.svg) ![ImmortalWrt](https://img.shields.io/badge/ImmortalWrt-Supported-orange.svg) ![Downloads](https://img.shields.io/github/downloads/huchd0/luci-app-netwiz/total.svg?logo=github) ![Views](https://komarev.com/ghpvc/?username=huchd0-luci-app-netwiz&label=Views&color=blue&style=flat) ![License](https://img.shields.io/badge/License-GPL--3.0-green.svg)
 
