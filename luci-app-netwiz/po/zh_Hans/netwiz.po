@@ -1604,7 +1604,7 @@ msgid "If you proceed, these plugins WILL NOT be restored automatically!"
 msgstr "如果现在执行备份，这些插件在未来还原时将无法被自动下载与恢复！"
 
 msgid "Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again."
-msgstr "强烈建议：请先取消备份，通过 SSH 将这些插件的离线安装包（.ipk/.apk）放入 /etc/netwiz/custom_pkgs/ 目录下，然后再执行全量备份。"
+msgstr "强烈建议：请先取消备份，通过 SSH 将这些插件的离线安装包（.ipk/.apk）放入 /etc/netwiz/custom_pkgs/ 目录下，然后再执行备份。"
 
 msgid "Ignore & Backup Anyway"
 msgstr "忽略警告，强行备份"
