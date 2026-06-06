@@ -1594,11 +1594,11 @@ msgstr "一键修复为"
 msgid "Scanning installed plugins..."
 msgstr "正在扫描已安装的插件清单..."
 
-msgid "Custom Plugins Detected"
-msgstr "检测到自定义插件"
+msgid "Plugin Backup Status"
+msgstr "插件备份状态检查"
 
-msgid "We detected the following plugins are NOT available in your current software feeds:"
-msgstr "系统检测到以下您已安装的插件，并不存在于当前的软件源中："
+msgid "The system detected that some plugins are not in the official feed. Please check the backup status below:"
+msgstr "系统检测到部分插件不在当前软件源中，为确保恢复，请确认缺失安装包的情况："
 
 msgid "If you proceed, missing plugins WILL NOT be restored automatically!"
 msgstr "如果现在执行备份，缺失安装包的插件在未来还原时将无法被自动下载与恢复！"
