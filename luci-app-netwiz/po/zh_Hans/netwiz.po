@@ -1351,7 +1351,7 @@ msgstr "测试"
 msgid "Full Software Backup & Restore"
 msgstr "全量软件的备份与恢复"
 
-msgid "Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">restore all software and configs perfectly (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset router first.<br>If Netwiz is missing after reset, run this in SSH:"
+msgid "Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">rapidly reinstall all software and losslessly restore configs (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset the router first.<br><span style=\"color:#ef4444; font-weight:bold;\">[Tip: To backup plugins from unofficial sources, manually place the installation packages in the /etc/netwiz/custom_pkgs/ directory.]</span><br>If Netwiz is missing after a reset or needs an upgrade, connect to the internet and run this in SSH:"
 msgstr "解决传统备份容易导致死机、软砖风险，智能备份兼容跨版本恢复。刷入新固件后，上传备份即可<span style=\"color:#ef4444; font-weight:bold;\">极速重装所有软件并无损还原配置（需联网）</span>。恢复时不会删除当前软件。若需达到绝对纯净，请先恢复出厂设置。<br>「提示：若需备份非官方源插件，请手动将安装包放置于/etc/netwiz/custom_pkgs/目录下。」<br>恢复出厂后若未安装 Netwiz 或需要升级，可联网后在 SSH 终端执行以下命令："
 
 msgid "Generate Backup"
