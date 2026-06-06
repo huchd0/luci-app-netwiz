@@ -1619,7 +1619,7 @@ msgid "Custom Plugins Ready"
 msgstr "自定义插件已就绪"
 
 msgid "Great! Your custom plugins are safely stored in the local directory and will be included in the backup capsule."
-msgstr "太棒了！您安装的自定义插件离线包均已妥善存放于本地保险箱中，它们将被完整打包进胶囊。"
+msgstr "恭喜！已将所有自定义插件离线包存入本地保险箱，后续将统一打包封装进备份胶囊。"
 
 msgid "Confirm Backup"
 msgstr "确定备份"
