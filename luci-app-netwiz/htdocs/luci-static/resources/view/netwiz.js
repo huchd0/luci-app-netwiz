@@ -2523,7 +2523,7 @@ return view.extend({
                                          (T['MSG_CUSTOM_PKG_ACT'] || 'If you proceed, missing plugins WILL NOT be restored automatically!') + 
                                          '</span><br><br>' + 
                                          (T['MSG_CUSTOM_PKG_TIP'] || 'Tip: Manually place missing packages .ipk/.apk into the /etc/netwiz/custom_pkgs/ directory via SSH to ensure they are automatically reinstalled during future restorations.') + 
-                                         '</div>',
+                                         '<br><br></div>',
                                     okText: '🚀 ' + (T['BTN_FORCE_BACKUP'] || 'Ignore & Backup'),
                                     cancelText: T['BTN_CANCEL_RST'] || 'Cancel',
                                     isDanger: true,
