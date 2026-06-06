@@ -264,7 +264,7 @@ var T = {
     'LBL_LAB_TITLE': _('Advanced & Lab Features'),
     'LBL_LAB_BETA': _('Beta'),
     'TXT_FULL_BACKUP_TIT': _('Full Software Backup & Restore'),
-    'TXT_FULL_BACKUP_DESC': _('Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">rapidly reinstall all software and losslessly restore configs (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset the router first.<br><span style=\"color:#ef4444; font-weight:bold;\">Tip: To backup custom plugins not available in your software feeds, manually place the installation packages in the /etc/netwiz/custom_pkgs/ directory.</span><br>If Netwiz is missing after a reset or needs an upgrade, connect to the internet and run this in SSH:'),
+    'TXT_FULL_BACKUP_DESC': _('Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">rapidly reinstall all software and losslessly restore configs (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset the router first.<br><span style=\"color:#ef4444; font-weight:bold;\">Tip: If the backup shows Missing packages, manually place the installation packages in the /etc/netwiz/custom_pkgs/ directory.</span><br>If Netwiz is missing after a reset or needs an upgrade, connect to the internet and run this in SSH:'),
     'BTN_SMART_BACKUP': '📦 ' + _('Generate Backup'),
     'BTN_SMART_RESTORE': '⚡ ' + _('Restore System'),
     'TXT_COPY_TIP': '📋 ' + _('Click to Copy'),
@@ -339,11 +339,11 @@ var T = {
     'MSG_CUSTOM_PKG_TIP': _('Tip: Manually place missing packages .ipk/.apk into the /etc/netwiz/custom_pkgs/ directory via SSH to ensure they are automatically reinstalled during future restorations.'),
     'BTN_FORCE_BACKUP': _('Ignore & Backup'),
     'TXT_MISSING_PKGS': _('Missing packages:'),
-    'TXT_PROVIDED_PKGS': _('Already prepared in custom_pkgs:'),
+    'TXT_PROVIDED_PKGS': _('Manually placed in custom_pkgs:'),
     'TIT_CUSTOM_PKG_READY': _('Custom Plugins Ready'),
     'MSG_CUSTOM_PKG_READY_DESC': _('Great! Your custom plugins are safely stored in the local directory and will be included in the backup capsule.'),
     'BTN_CONFIRM_BACKUP': _('Confirm Backup'),
-    'TXT_OFFICIAL_PKGS': _('Official Plugins (Auto-Restore):'),
+    'TXT_OFFICIAL_PKGS': _('Auto-backup plugins:'),
     'TIT_OFFICIAL_PKG_READY': _('Plugin Scan Complete'),
     'MSG_OFFICIAL_PKG_READY_DESC': _('System scan complete! All your installed plugins are from the official repository and will be safely recorded for automatic restoration.'),
 };
@@ -2491,7 +2491,7 @@ return view.extend({
                             
                             var providedHtml = '';
                             if (provided.length > 0) {
-                                providedHtml += '<div style="color:#059669; font-weight:bold; margin-bottom:5px; margin-top:10px;">✅ ' + (T['TXT_PROVIDED_PKGS'] || 'Ready in custom_pkgs:') + '</div>';
+                                providedHtml += '<div style="color:#059669; font-weight:bold; margin-bottom:5px; margin-top:10px;">✅ ' + (T['TXT_PROVIDED_PKGS'] || 'Manually placed in custom_pkgs:') + '</div>';
                                 providedHtml += '<ul style="background:#d1fae5; padding:8px 15px; border-radius:6px; color:#059669; font-family:monospace; margin-bottom:0; margin-top:0;">';
                                 for (var j = 0; j < provided.length; j++) { providedHtml += '<li>' + provided[j] + '</li>'; }
                                 providedHtml += '</ul>';
@@ -2499,7 +2499,7 @@ return view.extend({
 
                             var officialHtml = '';
                             if (official.length > 0) {
-                                officialHtml += '<div style="color:#3b82f6; font-weight:bold; margin-bottom:5px; margin-top:10px;">☁️ ' + (T['TXT_OFFICIAL_PKGS'] || 'Official Plugins (Auto-Restore):') + '</div>';
+                                officialHtml += '<div style="color:#3b82f6; font-weight:bold; margin-bottom:5px; margin-top:10px;">☁️ ' + (T['TXT_OFFICIAL_PKGS'] || 'Auto-backup plugins:') + '</div>';
                                 officialHtml += '<ul style="background:#eff6ff; padding:8px 15px; border-radius:6px; color:#3b82f6; font-family:monospace; margin-bottom:0; margin-top:0;">';
                                 for (var k = 0; k < official.length; k++) { officialHtml += '<li>' + official[k] + '</li>'; }
                                 officialHtml += '</ul>';
