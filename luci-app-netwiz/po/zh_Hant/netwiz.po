@@ -1597,11 +1597,11 @@ msgstr "正在掃描已安裝的插件清單..."
 msgid "Plugin Backup Status"
 msgstr "插件備份狀態檢查"
 
-msgid "The system detected that some plugins are not in the official feed. Please check the backup status below:"
-msgstr "系統檢測到部分插件不在當前軟體源中，為確保恢復，請確認缺失安裝包的情況："
+msgid "Please verify backup packages:"
+msgstr "請核對備份安裝包："
 
 msgid "If you proceed, missing plugins WILL NOT be restored automatically!"
-msgstr "如果現在執行備份，缺失安裝包的插件在未來還原時將無法被自動下載與恢復！"
+msgstr "如果現在執行備份，缺失安裝包在還原時將無法被恢復！"
 
 msgid "Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again."
 msgstr "強烈建議：請先取消備份，透過 SSH 將這些插件的離線安裝包（.ipk/.apk）放入 /etc/netwiz/custom_pkgs/ 目錄下，然後再次執行備份。"
