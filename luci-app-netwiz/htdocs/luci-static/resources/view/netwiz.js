@@ -2537,7 +2537,7 @@ return view.extend({
 
                                 openModal({
                                     title: '✅ ' + mTitle,
-                                    msg: '<div style="font-size:15px; color:#475569;">' + mDesc + pkgListHtml + '</div>',
+                                    msg: '<div style="font-size:15px; color:#475569; text-align: left; padding: 0 5px;">' + mDesc + pkgListHtml + '</div>',
                                     okText: '📦 ' + (T['BTN_CONFIRM_BACKUP'] || 'Confirm Backup'),
                                     cancelText: T['BTN_CANCEL_RST'] || 'Cancel',
                                     onOk: function() { performBackup(); }
