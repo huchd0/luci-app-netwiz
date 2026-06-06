@@ -336,7 +336,7 @@ var T = {
     'TIT_PKG_CHECK': _('Plugin Backup Status'),
     'MSG_CUSTOM_PKG_DESC': _('Please verify backup packages:'),
     'MSG_CUSTOM_PKG_ACT': _('If you proceed, missing plugins WILL NOT be restored automatically!'),
-    'MSG_CUSTOM_PKG_TIP': _('Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again.'),
+    'MSG_CUSTOM_PKG_TIP': _('Tip: Manually place missing packages .ipk/.apk into the /etc/netwiz/custom_pkgs/ directory via SSH to ensure they are automatically reinstalled during future restorations.'),
     'BTN_FORCE_BACKUP': _('Ignore & Backup'),
     'TXT_MISSING_PKGS': _('Missing packages:'),
     'TXT_PROVIDED_PKGS': _('Already prepared in custom_pkgs:'),
@@ -2522,7 +2522,7 @@ return view.extend({
                                          '<span style="color:#ef4444; font-weight:bold;">' + 
                                          (T['MSG_CUSTOM_PKG_ACT'] || 'If you proceed, missing plugins WILL NOT be restored automatically!') + 
                                          '</span><br><br>' + 
-                                         (T['MSG_CUSTOM_PKG_TIP'] || 'Tip: To include them, please cancel, put their files into /etc/netwiz/custom_pkgs/, and backup again.') + 
+                                         (T['MSG_CUSTOM_PKG_TIP'] || 'Tip: Manually place missing packages .ipk/.apk into the /etc/netwiz/custom_pkgs/ directory via SSH to ensure they are automatically reinstalled during future restorations.') + 
                                          '</div>',
                                     okText: '🚀 ' + (T['BTN_FORCE_BACKUP'] || 'Ignore & Backup'),
                                     cancelText: T['BTN_CANCEL_RST'] || 'Cancel',
