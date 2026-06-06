@@ -334,7 +334,7 @@ var T = {
     'BTN_FIX_IP': _('Fix to'),
     'MSG_SCAN_PKGS': _('Scanning installed plugins...'),
     'TIT_PKG_CHECK': _('Plugin Backup Status'),
-    'MSG_CUSTOM_PKG_DESC': _('The system detected that some plugins are not in the official feed. Please check the backup status below:'),
+    'MSG_CUSTOM_PKG_DESC': _('Please verify backup packages:'),
     'MSG_CUSTOM_PKG_ACT': _('If you proceed, missing plugins WILL NOT be restored automatically!'),
     'MSG_CUSTOM_PKG_TIP': _('Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again.'),
     'BTN_FORCE_BACKUP': _('Ignore & Backup'),
@@ -2517,7 +2517,7 @@ return view.extend({
                                 openModal({
                                     title: '⚠️ ' + (T['TIT_PKG_CHECK'] || 'Plugin Backup Status'),
                                     msg: '<div style="font-size:15px; color:#475569;">' + 
-                                         (T['MSG_CUSTOM_PKG_DESC'] || 'The system detected that some plugins are not in the official feed. Please check the backup status below:') + 
+                                         (T['MSG_CUSTOM_PKG_DESC'] || 'Please verify backup packages:') + 
                                          pkgListHtml + 
                                          '<span style="color:#ef4444; font-weight:bold;">' + 
                                          (T['MSG_CUSTOM_PKG_ACT'] || 'If you proceed, missing plugins WILL NOT be restored automatically!') + 
