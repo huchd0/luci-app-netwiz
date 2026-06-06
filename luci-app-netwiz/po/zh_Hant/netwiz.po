@@ -1619,7 +1619,7 @@ msgid "Custom Plugins Ready"
 msgstr "自定義插件已就緒"
 
 msgid "Great! Your custom plugins are safely stored in the local directory and will be included in the backup capsule."
-msgstr "太棒了！您安裝的自定義插件離線包均已妥善存放於本地保險箱中，它們將被完整打包進膠囊。"
+msgstr "恭喜！已將所有自訂外掛離線包存入本地保險箱，後續將統一包裝封裝進備份膠囊。"
 
 msgid "Confirm Backup"
 msgstr "確定備份"
@@ -1631,4 +1631,4 @@ msgid "Plugin Scan Complete"
 msgstr "插件掃描完成"
 
 msgid "System scan complete! All your installed plugins are from the official repository and will be safely recorded for automatic restoration."
-msgstr "系統掃描完畢！您當前安裝的所有第三方可視化插件，均存在於官方軟體源中。它們將被安全記錄並在未來自動聯網恢復。"
+msgstr "系統掃描完畢！您安裝的所有第三方可視化插件，均存在於當前軟體源中。它們將被安全記錄並在未來自動聯網恢復。"
