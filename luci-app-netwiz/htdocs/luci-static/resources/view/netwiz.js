@@ -264,7 +264,7 @@ var T = {
     'LBL_LAB_TITLE': _('Advanced & Lab Features'),
     'LBL_LAB_BETA': _('Beta'),
     'TXT_FULL_BACKUP_TIT': _('Full Software Backup & Restore'),
-    'TXT_FULL_BACKUP_DESC': _('Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">rapidly reinstall all software and losslessly restore configs (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset the router first.<br><span style=\"color:#ef4444; font-weight:bold;\">[Tip: To backup custom plugins not available in your software feeds, manually place the installation packages in the /etc/netwiz/custom_pkgs/ directory.]</span><br>If Netwiz is missing after a reset or needs an upgrade, connect to the internet and run this in SSH:'),
+    'TXT_FULL_BACKUP_DESC': _('Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">rapidly reinstall all software and losslessly restore configs (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset the router first.<br><span style=\"color:#ef4444; font-weight:bold;\">Tip: To backup custom plugins not available in your software feeds, manually place the installation packages in the /etc/netwiz/custom_pkgs/ directory.</span><br>If Netwiz is missing after a reset or needs an upgrade, connect to the internet and run this in SSH:'),
     'BTN_SMART_BACKUP': '📦 ' + _('Generate Backup'),
     'BTN_SMART_RESTORE': '⚡ ' + _('Restore System'),
     'TXT_COPY_TIP': '📋 ' + _('Click to Copy'),
