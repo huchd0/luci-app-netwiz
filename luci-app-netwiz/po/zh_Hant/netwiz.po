@@ -1606,8 +1606,8 @@ msgstr "如果現在執行備份，這些插件在未來還原時將無法被自
 msgid "Tip: To include them, please cancel, put their .ipk/.apk files into /etc/netwiz/custom_pkgs/, and backup again."
 msgstr "強烈建議：請先取消備份，透過 SSH 將這些插件的離線安裝包（.ipk/.apk）放入 /etc/netwiz/custom_pkgs/ 目錄下，然後再次執行備份。"
 
-msgid "Ignore & Backup Anyway"
-msgstr "忽略警告，強行備份"
+msgid "Ignore & Backup"
+msgstr "忽略並備份"
 
 msgid "Missing packages:"
 msgstr "缺失安裝包（未備妥）："
