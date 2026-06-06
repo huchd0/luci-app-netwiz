@@ -435,7 +435,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
     justify-content: center !important;
     gap: 15px !important;
     width: 100% !important;
-    padding: 0 25px 25px 25px !important;
+    padding: 0 10px 25px 10px !important;
     margin-top: 0 !important;
     box-sizing: border-box !important;
 }
