@@ -1603,8 +1603,8 @@ msgstr "請核對備份安裝包："
 msgid "If you proceed, missing plugins WILL NOT be restored automatically!"
 msgstr "如果現在執行備份，缺失安裝包在還原時將無法被恢復！"
 
-msgid "Tip: Manually place missing packages (.ipk/.apk) into the /etc/netwiz/custom_pkgs/ directory via SSH to ensure they are automatically reinstalled during future restorations."
-msgstr "建議：透過 SSH 將缺失的安裝包（.ipk/.apk）放入 /etc/netwiz/custom_pkgs/ 目錄，還原時會自動恢復當前狀態。"
+msgid "Tip: Manually place missing packages .ipk/.apk into the /etc/netwiz/custom_pkgs/ directory via SSH to ensure they are automatically reinstalled during future restorations."
+msgstr "建議：透過 SSH 將缺失的安裝包 .ipk 或 .apk 放入 /etc/netwiz/custom_pkgs/ 目錄，還原時會自動恢復當前狀態。"
 
 msgid "Ignore & Backup"
 msgstr "忽略並備份"
