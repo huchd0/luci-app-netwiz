@@ -2637,7 +2637,7 @@ return view.extend({
                     });
                     
                     // 探测心跳包函数
-                    // 👉 终极神级版：状态机双向探测雷达 (先等断网，再等连通)
+                    // 状态机双向探测雷达 (先等断网，再等连通)
                     var executeRebootProbe = function(newIp) {
                         var rebootSec = 0;
                         var h = window.location.hostname;
