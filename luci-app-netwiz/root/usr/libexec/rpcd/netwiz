@@ -193,7 +193,9 @@ case "$1" in
                 if [ -n "$official_pkgs" ]; then o_arr='"'"$(echo "$official_pkgs" | awk '{$1=$1;print}' | sed 's/ /","/g')"'"'; fi
                 
                 # 回传：缺失插件、文件插件、官方插件
-                echo "{ \"missing\": [$m_arr], \"provided\": [$p_arr], \"official\": [$o_arr] }"
+                pkg_type="ipk"
+                command -v apk >/dev/null 2>&1 && pkg_type="apk"
+                echo "{ \"missing\": [$m_arr], \"provided\": [$p_arr], \"official\": [$o_arr], \"pkg_type\": \"$pkg_type\" }"
                 ;;
                 
             confirm)
@@ -867,8 +869,19 @@ case "$1" in
 
                 log "[BACKUP]" "=== 开始执行智能备份 (类型: $backup_type) ==="
                 
-                timestamp=$(date +%Y%m%d_%H%M%S)
-                dl_name="NetWiz_SmartGhost_${backup_type}_${timestamp}.tar.gz"
+                PKG_TYPE="ipk"
+                command -v apk >/dev/null 2>&1 && PKG_TYPE="apk"
+
+                FW_TYPE="OpenWrt"
+                if [ -f /etc/openwrt_release ]; then
+                    . /etc/openwrt_release
+                    [ -n "$DISTRIB_ID" ] && FW_TYPE="$DISTRIB_ID"
+                fi
+
+                HOST_NAME=$(uci -q get system.@system[0].hostname || hostname || echo "Router")
+                HOST_NAME=$(echo "$HOST_NAME" | sed 's/[^a-zA-Z0-9_-]/_/g')
+
+                dl_name="NetWiz_${FW_TYPE}_${HOST_NAME}_${PKG_TYPE}_$(date +%Y%m%d_%H%M).tar.gz"
                 
                 backup_file="/tmp/${dl_name}"
                 link_file="/www/luci-static/${dl_name}"
@@ -1038,19 +1051,42 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
           /tmp/nw_ghost_tmp/nw_offline_pkgs/libc-* 2>/dev/null
     # ---------------------------------------------------------------
     
+    # ==========================================
+    # 防呆检测：跨架构 (ipk <-> apk) 拦截机制
+    # ==========================================
+    
     if command -v apk >/dev/null 2>&1; then
-        # 1. 安装官方源拉取的依赖包
-        apk add --allow-untrusted --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >> "$LOG_FILE" 2>&1
-        # 2. 安装非官方源的本地包
-        if ls /etc/netwiz/custom_pkgs/*.apk >/dev/null 2>&1; then
-            apk add --allow-untrusted --force-overwrite /etc/netwiz/custom_pkgs/*.apk >> "$LOG_FILE" 2>&1
+        # 当前系统为 apk，检测备份包中是否包含旧版 ipk
+        if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >/dev/null 2>&1 || ls /etc/netwiz/custom_pkgs/*.ipk >/dev/null 2>&1; then
+            log "[DANGER]" "🚨 触发智能防呆：当前系统使用 apk (Alpine)，但备份胶囊中检测到不兼容的 ipk 安装包！"
+            log "[DANGER]" "已自动拦截并跳过所有插件的还原，以防止底层架构损坏！请重新下载对应 apk 版本的插件放入保险箱。"
+        else
+            log ">>> 系统架构匹配 (apk)，开始恢复插件..."
+            # 1. 安装当前源拉取的依赖包
+            if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >/dev/null 2>&1; then
+                apk add --allow-untrusted --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >> "$LOG_FILE" 2>&1
+            fi
+            # 2. 安装非当前源的本地包
+            if ls /etc/netwiz/custom_pkgs/*.apk >/dev/null 2>&1; then
+                apk add --allow-untrusted --force-overwrite /etc/netwiz/custom_pkgs/*.apk >> "$LOG_FILE" 2>&1
+            fi
         fi
+
     elif command -v opkg >/dev/null 2>&1; then
-        # 1. 安装官方源拉取的依赖包
-        opkg install --force-reinstall --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >> "$LOG_FILE" 2>&1
-        # 2. 安装非官方源的本地包
-        if ls /etc/netwiz/custom_pkgs/*.ipk >/dev/null 2>&1; then
-            opkg install --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/*.ipk >> "$LOG_FILE" 2>&1
+        # 当前系统为 opkg，检测备份包中是否包含新版 apk
+        if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >/dev/null 2>&1 || ls /etc/netwiz/custom_pkgs/*.apk >/dev/null 2>&1; then
+            log "[DANGER]" "🚨 触发智能防呆：当前系统使用 opkg，但备份胶囊中检测到不兼容的 apk 安装包！"
+            log "[DANGER]" "已自动拦截并跳过所有插件的还原，以防止底层架构损坏！请重新下载对应 ipk 版本的插件放入保险箱。"
+        else
+            log ">>> 系统架构匹配 (opkg)，开始恢复插件..."
+            # 1. 安装当前源拉取的依赖包
+            if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >/dev/null 2>&1; then
+                opkg install --force-reinstall --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >> "$LOG_FILE" 2>&1
+            fi
+            # 2. 安装非当前源的本地包
+            if ls /etc/netwiz/custom_pkgs/*.ipk >/dev/null 2>&1; then
+                opkg install --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/*.ipk >> "$LOG_FILE" 2>&1
+            fi
         fi
     fi
 fi
