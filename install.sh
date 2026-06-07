@@ -87,6 +87,12 @@ rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/ /var/run/luci-indexcache /var
 rm -rf /tmp/luci-sessions/* /var/run/luci-sessions/* 2>/dev/null
 /etc/init.d/rpcd reload 2>/dev/null
 
+if [ -f "/etc/init.d/uhttpd" ]; then
+    /etc/init.d/uhttpd restart 2>/dev/null
+elif [ -f "/etc/init.d/nginx" ]; then
+    /etc/init.d/nginx restart 2>/dev/null
+fi
+
 echo -e "\n👉 👉 👉  NetWiz 核心程序部署完成！✅"
 echo -e "💡 登录状态已安全重置，请返回浏览器按下 【F5】 刷新即可看到新菜单！"
 
