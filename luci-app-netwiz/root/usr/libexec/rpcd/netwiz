@@ -881,7 +881,7 @@ case "$1" in
                 HOST_NAME=$(uci -q get system.@system[0].hostname || hostname || echo "Router")
                 HOST_NAME=$(echo "$HOST_NAME" | sed 's/[^a-zA-Z0-9_-]/_/g')
 
-                dl_name="NetWiz_${FW_TYPE}_${HOST_NAME}_${PKG_TYPE}_$(date +%Y%m%d_%H%M).tar.gz"
+                dl_name="NetWiz_Ghost_${backup_type}_${FW_TYPE}_${HOST_NAME}_${PKG_TYPE}_$(date +%Y%m%d_%H%M).tar.gz"
                 
                 backup_file="/tmp/${dl_name}"
                 link_file="/www/luci-static/${dl_name}"
