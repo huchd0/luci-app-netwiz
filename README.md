@@ -39,7 +39,7 @@ Tailored perfectly for novice users, it enables secure, one-click configuration 
 [Use the one-click command for quick installation.](#install)
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh | sh
+wget -qO /tmp/nw_inst.sh https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh && sh /tmp/nw_inst.sh || sh /etc/netwiz/custom_pkgs/install.sh
 ```
 
 ## 🤝 Compatibility Guide
