@@ -167,7 +167,7 @@ jobs:
             请使用 SSH 登录路由器终端，直接复制并运行下方代码：
             
             ```bash
-            wget -qO- https://raw.githubusercontent.com/${{ github.repository }}/master/install.sh | sh
+            if wget -qO /tmp/nw_inst.sh https://raw.githubusercontent.com/${{ github.repository }}/master/install.sh; then sh /tmp/nw_inst.sh; else sh /etc/netwiz/custom_pkgs/install.sh; fi
             ```
 
             ### 新版 25.x 由于签名限制，网页直接上传会报 Error 99 错误，请使用上方的命令行安装
