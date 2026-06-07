@@ -229,7 +229,7 @@ var callDeviceUnbind = rpc.declare({ object: 'netwiz_dev', method: 'unbind', par
 var callApplyDhcp = rpc.declare({ object: 'netwiz_dev', method: 'apply_dhcp', expect: { result: 0 } });
 var callGetDepts = rpc.declare({ object: 'netwiz_dev', method: 'get_depts', expect: { depts: [] } });
 var callSaveDepts = rpc.declare({ object: 'netwiz_dev', method: 'save_depts', params: ['data'], expect: { result: 0 } });
-var callV6KeepAlive = rpc.declare({ object: 'netwiz_dev', method: 'v6_keep_alive', params: ['mac'], expect: { result: 0 } });
+var callV6KeepAlive = rpc.declare({ object: 'netwiz_dev', method: 'v6_keep_alive', params: ['mac', 'name'], expect: { result: 0 } });
 
 var callGetSmartRanges = rpc.declare({ object: 'netwiz_dev', method: 'get_smart_ranges', expect: { ranges: {} } });
 var callSaveSmartRanges = rpc.declare({ object: 'netwiz_dev', method: 'save_smart_ranges', params: ['data'], expect: { result: 0 } });
@@ -1224,23 +1224,22 @@ return view.extend({
 
             // 没到并发上限，且队列里还有任务，执行
             while (window.nwKeepAliveQueue.length > 0 && window.nwActiveCount < MAX_CONCURRENT) {
-                window.nwActiveCount++; // 占位：活跃任务数 +1
-                var mac = window.nwKeepAliveQueue.shift(); // 取出 MAC
+                window.nwActiveCount++; 
+                // 取出对象的方式
+                var item = window.nwKeepAliveQueue.shift(); 
 
-                // 锁定当前的 mac，防止污染
-                (function(currentMac) {
-                    callV6KeepAlive(currentMac).then(function() {
-                        sessionStorage.setItem('nw_v6_hb_' + currentMac, 'sent'); 
+                // 传入的参数，将对象解析为 mac 和 name
+                (function(curr) {
+                    callV6KeepAlive(curr.mac, curr.name).then(function() {
+                        sessionStorage.setItem('nw_v6_hb_' + curr.mac, 'sent'); 
                     }).catch(function() {
-                        // 失败忽略
                     }).finally(function() {
-                        // 延时 200 毫秒后释放槽位
                         setTimeout(function() {
-                            window.nwActiveCount--; // 释放活跃任务数 -1
-                            processKeepAliveQueue(); // 继续
+                            window.nwActiveCount--; 
+                            processKeepAliveQueue(); 
                         }, 200); 
                     });
-                })(mac);
+                })(item);
             }
         }
 
@@ -1588,9 +1587,13 @@ return view.extend({
 
                         var triggerKeepAlive = function() {
                             var hasSent = sessionStorage.getItem(hbKey);
-                            if (!hasSent && window.nwKeepAliveQueue.indexOf(dev.mac) === -1) { 
+                            // 判断防止重复入队
+                            var inQueue = window.nwKeepAliveQueue.find(function(q){ return q.mac === dev.mac; });
+                            
+                            if (!hasSent && !inQueue) { 
                                 sessionStorage.setItem(hbKey, 'pending'); 
-                                window.nwKeepAliveQueue.push(dev.mac);    
+                                // 将只 push 字符串改成 push 包含 mac 和 name 的对象
+                                window.nwKeepAliveQueue.push({mac: dev.mac, name: dev.name});    
                                 processKeepAliveQueue();                  
                             }
                         };
