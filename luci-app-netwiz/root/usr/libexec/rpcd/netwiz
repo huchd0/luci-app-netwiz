@@ -163,8 +163,12 @@ case "$1" in
                 
                 # 3. 扫描系统中已安裝
                 if command -v apk >/dev/null 2>&1; then
-                    # 刷新索引
-                    apk update >/dev/null 2>&1
+                    #试探性搜索一个包，如果输出的字串为空，代表本地没有任何索引
+                    if [ -z "$(apk search -q "luci-*" 2>/dev/null | head -n 1)" ]; then
+                        log "[BACKUP]" "检测到本地apk索引为空，正在尝试拉取最新软件源..."
+                        timeout 12 apk update >/dev/null 2>&1
+                    fi
+                    
                     installed=$(apk info | grep -E "^luci-(app|theme)-")
                     available_pkgs=$(apk search -q "luci-*" 2>/dev/null)
                     
@@ -177,17 +181,16 @@ case "$1" in
                         fi
                     done
                 elif command -v opkg >/dev/null 2>&1; then
-                    # opkg 如果检测到索引文件为空，也触发一次自动更新
+                    # 如果/var/opkg-lists文件夹是空的，才需要联网更新
                     if [ -z "$(ls -A /var/opkg-lists 2>/dev/null)" ]; then
-                        opkg update >/dev/null 2>&1
+                        log "[BACKUP]" "检测到本地opkg索引为空，正在尝试拉取最新软件源..."
+                        timeout 12 opkg update >/dev/null 2>&1
                     fi
-                    installed=$(opkg list-installed | awk '{print $1}' | grep -E "^luci-(app|theme)-")
                     
-                    # 高版本固件的源列表是 .gz 压缩格式，用 opkg list 提取当前源内可用的所有 luci 插件列表
+                    installed=$(opkg list-installed | awk '{print $1}' | grep -E "^luci-(app|theme)-")
                     available_pkgs=$(opkg list "luci-*" 2>/dev/null | awk '{print $1}')
                     
                     for pkg in $installed; do
-                        # 使用 -x 进行精准全词匹配
                         if ! echo "$available_pkgs" | grep -qx "$pkg"; then
                             check_pkg_missing "$pkg"
                         else
