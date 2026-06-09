@@ -163,12 +163,9 @@ case "$1" in
                 
                 # 3. 扫描系统中已安裝
                 if command -v apk >/dev/null 2>&1; then
-                    #试探性搜索一个包，如果输出的字串为空，代表本地没有任何索引
                     if [ -z "$(apk search -q "luci-*" 2>/dev/null | head -n 1)" ]; then
-                        log "[BACKUP]" "检测到本地apk索引为空，正在尝试拉取最新软件源..."
                         timeout 12 apk update >/dev/null 2>&1
                     fi
-                    
                     installed=$(apk info | grep -E "^luci-(app|theme)-")
                     available_pkgs=$(apk search -q "luci-*" 2>/dev/null)
                     
@@ -181,12 +178,10 @@ case "$1" in
                         fi
                     done
                 elif command -v opkg >/dev/null 2>&1; then
-                    # 如果/var/opkg-lists文件夹是空的，才需要联网更新
                     if [ -z "$(ls -A /var/opkg-lists 2>/dev/null)" ]; then
                         log "[BACKUP]" "检测到本地opkg索引为空，正在尝试拉取最新软件源..."
                         timeout 12 opkg update >/dev/null 2>&1
                     fi
-                    
                     installed=$(opkg list-installed | awk '{print $1}' | grep -E "^luci-(app|theme)-")
                     available_pkgs=$(opkg list "luci-*" 2>/dev/null | awk '{print $1}')
                     
@@ -1010,33 +1005,22 @@ case "$1" in
                         fi
                     done
                     
-                    log "[BACKUP]" "即将打包的目标列表生成完毕，进行 OOM 与内存溢出安全校验..."
+                    log "[BACKUP]" "即将打包的目标列表生成完毕，进行容量安全校验..."
                     
-                    # OOM (Out of Memory) 预防机制
-                    # 1. 根
                     cd /
-                    
-                    # 2. 估算即将打包的所有文件总大小
                     req_kb=$(du -sk $tar_targets 2>/dev/null | awk '{sum+=$1} END{print sum}')
                     [ -z "$req_kb" ] && req_kb=0
-                    
-                    # 3. 获取 /tmp（tmpfs/RAM）剩余可用空间
                     avail_kb=$(df -k /tmp | awk 'NR==2 {print $4}')
                     [ -z "$avail_kb" ] && avail_kb=0
-                    
-                    # 4. 需加上安全冗余
                     safe_req_kb=$((req_kb + 5120))
                     
                     if [ "$avail_kb" -lt "$safe_req_kb" ]; then
-                        log "[BACKUP]" "[DANGER] 🚨 触发OOM防呆保护：打包目标 ($((req_kb/1024))MB) 超过可用內存 ($((avail_kb/1024))MB)！"
-                        log "[BACKUP]" "备份任务已紧急中止，以防止路由器 Kernel Panic 死机。"
-                        # 提早退出，不执行 tar
+                        log "[BACKUP]" "[DANGER] 🚨 触发 OOM 防呆保护：打包目标 ($((req_kb/1024))MB) 超过可用内存 ($((avail_kb/1024))MB)！"
+                        rm -f /tmp/nw_backup_running
                         exit 1
                     fi
                     
-                    log "[BACKUP]" "內存校验通过 (需求: $((req_kb/1024))MB, 可用: $((avail_kb/1024))MB)，开始极速压缩..."
-
-                    # 强行打包并加上 || true，无论报什么警告都绝不停止运行
+                    log "[BACKUP]" "内存校验通过，开始极速压缩..."
                     tar -czf /tmp/nw_sys_config.tar.gz -C / $tar_targets >> "$LOG_FILE" 2>&1 || true
                     
                     mkdir -p /tmp/nw_offline_pkgs
