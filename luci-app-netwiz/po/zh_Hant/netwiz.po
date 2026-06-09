@@ -1644,3 +1644,12 @@ msgstr "您要打包的檔案體積過大，超過了路由器當前的可用記
 
 msgid "I Got It"
 msgstr "我知道了"
+
+msgid "⚠️ Scan Timeout Warning"
+msgstr "⚠️ 掃描超時警告"
+
+msgid "Communication Timeout or Network Error"
+msgstr "通訊超時或網路異常"
+
+msgid "Communication with the router timed out (possibly due to slow network source retrieval or network fluctuations).<br><br>To ensure backup integrity, the task has been safely canceled. Please try again later, or manually run opkg update via SSH."
+msgstr "與路由器的通訊超時 (可能是網路源拉取過慢或網路波動)。<br><br>為保證備份完整性，任務已安全取消。請稍後再試，或在 SSH 中手動執行 opkg update。"
