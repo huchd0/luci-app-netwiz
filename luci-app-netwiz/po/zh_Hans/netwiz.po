@@ -1640,7 +1640,7 @@ msgid "Out of Memory (OOM Protection)!"
 msgstr "内存不足 (OOM 预防机制)！"
 
 msgid "The files you are trying to pack are too large and exceed the available memory.<br><br>To prevent device crash, the backup task has been safely canceled. Please clear unnecessary core files and try again."
-msgstr "您要打包的文件体积过大（例如 OpenClash 核心过多），超过了路由器当前的可用内存。<br><br>为防止设备死机，备份任务已自动安全取消。请尝试清理无用的核心文件后重试。"
+msgstr "您要打包的文件体积过大，超过了路由器当前的可用内存。<br><br>为防止设备死机，备份任务已自动安全取消。请尝试清理无用的核心文件后重试。"
 
 msgid "I Got It"
 msgstr "我知道了"
