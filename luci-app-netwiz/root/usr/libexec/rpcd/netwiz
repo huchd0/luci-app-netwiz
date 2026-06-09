@@ -1003,8 +1003,32 @@ case "$1" in
                         fi
                     done
                     
-                    log "[BACKUP]" "即将打包的目标列表生成完毕，开始压缩..."
+                    log "[BACKUP]" "即将打包的目标列表生成完毕，进行 OOM 与内存溢出安全校验..."
                     
+                    # OOM (Out of Memory) 预防机制
+                    # 1. 根
+                    cd /
+                    
+                    # 2. 估算即将打包的所有文件总大小
+                    req_kb=$(du -sk $tar_targets 2>/dev/null | awk '{sum+=$1} END{print sum}')
+                    [ -z "$req_kb" ] && req_kb=0
+                    
+                    # 3. 获取 /tmp（tmpfs/RAM）剩余可用空间
+                    avail_kb=$(df -k /tmp | awk 'NR==2 {print $4}')
+                    [ -z "$avail_kb" ] && avail_kb=0
+                    
+                    # 4. 需加上安全冗余
+                    safe_req_kb=$((req_kb + 5120))
+                    
+                    if [ "$avail_kb" -lt "$safe_req_kb" ]; then
+                        log "[BACKUP]" "[DANGER] 🚨 触发OOM防呆保护：打包目标 ($((req_kb/1024))MB) 超过可用內存 ($((avail_kb/1024))MB)！"
+                        log "[BACKUP]" "备份任务已紧急中止，以防止路由器 Kernel Panic 死机。"
+                        # 提早退出，不执行 tar
+                        exit 1
+                    fi
+                    
+                    log "[BACKUP]" "內存校验通过 (需求: $((req_kb/1024))MB, 可用: $((avail_kb/1024))MB)，开始极速压缩..."
+
                     # 强行打包并加上 || true，无论报什么警告都绝不停止运行
                     tar -czf /tmp/nw_sys_config.tar.gz -C / $tar_targets >> "$LOG_FILE" 2>&1 || true
                     
