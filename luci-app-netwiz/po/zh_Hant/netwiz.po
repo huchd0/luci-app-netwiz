@@ -1632,3 +1632,15 @@ msgstr "插件掃描完成"
 
 msgid "System scan complete! All your installed plugins are from the official repository and will be safely recorded for automatic restoration."
 msgstr "系統掃描完畢！您安裝的所有第三方可視化插件，均存在於當前軟體源中。它們將被安全記錄並在未來自動聯網恢復。"
+
+msgid "⚠️ Backup Interrupted Warning"
+msgstr "⚠️ 備份中斷警告"
+
+msgid "Out of Memory (OOM Protection)!"
+msgstr "記憶體不足 (OOM 預防機制)！"
+
+msgid "The files you are trying to pack are too large and exceed the available memory.<br><br>To prevent device crash, the backup task has been safely canceled. Please clear unnecessary core files and try again."
+msgstr "您要打包的檔案體積過大，超過了路由器當前的可用記憶體。<br><br>為防止設備死機，備份任務已自動安全取消。請嘗試清理無用的核心檔案後重試。"
+
+msgid "I Got It"
+msgstr "我知道了"
