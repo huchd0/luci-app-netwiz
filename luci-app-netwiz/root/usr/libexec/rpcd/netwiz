@@ -183,8 +183,12 @@ case "$1" in
                     fi
                     installed=$(opkg list-installed | awk '{print $1}' | grep -E "^luci-(app|theme)-")
                     
+                    # 高版本固件的源列表是 .gz 压缩格式，用 opkg list 提取当前源内可用的所有 luci 插件列表
+                    available_pkgs=$(opkg list "luci-*" 2>/dev/null | awk '{print $1}')
+                    
                     for pkg in $installed; do
-                        if ! grep -q "^Package: $pkg$" /var/opkg-lists/* 2>/dev/null; then
+                        # 使用 -x 进行精准全词匹配
+                        if ! echo "$available_pkgs" | grep -qx "$pkg"; then
                             check_pkg_missing "$pkg"
                         else
                             official_pkgs="$official_pkgs $pkg"
