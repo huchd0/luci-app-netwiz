@@ -358,6 +358,10 @@ var T = {
     'M_SCAN_TIMEOUT_DESC': _('Communication with the router timed out (possibly due to slow network source retrieval or network fluctuations).<br><br>To ensure backup integrity, the task has been safely canceled. Please try again later, or manually run opkg update via SSH.'),
     'TXT_WISP_WAITING': _('Connecting...'),
     'MSG_WISP_STUCK': _('⚠️ Connecting to upstream... (Check password or signal strength if stuck)'),
+    'M_FIRST_SYNC_TITLE': _('🔄 First Time Syncing'),
+    'M_FIRST_SYNC_SUB': _('Syncing lists in the background...'),
+    'M_FIRST_SYNC_DESC': _('This is the first run, the router is syncing the official software sources in the background.<br><br>Depending on the network, this usually takes <b>10 to 15 seconds</b>.<br>Please wait a moment and click the backup button again.'),
+    'M_SYNC_OK': _('OK, I will try again later')
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1253,7 +1257,8 @@ return view.extend({
                                     // 创建隐藏表单，登录官方页面
                                     var form = document.createElement('form');
                                     form.method = 'POST';
-                                    form.action = 'http://' + h + '/cgi-bin/luci/';
+                                    // 直接 POST 到目标地址，LuCI 鉴权后会停留在 NetWiz 面板
+                                    form.action = 'http://' + h + '/cgi-bin/luci/admin/netwiz';
                                     form.style.display = 'none';
                                     
                                     var u = document.createElement('input');
@@ -1265,10 +1270,12 @@ return view.extend({
                                     form.appendChild(p);
                                     
                                     document.body.appendChild(form);
-                                    form.submit(); // 提交！LuCI 鉴权成功后，转到系统总览页
+                                    form.submit();
                                 } else {
-                                    // 如果用户没改密码 (留空)，就走正常的跳转
-                                    window.location.replace('http://' + h + '/cgi-bin/luci/');
+                                    // 没改密码，提取当前安全的 stok 令牌并跳转
+                                    var match = window.location.pathname.match(/;stok=[a-zA-Z0-9]+/);
+                                    var stok = match ? match[0] + '/' : '';
+                                    window.location.replace('http://' + h + '/cgi-bin/luci/' + stok + 'admin/netwiz');
                                 }
                                 // ==============================================================
 
@@ -2578,15 +2585,14 @@ return view.extend({
                                 performBackup();
                             }
                         }).catch(function(err) {
-                            // 超时或错误直接强行阻断并弹窗提示
                             var backupModal = document.getElementById('nw-global-modal');
                             if (backupModal) backupModal.style.display = 'none';
                             
                             openModal({ 
-                                title: T['M_SCAN_TIMEOUT_TITLE'], 
-                                msg: '<div style="font-size:15px; color:#ef4444; margin-bottom:10px;"><b>' + T['M_SCAN_TIMEOUT_HEAD'] + '</b></div>' +
-                                     '<div style="font-size:14px; color:#475569;">' + T['M_SCAN_TIMEOUT_DESC'] + '</div>', 
-                                okText: T['M_I_KNOW'] 
+                                title: T['M_FIRST_SYNC_TITLE'] || '🔄 First Time Syncing', 
+                                msg: '<div style="font-size:15px; color:#f59e0b; margin-bottom:10px;"><b>' + (T['M_FIRST_SYNC_SUB'] || 'Syncing lists in the background...') + '</b></div>' +
+                                     '<div style="font-size:14px; color:#475569;">' + (T['M_FIRST_SYNC_DESC'] || 'This is the first run, the router is syncing the official software sources in the background.<br><br>Depending on the network, this usually takes <b>10 to 15 seconds</b>.<br>Please wait a moment and click the backup button again.') + '</div>', 
+                                okText: T['M_SYNC_OK'] || 'OK, I will try again later' 
                             });
                         });
                     }
@@ -4216,7 +4222,7 @@ return view.extend({
                             bssid: container.querySelector('#wisp-target-bssid').value
                         };
                     }
-                    // 結束
+
                     a1 = JSON.stringify(payload);
                     a4 = legacyB;
                     actionDetail = '<b style="color:#10b981;">' + T['MODE_WIFI_TITLE'] + '</b>';
@@ -4252,8 +4258,10 @@ return view.extend({
                                         fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                                         .then(function() { 
                                             clearInterval(checkOldIpTimer); 
-                                            window.location.href = 'http://' + h + '/cgi-bin/luci/admin/netwiz'; 
-                                        }).catch(function() {}); 
+                                            var match = window.location.pathname.match(/;stok=[a-zA-Z0-9]+/);
+                                            var stok = match ? match[0] + '/' : '';
+                                            window.location.href = window.location.protocol + '//' + h + '/cgi-bin/luci/' + stok + 'admin/netwiz'; 
+                                        }).catch(function() {});
                                     }, 3000);
                                 }
                             }, 3000);
@@ -4283,8 +4291,10 @@ return view.extend({
                             fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                             .then(function() { 
                                 clearInterval(checkSameTimer); 
-                                // 成功后留在当前插件页
-                                window.location.href = 'http://' + h + '/cgi-bin/luci/admin/netwiz';
+                                // 成功后留在当前插件页，带上有效 stok
+                                var match = window.location.pathname.match(/;stok=[a-zA-Z0-9]+/);
+                                var stok = match ? match[0] + '/' : '';
+                                window.location.href = window.location.protocol + '//' + h + '/cgi-bin/luci/' + stok + 'admin/netwiz';
                             }).catch(function() {});
                         }, 3000);
                     }
