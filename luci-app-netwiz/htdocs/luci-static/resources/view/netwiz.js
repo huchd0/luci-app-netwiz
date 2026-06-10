@@ -4284,7 +4284,7 @@ return view.extend({
                             .then(function() { 
                                 clearInterval(checkSameTimer); 
                                 // 成功后留在当前插件页
-                                window.location.reload(); 
+                                window.location.href = 'http://' + h + '/cgi-bin/luci/admin/netwiz';
                             }).catch(function() {});
                         }, 3000);
                     }
