@@ -1104,6 +1104,7 @@ EOF
                     # 指纹配置文件复制一份到外层
                     cp -f /etc/netwiz/nw_backup_meta.env /tmp/nw_backup_meta.env 2>/dev/null
                     cd /tmp 
+                    mkdir -p /tmp/nw_offline_pkgs
                     tar -czf "$backup_file" nw_sys_config.tar.gz nw_offline_pkgs/ nw_backup_meta.env >> "$LOG_FILE" 2>&1
                     
                     # 建立真实的备份成功状态锁
