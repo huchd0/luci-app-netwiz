@@ -361,7 +361,9 @@ var T = {
     'M_FIRST_SYNC_TITLE': _('🔄 First Time Syncing'),
     'M_FIRST_SYNC_SUB': _('Syncing lists in the background...'),
     'M_FIRST_SYNC_DESC': _('This is the first run, the router is syncing the official software sources in the background.<br><br>Depending on the network, this usually takes <b>10 to 15 seconds</b>.<br>Please wait a moment and click the backup button again.'),
-    'M_SYNC_OK': _('OK, I will try again later')
+    'M_SYNC_OK': _('OK, I will try again later'),
+    'MSG_RST_PKG_ERR': _('RESTORE FAILED: Package manager mismatch (apk vs ipk). Please use firmware with the same underlying system.'),
+    'MSG_RST_ARCH_ERR': _('RESTORE FAILED: CPU Architecture mismatch. Forcing this restore will brick your router! Process aborted.')
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
