@@ -1032,13 +1032,7 @@ case "$1" in
                             rel=$(echo "$dir" | sed 's/^\///')
                             tar_targets="$tar_targets $rel"
                         fi
-                    done
-                    
-                    if [ -d "$dir" ]; then
-                            rel=$(echo "$dir" | sed 's/^\///')
-                            tar_targets="$tar_targets $rel"
-                        fi
-                    done
+                     done
                     
                     # ----------------------------------------------------
                     # 防呆 1：打包前生成备份核对元数据文件
@@ -1131,7 +1125,7 @@ EOF
                     # 防呆 2：给文件名打上架构和格式烙印，让前端 js 可以直接识别
                     . /etc/os-release 2>/dev/null
                     SYS_ARCH="${OPENWRT_ARCH:-unknown}"
-                    PKG_TYPE="opkg"
+                    PKG_TYPE="ipk"
                     command -v apk >/dev/null 2>&1 && PKG_TYPE="apk"
                     DATE_STR=$(date '+%Y%m%d_%H%M')
                     
