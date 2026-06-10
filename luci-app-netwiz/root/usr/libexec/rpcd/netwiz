@@ -1101,8 +1101,19 @@ EOF
                     fi
 
                     log "[BACKUP]" "[3/5] 开始在内存中打包..."
+                    # 指纹配置文件复制一份到外层
+                    cp -f /etc/netwiz/nw_backup_meta.env /tmp/nw_backup_meta.env 2>/dev/null
                     cd /tmp 
-                    tar -czf "$backup_file" nw_sys_config.tar.gz nw_offline_pkgs/ >> "$LOG_FILE" 2>&1
+                    tar -czf "$backup_file" nw_sys_config.tar.gz nw_offline_pkgs/ nw_backup_meta.env >> "$LOG_FILE" 2>&1
+                    
+                    chmod 644 "$backup_file"
+                    ln -sf "$backup_file" "$link_file"
+                    
+                    # 建立真实的备份成功状态锁
+                    touch /tmp/nw_backup_ok
+                    
+                    log "[BACKUP]" "[4/5] 打包结束，清理零碎文件。"
+                    rm -rf /tmp/nw_sys_config.tar.gz /tmp/nw_offline_pkgs /tmp/nw_backup_running /tmp/nw_backup_meta.env
                     
                     chmod 644 "$backup_file"
                     ln -sf "$backup_file" "$link_file"
@@ -1121,17 +1132,15 @@ EOF
             check_backup)
                 if [ -f "/tmp/nw_backup_running" ]; then
                     echo '{ "status": "running" }'
-                elif [ -f "/tmp/nw_sys_config.tar.gz" ]; then
-                    # 防呆 2：给文件名打上架构和格式烙印，让前端 js 可以直接识别
+                elif [ -f "/tmp/nw_backup_ok" ]; then
+                    # 依据真实状态锁宣告打包圆满成功，且将 opkg 转换为符合前端识别的 ipk 烙印
                     . /etc/os-release 2>/dev/null
                     SYS_ARCH="${OPENWRT_ARCH:-unknown}"
                     PKG_TYPE="ipk"
                     command -v apk >/dev/null 2>&1 && PKG_TYPE="apk"
                     DATE_STR=$(date '+%Y%m%d_%H%M')
                     
-                    # 组合成文件名
                     FNAME="NetWiz_${SYS_ARCH}_${PKG_TYPE}_${DATE_STR}.tar.gz"
-                    
                     echo "{ \"status\": \"done\", \"url\": \"/luci-static/nw_sys_config.tar.gz\", \"filename\": \"$FNAME\" }"
                     rm -f "/tmp/nw_backup_ok"
                 else
@@ -1217,10 +1226,18 @@ mkdir -p /tmp/nw_ghost_tmp
 # ----------------------------------------------------
 echo "$(date '+%F %T') [RESTORE] 正在进行安全性预检：核对架构与安装包格式..." >> "$LOG_FILE"
 
-# 只单独解压这一个配置文件，绝不触碰系统其他文件
-tar -xzf "$TARGET" -C /tmp/nw_ghost_tmp etc/netwiz/nw_backup_meta.env >/dev/null 2>&1
+# 只单独解压这一个配置文件，不触碰系统其他文件
+# 从最外层瞬间抽离出指纹文件
+tar -xzf "$TARGET" -C /tmp/nw_ghost_tmp nw_backup_meta.env >/dev/null 2>&1
 
-if [ -f "/tmp/nw_ghost_tmp/etc/netwiz/nw_backup_meta.env" ]; then
+if [ -f "/tmp/nw_ghost_tmp/nw_backup_meta.env" ]; then
+    . /etc/os-release 2>/dev/null
+    CUR_ARCH="${OPENWRT_ARCH:-unknown}"
+    CUR_PKG="ipk"
+    command -v apk >/dev/null 2>&1 && CUR_PKG="apk"
+    
+    # 读取外层指纹配置数据
+    . /tmp/nw_ghost_tmp/nw_backup_meta.env
     . /etc/os-release 2>/dev/null
     CUR_ARCH="${OPENWRT_ARCH:-unknown}"
     CUR_PKG="ipk"
