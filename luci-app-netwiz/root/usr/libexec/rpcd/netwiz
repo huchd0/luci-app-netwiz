@@ -163,9 +163,13 @@ case "$1" in
                 
                 # 3. 扫描系统中已安裝
                 if command -v apk >/dev/null 2>&1; then
-                    if [ -z "$(apk search -q "luci-*" 2>/dev/null | head -n 1)" ]; then
-                        timeout 12 apk update >/dev/null 2>&1
+                    # 检查底层的 lists 索引文件夹
+                    if [ -z "$(ls -A /var/lib/apk/lists 2>/dev/null)" ] && [ -z "$(ls -A /var/cache/apk 2>/dev/null)" ]; then
+                        log "[BACKUP]" "检测到本地 apk 索引为空，正在尝试拉取最新软件源..."
+                        # 25 秒，确保第一次拉取能成功
+                        timeout 25 apk update >/dev/null 2>&1
                     fi
+                    
                     installed=$(apk info | grep -E "^luci-(app|theme)-")
                     available_pkgs=$(apk search -q "luci-*" 2>/dev/null)
                     
