@@ -151,7 +151,7 @@ case "$1" in
                     fi
                 done
                 
-                # 2. 比对函数：檢查系统安裝的 UI 插件，是否已经存在文件中
+                # 2. 比对函数：检查系统安装的UI插件，是否已经存在文件中
                 check_pkg_missing() {
                     local p=$1
                     if echo "$provided_pkgs" | grep -q "$p"; then
@@ -163,16 +163,20 @@ case "$1" in
                 
                 # 3. 扫描系统中已安裝与同步源
                 if [ ! -f "/tmp/nw_pkg_updated_ok" ]; then
+                    # 正在更新，直接抛错，掐断前端的重试请求，不堵塞网络
+                    if [ -f "/tmp/nw_pkg_updating" ]; then
+                        exit 1
+                    fi
+                    touch "/tmp/nw_pkg_updating"
+
                     if ping -c 1 -W 2 223.5.5.5 >/dev/null 2>&1 || ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
                         log "[BACKUP]" "检测到网络畅通，正在同步软件源..."
                         
                         current_year=$(date +%Y)
                         if [ "$current_year" -lt 2024 ]; then
-                            log "[BACKUP]" "检测到系统时间异常 ($current_year年)，正在强制校准时钟..."
                             ntpd -n -q -p ntp.aliyun.com >/dev/null 2>&1 || ntpd -n -q -p time.apple.com >/dev/null 2>&1
                         fi
                         
-                        # 彻底移除 timeout 拦截，裸调原生引擎，稳定拉取
                         if command -v opkg >/dev/null 2>&1; then
                             opkg update >/dev/null 2>&1
                         elif command -v apk >/dev/null 2>&1; then
@@ -181,9 +185,8 @@ case "$1" in
                         
                         touch "/tmp/nw_pkg_updated_ok"
                         log "[BACKUP]" "软件源同步完毕！"
-                    else
-                        log "[BACKUP]" "暂无外网连接，跳过同步..."
                     fi
+                    rm -f "/tmp/nw_pkg_updating"
                 fi
 
                 # 4. 统一获取已安装列表与精准确比对
@@ -211,7 +214,7 @@ case "$1" in
                     fi
                     
                     for pkg in $installed; do
-                        # 老老实实使用精确查询，逐个查验
+                        # 精确查询，逐个查验
                         if [ -n "$(apk search -q -e "$pkg" 2>/dev/null)" ]; then
                             official_pkgs="$official_pkgs $pkg"
                         else
