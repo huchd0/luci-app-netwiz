@@ -1679,7 +1679,7 @@ msgid "Syncing lists in the background..."
 msgstr "正在后台拉取最新列表..."
 
 msgid "This is the first run, the router is syncing the official software sources in the background.<br><br>Depending on the network, this usually takes <b>10 to 15 seconds</b>.<br>Please wait a moment and click the backup button again."
-msgstr "正在核实可以自动备份的插件清单...<br><br>受限于网络，这通常需要 <b>15 ~ 20秒</b>。<br>请稍作等待后，再次点击备份按钮即可。"
+msgstr "正在核实可以自动备份的插件清单...<br><br>受限于网络，这通常需要 <b>15 ~ 20秒</b>。<br>系统正在自动等待结果，请稍候..."
 
 msgid "OK, I will try again later"
 msgstr "停止备份"
