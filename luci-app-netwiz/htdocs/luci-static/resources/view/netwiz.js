@@ -363,7 +363,14 @@ var T = {
     'M_FIRST_SYNC_DESC': _('This is the first run, the router is syncing the official software sources in the background.<br><br>Depending on the network, this usually takes <b>10 to 15 seconds</b>.<br>Please wait a moment and click the backup button again.'),
     'M_SYNC_OK': _('OK, I will try again later'),
     'MSG_RST_PKG_ERR': _('RESTORE FAILED: Package manager mismatch (apk vs ipk). Please use firmware with the same underlying system.'),
-    'MSG_RST_ARCH_ERR': _('RESTORE FAILED: CPU Architecture mismatch. Forcing this restore will brick your router! Process aborted.')
+    'MSG_RST_ARCH_ERR': _('RESTORE FAILED: CPU Architecture mismatch. Forcing this restore will brick your router! Process aborted.'),
+    'TIT_PKG_CONFLICT': _('Package Manager Conflict'),
+    'TIT_ARCH_CONFLICT': _('CPU Architecture Conflict'),
+    'MSG_PKG_ERR_APK': _('Your current system uses the apk architecture, but you are trying to flash an ipk backup!'),
+    'MSG_PKG_ERR_OPKG': _('Your current system uses the opkg architecture, but you are trying to flash an apk backup!'),
+    'MSG_ARCH_ERR_UI': _('Architecture mismatch! (Current router: {arch})'),
+    'MSG_ARCH_ERR_DESC': _('The backup package you selected belongs to a different hardware architecture. Forcing this restore will brick your router!'),
+    'MSG_FAST_BLOCK': _('The frontend security system has instantly blocked this dangerous operation.')
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -2682,9 +2689,10 @@ return view.extend({
             btnSmartRestore.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                // 获取架构名
+                // 获取架构名与包管理器
                 callCheckMissingPkgs().then(function(res) {
-                    window.nwCurrentArch = res.pkg_type || 'apk';
+                    window.nwCurrentPkg = res.pkg_type || 'ipk';
+                    window.nwCurrentArch = res.sys_arch || '';
                 }).catch(function(){});
                 openModal({
                     title: '<div style="position:relative; display:flex; justify-content:center; align-items:center; width:100%;"><span id="btn-restore-close" style="position:absolute; right: 10px; font-size:35px; color:rgba(255,255,255,0.8); cursor:pointer; line-height:1; font-family:Arial,sans-serif; padding:0 5px;" onmouseover="this.style.color=\'#fff\'" onmouseout="this.style.color=\'rgba(255,255,255,0.8)\'">×</span><span>' + T['M_RST_CONFIRM_TIT'] + '</span></div>',
@@ -2945,6 +2953,44 @@ return view.extend({
                 // ==========================================
                 
                 var fileName = file.name;
+
+                // 只有当文件是我们系统的规范备份包时，才进行严格的名字校验
+                // 前端 Fail-Fast 极速拦截防线
+                if (fileName.indexOf('NetWiz_') !== -1) {
+                    
+                    // 1. 拦截：包管理器不匹配
+                    var isApkSys = (window.nwCurrentPkg === 'apk');
+                    if (isApkSys && fileName.indexOf('_ipk_') !== -1) {
+                        openModal({
+                            title: '🚨 ' + (T['TIT_PKG_CONFLICT'] || 'Package Manager Conflict'),
+                            msg: '<div style="color:#ef4444; font-size:15px; font-weight:bold;">' + (T['MSG_PKG_ERR_APK'] || '') + '</div><br>' + (T['MSG_FAST_BLOCK'] || ''),
+                            okText: T['M_OK'] || 'OK'
+                        });
+                        this.value = ''; 
+                        return; 
+                    } else if (!isApkSys && fileName.indexOf('_apk_') !== -1) {
+                        openModal({
+                            title: '🚨 ' + (T['TIT_PKG_CONFLICT'] || 'Package Manager Conflict'),
+                            msg: '<div style="color:#ef4444; font-size:15px; font-weight:bold;">' + (T['MSG_PKG_ERR_OPKG'] || '') + '</div><br>' + (T['MSG_FAST_BLOCK'] || ''),
+                            okText: T['M_OK'] || 'OK'
+                        });
+                        this.value = '';
+                        return;
+                    }
+
+                    // 2. 拦截：CPU 架构不匹配
+                    if (window.nwCurrentArch && fileName.indexOf(window.nwCurrentArch) === -1) {
+                        var archMsg = T['MSG_ARCH_ERR_UI'] ? T['MSG_ARCH_ERR_UI'].replace('{arch}', window.nwCurrentArch) : 'Architecture mismatch! (Current router: ' + window.nwCurrentArch + ')';
+                        openModal({
+                            title: '🚨 ' + (T['TIT_ARCH_CONFLICT'] || 'CPU Architecture Conflict'),
+                            msg: '<div style="color:#ef4444; font-size:15px; font-weight:bold;">' + archMsg + '</div><br>' + (T['MSG_ARCH_ERR_DESC'] || '') + '<br><br>' + (T['MSG_FAST_BLOCK'] || ''),
+                            okText: T['M_OK'] || 'OK'
+                        });
+                        this.value = '';
+                        return;
+                    }
+                }
+
                 // 保存的当前系统架构（如果没有则默认 apk）
                 var currentArch = window.nwCurrentArch || 'apk';
                 var isApkBackup = fileName.indexOf('_apk_') !== -1;
