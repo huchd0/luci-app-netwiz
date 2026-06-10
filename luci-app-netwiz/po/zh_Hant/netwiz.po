@@ -1659,3 +1659,15 @@ msgstr "正在連接..."
 
 msgid "⚠️ Connecting to upstream... (Check password or signal strength if stuck)"
 msgstr "⚠️ 正在連接上級網路... (若一直連接不上請檢查密碼是否正確或是否上級訊號太弱)"
+
+msgid "🔄 First Time Syncing"
+msgstr "🔄 首次同步軟體源"
+
+msgid "Syncing lists in the background..."
+msgstr "正在後台拉取最新列表..."
+
+msgid "This is the first run, the router is syncing the official software sources in the background.<br><br>Depending on the network, this usually takes <b>10 to 15 seconds</b>.<br>Please wait a moment and click the backup button again."
+msgstr "路由器正在後台同步官方軟體源。<br><br>受限於網路，這通常需要 <b>10 ~ 15 秒</b>。<br>請稍作等待後，再次點擊備份按鈕即可。"
+
+msgid "OK, I will try again later"
+msgstr "好的，我稍後再點"
