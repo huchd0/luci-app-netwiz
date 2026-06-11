@@ -134,8 +134,13 @@ case "$1" in
                 fi
                 # ------------------------------------------
 
-                # 输出，把冲突状态一起传给前端
-                echo "{\"has_wifi\":$has_wifi, \"lan_nat_conflict\":$lan_nat_conflict}"
+                # --- 获取架构信息，供前端核对文件名防呆 ---
+                pkg_type="ipk"
+                command -v apk >/dev/null 2>&1 && pkg_type="apk"
+                sys_arch=$(uname -m)
+
+                # 输出，把冲突状态和架构信息一起传给前端
+                echo "{\"has_wifi\":$has_wifi, \"lan_nat_conflict\":$lan_nat_conflict, \"pkg_type\":\"$pkg_type\", \"sys_arch\":\"$sys_arch\"}"
                 exit 0
                 ;;
             check_missing_pkgs)
