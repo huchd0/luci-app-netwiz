@@ -1713,3 +1713,9 @@ msgstr "我知道了，繼續"
 
 msgid "Scan to Connect"
 msgstr "手機相機掃碼直連"
+
+msgid "Architecture Safety Lock: If restoring across different package managers (e.g., IPK backup to APK system), offline plugins will be safely skipped to prevent damage. Config data will still be restored."
+msgstr "架構安全鎖：跨軟體包管理器恢復時（如 IPK 備份恢復到 APK 系統），將安全跳過離線外掛以防損壞，設定資料仍將恢復。"
+
+msgid "Force Restore Config"
+msgstr "強制恢復設定"
