@@ -1691,4 +1691,4 @@ msgid "I understand, continue"
 msgstr "我知道了，繼續"
 
 msgid "Scan to Connect"
-msgstr "掃碼連接"
+msgstr "手機相機掃碼直連"
