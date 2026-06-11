@@ -255,12 +255,13 @@ if wget -qO /tmp/nw_inst.sh https://ghproxy.net/https://raw.githubusercontent.co
 
 **对于 OpenWrt 25.x 及最新快照版 (`.apk` 格式)：**
 上传至 `/tmp/` 目录后，运行以下命令（注意：新版 25.x 由于签名限制，官方界面直接上传安装会报 `Error 99`，优先使用上方的命令行安装）。
-手动上传：
+
+**手动上传：**
 ```bash
 apk add --allow-untrusted /tmp/*netwiz*.apk
 rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* && /etc/init.d/rpcd restart
 ```
-官方界面上传(不要点安装)：
+**官方界面上传(不要点安装)：**
 ```bash
 apk add --allow-untrusted /tmp/upload.apk
 rm -f /tmp/luci-indexcache /tmp/luci-modulecache/* && /etc/init.d/rpcd restart
