@@ -1703,4 +1703,4 @@ msgid "I understand, continue"
 msgstr "我知道了，继续"
 
 msgid "Scan to Connect"
-msgstr "手机相机扫码直连"
+msgstr "原生相机扫码直连"
