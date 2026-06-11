@@ -435,7 +435,7 @@ return view.extend({
             '<div class="nw-wrapper">',
             '   <div id="nw-hover-qr-box" style="display:none; position:fixed; z-index:999999; background:#fff; padding:5px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid #e2e8f0; text-align:center; transform: translate(-50%, -100%); margin-top:-20px; pointer-events:none;">',
             '      <div id="nw-hover-qr-code" style="margin:0 auto; background:#fff; padding:5px;"></div>',
-            '      <div style="font-size:13px; color:#3b82f6; margin-top:3px; font-weight:bold;">📱 {{TXT_SCAN_TO_CONN}}</div>',
+            '      <div style="font-size:13px; color:#3b82f6; margin-bottom:2px; font-weight:bold;">📱 {{TXT_SCAN_TO_CONN}}</div>',
             '   </div>',
             '   <div class="nw-header">',
             '    <div class="nw-title-wrap">',
