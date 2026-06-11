@@ -542,7 +542,7 @@ return view.extend({
             '            </div>',
             '            <div id="wiz-wifi-input-area">',
             '               <div class="nw-value"><label class="nw-value-title">{{LBL_SSID}}</label><div class="nw-value-field"><input type="text" id="wiz-wifi-ssid" placeholder="{{PH_WIFI_SSID}}"></div></div>',
-            '               <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}}</label><div class="nw-value-field"><input type="text" id="wifi-smart-key" placeholder="{{M_PWD_SHORT}}"></div></div>',
+            '               <div class="nw-value"><label class="nw-value-title">{{LBL_WIFI_PASS}}</label><div class="nw-value-field"><input type="text" id="wiz-wifi-key" placeholder="{{M_PWD_SHORT}}"></div></div>',
             '            </div>',
             '         </div>',
             '         <div id="wiz-step-4-area" style="display:none;">',
@@ -971,8 +971,13 @@ return view.extend({
         }, { passive: true });
         
 
-        var inputsToWatch = ['#wifi-smart-ssid', '#wifi-smart-key', '#wifi-smart-enc', '#wifi-smart-en', '#wifi-2g-ssid', '#wifi-2g-key', '#wifi-2g-enc', '#wifi-2g-en', '#wifi-5g-ssid', '#wifi-5g-key', '#wifi-5g-enc', '#wifi-5g-en', '#wifi-5g2-ssid', '#wifi-5g2-key', '#wifi-5g2-en'];
-        inputsToWatch.forEach(function(sel) { var el = container.querySelector(sel); if (el) { el.addEventListener('input', window._updateLiveQR); el.addEventListener('change', window._updateLiveQR); } });
+        // 事件委托
+        container.addEventListener('input', function(e) {
+            if (e.target && e.target.id && e.target.id.indexOf('wifi-') !== -1) window._updateLiveQR();
+        });
+        container.addEventListener('change', function(e) {
+            if (e.target && e.target.id && e.target.id.indexOf('wifi-') !== -1) window._updateLiveQR();
+        });
         container.querySelector('#tab-2g').addEventListener('click', function() { setTimeout(window._updateLiveQR, 50); });
         container.querySelector('#tab-5g').addEventListener('click', function() { setTimeout(window._updateLiveQR, 50); });
         if (container.querySelector('#tab-5g2')) container.querySelector('#tab-5g2').addEventListener('click', function() { setTimeout(window._updateLiveQR, 50); });
