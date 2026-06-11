@@ -361,7 +361,7 @@ var T = {
     'MSG_WISP_STUCK': _('⚠️ Connecting to upstream... (Check password or signal strength if stuck)'),
     'M_FIRST_SYNC_TITLE': _('🔄 First Time Syncing'),
     'M_FIRST_SYNC_SUB': _('Syncing lists in the background...'),
-    'M_FIRST_SYNC_DESC': _('Verifying the list of plugins for automatic backup...<br><br>Depending on the network, this usually takes <b>15 to 20 seconds</b>.<br>The system is verifying, please wait...'),
+    'M_FIRST_SYNC_DESC': _('This is the first run, the router is syncing the official software sources in the background.<br><br>Depending on the network, this usually takes <b>10 to 15 seconds</b>.<br>Please wait a moment and click the backup button again.'),
     'M_SYNC_OK': _('OK, I will try again later'),
     'MSG_RST_PKG_ERR': _('RESTORE FAILED: Package manager mismatch (apk vs ipk). Please use firmware with the same underlying system.'),
     'MSG_RST_ARCH_ERR': _('RESTORE FAILED: CPU Architecture mismatch. Forcing this restore will brick your router! Process aborted.'),
@@ -3098,15 +3098,16 @@ return view.extend({
                             title: '🚨 ' + (T['TIT_PKG_CONFLICT'] || 'Package Manager Conflict'),
                             msg: '<div style="color:#ef4444; font-size:15px; font-weight:bold; margin-bottom:10px;">' + errMsg + '</div>' + 
                                  '<div style="padding:10px; background:#fef2f2; color:#991b1b; border-radius:6px; font-size:14px; line-height:1.5;">' + 
-                                 (T['MSG_RESTORE_ARCH_TIP'] || 'Safety Lock: Offline plugins will be safely skipped to prevent damage. Config data will still be restored.') + '</div>',
-                            okText: '🚀 ' + (T['BTN_FORCE_RESTORE'] || 'Force Restore Config'),
-                            cancelText: T['BTN_CANCEL_RST'] || 'Cancel',
+                                 (T['MSG_RESTORE_ARCH_TIP'] || 'Safety Lock: Cross-package manager restoration is strictly blocked to prevent network crash and bricking.') + '</div>',
+                            okText: T['M_I_KNOW'] || 'I Got It',
+                            hideCancel: true, // 隐藏取消按钮
                             isDanger: true,
                             onOk: function() {
-                                doNext(); // 确认强行恢复配置（忽略插件）
+                                fileSmartRestore.value = ''; // 清空文件选择
+                                document.getElementById('nw-global-modal').style.display = 'none'; // 直接关闭弹窗，绝对不执行 doNext()
                             }
                         });
-                        return; // 拦截，等待选择
+                        return; // 彻底死锁拦截
                     }
 
                     // 2. 检查 CPU 架构是否冲突
