@@ -791,7 +791,7 @@ return view.extend({
             '        </div>',
 
             '        <div id="nw-live-qr-box" style="display:none; text-align:center; margin: 5px 0 15px; padding: 10px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; transition: opacity 0.3s ease;">',
-            '           <div id="nw-live-qr-code" style="background:#fff; padding:10px; border-radius:8px; display:inline-block; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:10px; min-width:130px; min-height:130px;"></div>',
+            '           <div id="nw-live-qr-code" style="background:#fff; padding:10px; border-radius:8px; display:inline-block; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:3px; min-width:130px; min-height:130px;"></div>',
             '           <div style="font-size:14px; color:#64748b; font-weight:bold;">📱 {{TXT_SCAN_TO_CONN}} <span id="nw-live-qr-band" style="color:#3b82f6;"></span></div>',
             '        </div>',
 
