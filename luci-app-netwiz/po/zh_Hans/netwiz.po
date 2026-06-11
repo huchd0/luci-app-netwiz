@@ -1720,8 +1720,8 @@ msgstr "我知道了，继续"
 msgid "Scan to Connect"
 msgstr "原生相机扫码直连"
 
-msgid "Architecture Safety Lock: If restoring across different package managers (e.g., IPK backup to APK system), offline plugins will be safely skipped to prevent damage. Config data will still be restored."
-msgstr "架构安全锁：跨包管理器恢复时（如 IPK 备份恢复到 APK 系统），将安全跳过离线插件以防损坏，配置数据仍将恢复。"
+msgid "Architecture Safety Lock: Cross-package manager restoration (e.g., IPK to APK) is strictly prohibited. The underlying network and firewall configurations differ significantly across these system versions. Forcing a restore will cause severe network failure and brick your router!"
+msgstr "架构安全锁：严禁跨包管理器（如 IPK 备份至 APK 系统）进行恢复！由于新旧系统的网络与防火墙底层配置格式存在重大差异，强行恢复配置将导致路由器直接断网变砖！为了您的设备安全，系统已强制拦截此次操作。"
 
 msgid "Force Restore Config"
 msgstr "强制恢复配置"
