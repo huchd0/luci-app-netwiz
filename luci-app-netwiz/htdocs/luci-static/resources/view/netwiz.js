@@ -2941,7 +2941,9 @@ return view.extend({
                                     offlineCount = 0;
                                 } else if (checkMode === 'wait_online' && !isRedirecting) {
                                     isRedirecting = true;
-                                    window.location.href = 'http://' + targetIp + '/cgi-bin/luci/';
+                                    var doJump = function() { window.location.href = 'http://' + targetIp + '/cgi-bin/luci/'; };
+                                    // 发送跨重启拆弹信号，成功或失败后跳转
+                                    callNetDefuse().then(doJump).catch(doJump);
                                 }
                             }).catch(function() {
                                 clearTimeout(tid);
@@ -4534,9 +4536,9 @@ return view.extend({
                                 fetchProbe('http://' + a1 + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                                 .then(function() { 
                                     clearInterval(probeNewTimer); 
-                                    // 探测成功
-                                    window.location.href = 'http://' + a1 + '/cgi-bin/luci/admin/netwiz';
-                                }).catch(function() {}); 
+                                    var doJump = function() { window.location.href = 'http://' + a1 + '/cgi-bin/luci/admin/netwiz'; };
+                                    callNetDefuse().then(doJump).catch(doJump);
+                                }).catch(function() {});
                             }, 3000);
                         }
                     } else { 
@@ -4549,10 +4551,11 @@ return view.extend({
                             fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                             .then(function() { 
                                 clearInterval(checkSameTimer); 
-                                // 成功后留在当前插件页，带上有效 stok
                                 var match = window.location.pathname.match(/;stok=[a-zA-Z0-9]+/);
                                 var stok = match ? match[0] + '/' : '';
-                                window.location.href = window.location.protocol + '//' + h + '/cgi-bin/luci/' + stok + 'admin/netwiz';
+                                var jumpUrl = window.location.protocol + '//' + h + '/cgi-bin/luci/' + stok + 'admin/netwiz';
+                                var doJump = function() { window.location.href = jumpUrl; };
+                                callNetDefuse().then(doJump).catch(doJump);
                             }).catch(function() {});
                         }, 3000);
                     }
