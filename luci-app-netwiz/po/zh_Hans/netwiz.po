@@ -1718,7 +1718,7 @@ msgid "Force Restore Config"
 msgstr "强制恢复配置"
 
 msgid "⚠️ Current WAN is in Secondary Router mode. PPPoE dial-up will not take effect until applied."
-msgstr "⚠️ 当前 WAN 口为二级路由模式，本页应用配置前 PPPoE 拨号信息无效。"
+msgstr "⚠️ 当前 WAN 口为二级路由模式，本页应用配置前 PPPoE 拨号信息不生效。"
 
 msgid "⚠️ Current WAN is in PPPoE mode. Secondary Router mode will not take effect until applied."
 msgstr "⚠️ 当前 WAN 口为主路由的 PPPoE 拨号，本页应用配置前二级路由模式无效。"
