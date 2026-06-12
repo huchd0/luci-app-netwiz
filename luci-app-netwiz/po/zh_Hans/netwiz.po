@@ -1426,8 +1426,8 @@ msgstr "无法启动后台备份任务"
 msgid "Confirm System Restore"
 msgstr "确认恢复系统"
 
-msgid "<span style=\"color:#ef4444; font-weight:bold;\">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br>"
-msgstr "<span style=\"color:#ef4444; font-weight:bold;\">⚠️ 安全警告：此操作具有最高系统权限，将彻底覆盖当前配置！</span><br><br><span style=\"color:#f59e0b; font-weight:bold;\">防黑客提示：请绝对不要上传来自论坛或陌生人提供的来路不明备份文件，否则您的路由器可能会被植入木马后门！</span><br><br>恢复完成后路由器将自动重启。<br><br>"
+msgid "<span style=\"color:#ef4444; font-weight:bold;\">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br><span style=\"color:#059669; font-size: 14px;\">🛡️ Safe Mode: Auto-rollback if connection is lost for 300s.</span><br><br>"
+msgstr "<span style=\"color:#ef4444; font-weight:bold;\">警告：此操作将覆盖现有的网络设置并重新安装插件！</span><br><br>完成后路由器将自动重启，请确保选择的文件无误。<br><br><span style=\"color:#059669; font-size: 14px;\">🛡️ 安全机制：若重启后失联 300 秒，系统将自动回退配置以防变砖。</span><br><br>"
 
 msgid "Auto-download current state backup before restore (Regret Pill)"
 msgstr "恢复前先自动下载当前状态的备份 (后悔药)"
