@@ -1869,10 +1869,10 @@ return view.extend({
                         var setupStatusBox = function(box, isWarning, warnText) {
                             if (!box) return;
                             if (isWarning) {
-                                box.style.cssText = 'color: #dc2626; background: #fef2f2; padding: 10px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; margin-top: 5px; border-left: 4px solid #ef4444; font-weight: bold; display: block; line-height: 1.6;';
+                                box.style.cssText = 'color: #dc2626; background: #fef2f2; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; margin-top: 5px; border-left: 4px solid #ef4444; font-weight: bold; display: block; line-height: 1.6;';
                                 box.innerHTML = warnText;
                             } else {
-                                box.style.cssText = 'color: #059669; background: #ecfdf5; padding: 10px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; margin-top: 5px; border-left: 4px solid #10b981; font-weight: bold; display: block; line-height: 1.6;';
+                                box.style.cssText = 'color: #059669; background: #ecfdf5; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; margin-top: 5px; border-left: 4px solid #10b981; font-weight: bold; display: block; line-height: 1.6;';
                                 box.innerHTML = '✅ ' + window._nwCurrentProtoText;
                             }
                         };
