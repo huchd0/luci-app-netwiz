@@ -1254,6 +1254,7 @@ update_status() {
 echo "$(date '+%F %T') [RESTORE] === 开始执行极速恢复 ===" >> "$LOG_FILE"
 
 update_status "running" "MSG_RST_SCAN"
+
 UNCOMPRESSED_BYTES=$(zcat "$TARGET" | wc -c 2>/dev/null)
 UNCOMPRESSED_MB=$((UNCOMPRESSED_BYTES / 1024 / 1024))
 
@@ -1327,6 +1328,20 @@ fi
 
 if [ -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ]; then
     update_status "running" "MSG_RST_CONF"
+    
+    # ==========================================
+    # 【前置防御】启动跨重启防砖看门狗 (WAL 模式)
+    # 此时已通过所有防呆检测，即将覆盖核心文件！标志物理护盾
+    # ==========================================
+    echo "$(date '+%F %T') [RESTORE] [安全防御] 正在将当前健康配置写入闪存，准备跨越重启防砖..." >> "$LOG_FILE"
+    mkdir -p /etc/netwiz/failsafe
+    cp -p /etc/config/network /etc/netwiz/failsafe/network_bak 2>/dev/null
+    cp -p /etc/config/dhcp /etc/netwiz/failsafe/dhcp_bak 2>/dev/null
+    cp -p /etc/config/wireless /etc/netwiz/failsafe/wireless_bak 2>/dev/null
+    touch /etc/netwiz_pending_recovery
+    # ==========================================
+
+    # 护盾就绪，开始向系统根目录释放配置，这是“危险操作”
     tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> "$LOG_FILE" 2>&1
 fi
 
@@ -1393,21 +1408,6 @@ update_status "done" "MSG_RST_DONE" "$NEW_IP"
 rm -rf /tmp/nw_ghost_tmp "$TARGET"
 
 echo "$(date '+%F %T') [RESTORE] >>> 恢复任务全部完成！系统即将重启。" >> "$LOG_FILE"
-
-# ==========================================
-# 启动【跨重启】防砖看门狗 (Cross-Reboot Watchdog)
-# ==========================================
-echo "$(date '+%F %T') [RESTORE] 正在将当前健康配置写入闪存，准备跨越重启防砖..." >> "$LOG_FILE"
-mkdir -p /etc/netwiz/failsafe
-
-# 将当前能正常上网的配置备份到实体 Flash (断电不丢失)
-cp -p /etc/config/network /etc/netwiz/failsafe/network_bak 2>/dev/null
-cp -p /etc/config/dhcp /etc/netwiz/failsafe/dhcp_bak 2>/dev/null
-cp -p /etc/config/wireless /etc/netwiz/failsafe/wireless_bak 2>/dev/null
-
-# 埋下物理标记
-touch /etc/netwiz_pending_recovery
-# ==========================================
 
 # 等待 8 秒，确保前端 充足的时间抓取新 IP
 sleep 8
