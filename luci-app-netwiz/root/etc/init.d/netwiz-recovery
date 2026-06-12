@@ -72,17 +72,20 @@ boot() {
             if [ -f "/etc/netwiz_pending_recovery" ]; then
                 
                 # ====================================================
-                # 判断是否为“假阳性失联”(用户关闭了网页但网络其实是好的)
-                # 检测 1: br-lan (局域网桥接) 是否正常运行且拥有 IP
-                # 检测 2: ARP 表中是否有任何活跃的设备连接着 LAN 口
+                # 判断是否为“假失联”
                 # ====================================================
-                LAN_ALIVE=$(ifconfig br-lan 2>/dev/null | grep "inet addr:")
+                # 检测 1: LAN 接口是否在底层总线 (ubus) 真正 up
+                LAN_UBUS=$(ubus call network.interface.lan status 2>/dev/null | grep '"up": true')
+                # 检测 2: 核心 DHCP/DNS 守护进程 (dnsmasq) 是否存活？
+                DNS_ALIVE=$(pgrep dnsmasq)
+                # 检测 3: ARP 表中是否有活跃设备 (过滤掉没获取到 IP 的无效 00:00 MAC)
                 ARP_ACTIVE=$(cat /proc/net/arp | grep -E "br-lan|eth1" | grep -v "00:00:00:00:00:00")
 
-                if [ -n "$LAN_ALIVE" ] && [ -n "$ARP_ACTIVE" ]; then
-                    logger -t Netwiz "[RECOVERY] 🛡️ 300秒超时，但检测到 LAN 网络运作正常且有设备连接！判定为用户关闭了网页 (假阳性)。"
+                # 必须DHCP/DNS 守护进程+【有设备连着】，才允许静默拆弹
+                if [ -n "$LAN_UBUS" ] && [ -n "$DNS_ALIVE" ] && [ -n "$ARP_ACTIVE" ]; then
+                    logger -t Netwiz "[RECOVERY] 🛡️ 300秒超时，但 ubus/dnsmasq/ARP 均健康！判定为假阳性失联。"
                     logger -t Netwiz "[RECOVERY] 终止回滚动作，仅静默拆除炸弹。"
-                    echo "$(date '+%F %T') [RECOVERY] 🛡️ 网络自我检测健康，取消回滚，静默拆弹。" >> "$RECOVERY_LOG"
+                    echo "$(date '+%F %T') [RECOVERY] 🛡️ 核心网络自检通过，取消回滚，静默拆弹。" >> "$RECOVERY_LOG"
                     
                     rm -f /etc/netwiz_pending_recovery
                     rm -rf /etc/netwiz/failsafe
