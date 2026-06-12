@@ -4506,10 +4506,19 @@ return view.extend({
                                         document.getElementById('nw-global-msg').innerHTML = '<div style="color:#10b981; font-weight:bold; font-size:15px; margin-top:20px; margin-bottom:10px;">' + T['MSG_WAIT_OLD'].replace('{sec}', rollbackSec) + '</div><div style="color:#64748b; font-size:14px;">' + T['MSG_ABANDONING'] + '</div>'; 
                                         fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                                         .then(function() { 
-                                            clearInterval(checkOldIpTimer); 
-                                            var match = window.location.pathname.match(/;stok=[a-zA-Z0-9]+/);
-                                            var stok = match ? match[0] + '/' : '';
-                                            window.location.href = window.location.protocol + '//' + h + '/cgi-bin/luci/' + stok + 'admin/netwiz'; 
+                                            clearInterval(checkSameTimer); 
+                                            
+                                            // 网络恢复后，向后端发送确认信号，解除看门狗回滚警报
+                                            var confirmRpc = rpc.declare({ object: 'netwiz', method: 'confirm' });
+                                            confirmRpc().then(function() {
+                                                // 确认成功后，再刷新页面进入系统
+                                                var match = window.location.pathname.match(/;stok=[a-zA-Z0-9]+/);
+                                                var stok = match ? match[0] + '/' : '';
+                                                window.location.href = window.location.protocol + '//' + h + '/cgi-bin/luci/' + stok + 'admin/netwiz';
+                                            }).catch(function() {
+                                                // 确认失败，刷新避免卡死
+                                                window.location.reload();
+                                            });
                                         }).catch(function() {});
                                     }, 3000);
                                 }
