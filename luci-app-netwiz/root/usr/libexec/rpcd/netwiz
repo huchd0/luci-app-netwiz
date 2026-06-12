@@ -90,7 +90,7 @@ watchdog_pppoe_ipv6() {
 
 case "$1" in
     list)
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" } }'
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" }, }'
         exit 0
         ;;
     call)
@@ -247,22 +247,31 @@ case "$1" in
                 ;;
                 
             confirm)
-                # 检查是否存在任何类型的备份或临时记录
-                if [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/netwiz_target_ip ] || \
-                   [ -f /etc/config/network.netwiz_bak ] || [ -f /etc/config/network.netwiz_wan_bak ]; then
+                # 收到前端存活信号，连通性确认成功！
+                # 无论之前挂了什么炸弹，一键清理所有看门狗标记与健康备份档案
+                if [ -f /tmp/nw_watchdog_active ] || [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/nw_bak_network ] || [ -f /etc/netwiz_pending_recovery ]; then
                     
-                    # 连通性确认成功：一键清理所有 LAN 备份、WAN 探测备份以及回滚计时器
-                    rm -f /tmp/netwiz_rollback_time \
+                    # 拆除热重载看门狗 (/tmp) 和异常断电备份
+                    rm -f /tmp/nw_watchdog_active \
+                          /tmp/nw_bak_network \
+                          /tmp/nw_bak_dhcp \
+                          /tmp/nw_bak_wireless \
+                          /tmp/netwiz_rollback_time \
                           /tmp/netwiz_target_ip \
                           /etc/config/network.netwiz_bak \
                           /etc/config/dhcp.netwiz_bak \
                           /etc/config/network.netwiz_wan_bak
+                          
+                    # 拆除跨重启物理看门狗 (/etc)
+                    rm -f /etc/netwiz_pending_recovery
+                    rm -rf /etc/netwiz/failsafe
                     
-                    log "前端已连接：拆除防失联回滚装置并清空所有探测备份"
+                    log "前端已重新连接：已彻底拆除所有防失联回滚装置！"
                 fi
-                echo '{"result":0}'
+                echo '{"status": "confirmed", "result": 0}'
                 exit 0
                 ;;
+                
             check_ip_conflict)
                 read input
                 # 前端传來的 IP
@@ -409,18 +418,44 @@ case "$1" in
 
                 CURRENT_LAN_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
 
-                # 局域网修改与防失联机制
-                if [ "$mode" = "lan" ] && [ -n "$arg1" ] && [ "$arg1" != "$CURRENT_LAN_IP" ]; then
-                    if [ "$arg5" != "0" ]; then
-                        log "正在备份系统配置 启动安全倒计时"
-                        if [ ! -f /etc/config/network.netwiz_bak ]; then
-                            cp -f /etc/config/network /etc/config/network.netwiz_bak
-                            cp -f /etc/config/dhcp /etc/config/dhcp.netwiz_bak
+                # ==========================================
+                # 启动高级防砖看门狗 (Watchdog Rollback)
+                # ==========================================
+                # 只要不是纯粹的界面状态切换，且触碰了网络设置，就挂上防砖炸弹
+                if [ "$mode" != "set_wizard" ]; then
+                    log "正在备份健康网络配置，并启动 180 秒防砖看门狗..."
+                    
+                    # 1. 备份当前健康的配置文件
+                    cp -p /etc/config/network /tmp/nw_bak_network 2>/dev/null
+                    cp -p /etc/config/dhcp /tmp/nw_bak_dhcp 2>/dev/null
+                    cp -p /etc/config/wireless /tmp/nw_bak_wireless 2>/dev/null
+                    
+                    # 2. 挂上危险标记
+                    touch /tmp/nw_watchdog_active
+                    
+                    # 3. 剥离一个后台幽灵进程，倒数 180 秒
+                    (
+                        sleep 180
+                        # 3分钟后苏醒，如果标记还在，说明前端失联了！
+                        if [ -f "/tmp/nw_watchdog_active" ]; then
+                            logger -t Netwiz "[WATCHDOG] 🚨 严重超时！前端失联，触发自动回滚自救机制！"
+                            echo "$(date '+%F %T') [WATCHDOG] 🚨 前端失联超时，执行网络配置回滚！" >> /etc/netwiz_recovery.log
+                            
+                            # 强行覆盖回健康的配置
+                            cp -p /tmp/nw_bak_network /etc/config/network 2>/dev/null
+                            cp -p /tmp/nw_bak_dhcp /etc/config/dhcp 2>/dev/null
+                            cp -p /tmp/nw_bak_wireless /etc/config/wireless 2>/dev/null
+                            
+                            # 强行重启网络服务自救
+                            /etc/init.d/network restart
+                            /etc/init.d/dnsmasq restart
+                            
+                            # 清除标记
+                            rm -f /tmp/nw_watchdog_active
                         fi
-                        echo "$arg1" > /tmp/netwiz_target_ip
-                        echo $(($(date +%s) + 120)) > /tmp/netwiz_rollback_time
-                    fi
+                    ) </dev/null >/dev/null 2>&1 &
                 fi
+                # ==========================================
 
                 # 各模式网络写入
                 
@@ -1038,6 +1073,7 @@ case "$1" in
                         /usr/share/xray
                         /etc/passwall
                         /etc/smartdns
+                        /etc/netwiz/custom_pkgs
                     "
                     
                     for dir in $check_dirs; do
@@ -1355,6 +1391,24 @@ NEW_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
 # 把未来的新 IP 作为 arg1 传递给前端进行双向探测
 update_status "done" "MSG_RST_DONE" "$NEW_IP"
 rm -rf /tmp/nw_ghost_tmp "$TARGET"
+
+echo "$(date '+%F %T') [RESTORE] >>> 恢复任务全部完成！系统即将重启。" >> "$LOG_FILE"
+
+# ==========================================
+# 启动【跨重启】防砖看门狗 (Cross-Reboot Watchdog)
+# ==========================================
+echo "$(date '+%F %T') [RESTORE] 正在将当前健康配置写入闪存，准备跨越重启防砖..." >> "$LOG_FILE"
+mkdir -p /etc/netwiz/failsafe
+
+# 将当前能正常上网的配置备份到实体 Flash (断电不丢失)
+cp -p /etc/config/network /etc/netwiz/failsafe/network_bak 2>/dev/null
+cp -p /etc/config/dhcp /etc/netwiz/failsafe/dhcp_bak 2>/dev/null
+cp -p /etc/config/wireless /etc/netwiz/failsafe/wireless_bak 2>/dev/null
+
+# 埋下物理标记
+touch /etc/netwiz_pending_recovery
+# ==========================================
+
 # 等待 8 秒，确保前端 充足的时间抓取新 IP
 sleep 8
 reboot
