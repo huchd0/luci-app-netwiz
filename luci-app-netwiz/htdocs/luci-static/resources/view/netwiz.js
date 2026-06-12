@@ -3328,8 +3328,8 @@ return view.extend({
                         title: '✅ ' + (T['BTN_AUTO_DETECT'] || 'Detection Success'), 
                         msg: '<div style="font-size:15px; color:#475569; margin-bottom:15px;">' + (T['MSG_DETECT_SUCC'] || 'Upstream subnet detected') + '</div>' + 
                              '<div style="background:#f8fafc; padding:10px; border-radius:8px; text-align:left;">' + 
-                             (T['LBL_LAN_GW'] || 'Gateway') + ': <b style="color:#10b981;">' + gw + '</b><br>' + 
-                             (T['LBL_LAN_IP'] || 'IP') + ': <b id="nw-suggested-ip-disp" style="color:#3b82f6;">' + suggestedIp + '</b></div>', 
+                             (T['LBL_LAN_IP'] || 'IP') + ': <b id="nw-suggested-ip-disp" style="color:#3b82f6;">' + suggestedIp + '</b><br>' + 
+                             (T['LBL_LAN_GW'] || 'Gateway') + ': <b style="color:#10b981;">' + gw + '</b></div>', 
                         hideCancel: true, 
                         okText: T['M_CLOSE'] || 'Close' 
                     });
