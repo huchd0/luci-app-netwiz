@@ -76,25 +76,31 @@ boot() {
                 # ====================================================
                 # 检测 1: LAN 接口是否在底层总线 (ubus) 真正 up
                 LAN_UBUS=$(ubus call network.interface.lan status 2>/dev/null | grep '"up": true')
-                # 检测 2: 核心 DHCP/DNS 守护进程 (dnsmasq) 是否存活？
-                DNS_ALIVE=$(pgrep dnsmasq)
-                # 检测 3: ARP 表中是否有活跃设备 (过滤掉没获取到 IP 的无效 00:00 MAC)
-                ARP_ACTIVE=$(cat /proc/net/arp | grep -E "br-lan|eth1" | grep -v "00:00:00:00:00:00")
+                
+                # 检测 2: Web 网页服务器 (uhttpd) 必须存活！如果用户打不开网页，等于半砖
+                HTTPD_ALIVE=$(pgrep uhttpd)
 
-                # 必须DHCP/DNS 守护进程+【有设备连着】，才允许静默拆弹
-                if [ -n "$LAN_UBUS" ] && [ -n "$DNS_ALIVE" ] && [ -n "$ARP_ACTIVE" ]; then
-                    logger -t Netwiz "[RECOVERY] 🛡️ 300秒超时，但 ubus/dnsmasq/ARP 均健康！判定为假阳性失联。"
+                # 检测 3: 核心 DHCP 守护进程必须存活 (除非用户处于 AP 模式，豁免此项)
+                IS_AP=$(uci -q get dhcp.lan.ignore)
+                if [ "$IS_AP" = "1" ]; then
+                    DNS_ALIVE="AP_MODE_SKIP" # 旁路由模式，豁免检查
+                else
+                    DNS_ALIVE=$(pgrep dnsmasq)
+                fi
+
+                # 三大核心系统必须全部存活，允许静默拆弹
+                if [ -n "$LAN_UBUS" ] && [ -n "$HTTPD_ALIVE" ] && [ -n "$DNS_ALIVE" ]; then
+                    logger -t Netwiz "[RECOVERY] 🛡️ 300秒超时，底层网络、Web与DNS服务完全健康！判定为假阳性。"
                     logger -t Netwiz "[RECOVERY] 终止回滚动作，仅静默拆除炸弹。"
-                    echo "$(date '+%F %T') [RECOVERY] 🛡️ 核心网络自检通过，取消回滚，静默拆弹。" >> "$RECOVERY_LOG"
+                    echo "$(date '+%F %T') [RECOVERY] 🛡️ 核心网络自检通过 (无论有无设备连接)，取消回滚，静默拆弹。" >> "$RECOVERY_LOG"
                     
                     rm -f /etc/netwiz_pending_recovery
                     rm -rf /etc/netwiz/failsafe
                     exit 0
                 fi
 
-                # 如果上面检测没通过 (LAN 崩溃或完全无设备连接)，才真的执行硬回滚
-                logger -t Netwiz "[RECOVERY] 🚨 300秒超时且 LAN 网络无响应！判断为恢复后变砖，启动硬回滚！"
-                echo "$(date '+%F %T') [RECOVERY] 🚨 恢复备份后失联且网络崩溃，触发硬回滚机制！" >> "$RECOVERY_LOG"
+                # 如果上面三大核心有任何一个挂了 (比如 uhttpd 崩溃进不去网页)，才执行硬回滚！
+                logger -t Netwiz "[RECOVERY] 🚨 300秒超时且核心网络自检未完全通过！判断为恢复后变砖，启动硬回滚！"
                 
                 # 备用配置覆盖当前损坏的配置
                 cp -p /etc/netwiz/failsafe/network_bak /etc/config/network 2>/dev/null
