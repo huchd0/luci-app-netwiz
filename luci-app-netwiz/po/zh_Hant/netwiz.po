@@ -145,7 +145,7 @@ msgstr "確認並套用"
 msgid "AP Wired Relay"
 msgstr "旁路由（AP有線中繼）模式"
 
-msgid "Current："
+msgid "Current:"
 msgstr "目前："
 
 msgid "Main Router (PPPoE)"
