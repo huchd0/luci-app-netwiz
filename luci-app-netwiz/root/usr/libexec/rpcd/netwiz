@@ -1362,6 +1362,10 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
           /tmp/nw_ghost_tmp/nw_offline_pkgs/libc-* 2>/dev/null
     # ---------------------------------------------------------------
     
+    # 全局剔除包含 netwiz / NetWiz 的安装包，防止重启 rpcd 导致脚本自杀
+    rm -f /tmp/nw_ghost_tmp/nw_offline_pkgs/*[nN]et[wW]iz*.[ia]pk 2>/dev/null
+    rm -f /etc/netwiz/custom_pkgs/*[nN]et[wW]iz*.[ia]pk 2>/dev/null
+    
     # ==========================================
     # 防呆检测：跨架构 (ipk <-> apk) 拦截机制
     # ==========================================
@@ -1390,10 +1394,6 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
             echo "$(date '+%F %T') [RESTORE] [DANGER] 已自动拦截并跳过所有插件的还原，以防止底层架构损坏！请重新下载对应 ipk 版本的插件放入保险箱。" >> "$LOG_FILE"
         else
             echo "$(date '+%F %T') [RESTORE] >>> 系统架构匹配 (opkg)，开始恢复插件..." >> "$LOG_FILE"
-            
-            # 在批量安裝前，剔除包含 "netwiz" 字眼的安裝包，防止重啟 rpcd 導致腳本自殺
-            rm -f /tmp/nw_ghost_tmp/nw_offline_pkgs/*netwiz*.[ia]pk 2>/dev/null
-            rm -f /etc/netwiz/custom_pkgs/*netwiz*.[ia]pk 2>/dev/null
             
             if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >/dev/null 2>&1; then
                 opkg install --force-reinstall --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >> "$LOG_FILE" 2>&1
