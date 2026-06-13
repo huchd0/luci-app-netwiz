@@ -90,7 +90,7 @@ watchdog_pppoe_ipv6() {
 
 case "$1" in
     list)
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" } }'
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" }, "check_internet": {}, "get_client_mac": {}, "get_adv_settings": {}, "set_adv_settings": { "mac": "string", "web": "string", "cron": "string" } }'
         exit 0
         ;;
     call)
@@ -143,6 +143,72 @@ case "$1" in
                 echo "{\"has_wifi\":$has_wifi, \"lan_nat_conflict\":$lan_nat_conflict, \"pkg_type\":\"$pkg_type\", \"sys_arch\":\"$sys_arch\"}"
                 exit 0
                 ;;
+            
+            check_internet)
+                if ping -c 1 -W 2 223.5.5.5 >/dev/null 2>&1 || ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then echo '{"status":"ok"}'; else echo '{"status":"fail"}'; fi
+                exit 0
+                ;;
+            get_client_mac)
+                # 找出当前正在连接路由器网页后台(80/443端口)的设备 IP，匹配 MAC
+                client_ip=$(netstat -nt 2>/dev/null | awk '$4 ~ /:(80|443)$/ && $6 == "ESTABLISHED" {split($5, a, ":"); print a[1]}' | head -n 1)
+                
+                if [ -n "$client_ip" ]; then
+                    mac=$(cat /proc/net/arp 2>/dev/null | awk -v ip="$client_ip" '$1 == ip {print $4}')
+                fi
+                
+                # 兜底：降级抓取第一个活动的有效设备
+                if [ -z "$mac" ] || [ "$mac" = "00:00:00:00:00:00" ]; then
+                    mac=$(cat /proc/net/arp 2>/dev/null | grep -E "0x2" | grep -iv "00:00:00:00:00:00" | head -n 1 | awk '{print $4}')
+                fi
+                
+                echo "{\"mac\":\"$mac\"}"
+                exit 0
+                ;;
+            get_adv_settings)
+                mac=$(uci -q get network.wan.macaddr)
+                web=$(uci -q get firewall.netwiz_web.target)
+                [ "$web" = "ACCEPT" ] && web="1" || web="0"
+                cron="off"
+                if grep -q "netwiz_reboot" /etc/crontabs/root 2>/dev/null; then
+                    cron=$(grep "netwiz_reboot" /etc/crontabs/root | head -n 1 | awk '{print $1" "$2" "$3" "$4" "$5}')
+                fi
+                echo "{\"mac\":\"$mac\", \"web\":\"$web\", \"cron\":\"$cron\"}"
+                exit 0
+                ;;
+            set_adv_settings)
+                input=$(cat)
+                mac=$(echo "$input" | jsonfilter -e '@.mac')
+                web=$(echo "$input" | jsonfilter -e '@.web')
+                cron=$(echo "$input" | jsonfilter -e '@.cron')
+                
+                if [ -n "$mac" ]; then
+                    if [ "$mac" = "none" ]; then uci delete network.wan.macaddr 2>/dev/null
+                    else uci set network.wan.macaddr="$mac"; fi
+                    uci commit network
+                    /etc/init.d/network restart &
+                fi
+                if [ -n "$web" ]; then
+                    if [ "$web" = "1" ]; then
+                        uci set firewall.netwiz_web=rule
+                        uci set firewall.netwiz_web.name='Allow-Web-Access'
+                        uci set firewall.netwiz_web.src='wan'
+                        uci set firewall.netwiz_web.target='ACCEPT'
+                        uci set firewall.netwiz_web.dest_port='80 443'
+                    else uci delete firewall.netwiz_web 2>/dev/null; fi
+                    uci commit firewall
+                    /etc/init.d/firewall restart &
+                fi
+                if [ -n "$cron" ]; then
+                    touch /etc/crontabs/root
+                    grep -v "netwiz_reboot" /etc/crontabs/root > /tmp/cron.tmp 2>/dev/null || true
+                    if [ "$cron" != "off" ]; then echo "$cron sleep 70 && touch /etc/banner && reboot #netwiz_reboot" >> /tmp/cron.tmp; fi
+                    mv /tmp/cron.tmp /etc/crontabs/root
+                    /etc/init.d/cron restart 2>/dev/null
+                fi
+                echo '{"result":0}'
+                exit 0
+                ;;
+
             check_missing_pkgs)
                 missing_pkgs=""
                 provided_pkgs=""
