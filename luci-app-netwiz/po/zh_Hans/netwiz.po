@@ -1782,3 +1782,12 @@ msgstr "高级设置 ▲"
 
 msgid "Advanced Settings ▼"
 msgstr "高级设置 ▼"
+
+msgid "Scheduled Reboot"
+msgstr "定时重启"
+
+msgid "MAC Clone"
+msgstr "MAC 克隆"
+
+msgid "Clear"
+msgstr "🗑️ 清空(恢复默认)"
