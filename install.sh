@@ -18,30 +18,43 @@ fi
 # 函数：获取当前系统中已安装的版本
 get_installed_version() {
     if [ "$PKG_TYPE" = "apk" ]; then
-        apk info -v luci-app-netwiz 2>/dev/null | grep "^luci-app-netwiz-" | awk '{print $1}' | sed 's/luci-app-netwiz-//'
+        # apk 使用 -e 参数精确匹配，才能出版本号
+        apk info -e luci-app-netwiz 2>/dev/null | sed 's/^luci-app-netwiz-//'
     else
         opkg status luci-app-netwiz 2>/dev/null | grep -i "^Version:" | awk '{print $2}'
     fi
 }
 
-# 函数：获取本地保险箱中安装包的版本
+# 函数：透视获取本地保险箱中安装包的版本
 get_local_version() {
     local file="$1"
     local ver=""
     mkdir -p /tmp/nw_ver_check
     if [ "$PKG_TYPE" = "apk" ]; then
+        # 1. 尝试常规解压
         tar -xzf "$file" -C /tmp/nw_ver_check .PKGINFO 2>/dev/null
-        [ -f /tmp/nw_ver_check/.PKGINFO ] && ver=$(grep "^pkgver =" /tmp/nw_ver_check/.PKGINFO | cut -d'=' -f2 | tr -d ' ')
+        if [ -f /tmp/nw_ver_check/.PKGINFO ]; then
+            ver=$(grep "^pkgver =" /tmp/nw_ver_check/.PKGINFO | cut -d'=' -f2 | tr -d ' ')
+        else
+            # 💡 核心修复：针对 apk 的多段 gzip 拼接特征，使用 zcat 暴力强读压缩流中的版本明文字符串
+            ver=$(zcat "$file" 2>/dev/null | grep -a -m 1 "^pkgver =" | cut -d'=' -f2 | tr -d ' ')
+            [ -z "$ver" ] && ver=$(grep -a -m 1 "^pkgver =" "$file" | cut -d'=' -f2 | tr -d ' ')
+        fi
     else
         tar -xzf "$file" -C /tmp/nw_ver_check ./control.tar.gz 2>/dev/null
         [ -f /tmp/nw_ver_check/control.tar.gz ] && tar -xzf /tmp/nw_ver_check/control.tar.gz -C /tmp/nw_ver_check ./control 2>/dev/null
         [ -f /tmp/nw_ver_check/control ] && ver=$(grep -i "^Version:" /tmp/nw_ver_check/control | awk '{print $2}')
     fi
     rm -rf /tmp/nw_ver_check
+    
+    # 3. 终极兜底：如果前两种都失效，直接从文件名中硬抠数字版本号
+    if [ -z "$ver" ]; then
+        ver=$(basename "$file" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?(-r[0-9]+)?' | head -n 1)
+    fi
     echo "$ver"
 }
 
-# 函数：版本对比算法 (v1 >= v2 返回 0，否则返回 1)
+# 函数：版本对比算法
 version_ge() {
     awk -v v1="$1" -v v2="$2" '
     function split_ver(v, a) {
@@ -67,7 +80,7 @@ echo "🔍 当前系统架构: $PKG_TYPE"
 echo "📦 当前运行版本: ${INSTALLED_VER:-未安装 (或已被精简)}"
 
 # ==========================================
-# 1. 备份脚本自身，离线可用
+# 1. 备份脚本自身，确保离线可用
 # ==========================================
 mkdir -p /etc/netwiz/custom_pkgs/
 cp -f "$0" /etc/netwiz/custom_pkgs/install.sh 2>/dev/null
@@ -101,7 +114,7 @@ for FILE in $FILES; do
 done
 
 # ==========================================
-# 3. 云端全新安装 vs 离线智能对比
+# 3. 核心决策：云端全新安装 vs 离线智能对比
 # ==========================================
 if [ "$DOWNLOAD_SUCCESS" -eq 3 ]; then
     echo "🌐 云端下载完整！正在覆盖至本地保险箱..."
@@ -114,13 +127,11 @@ else
     echo "⚠️ 云端连接失败或文件不完整，转入【离线恢复模式】！"
     echo "🔍 正在检查本地保险箱状态..."
     
-    # 查找本地包含 luci-app-netwiz 的主安装包
     LOCAL_MAIN=$(ls /etc/netwiz/custom_pkgs/*luci-app-netwiz*.${PKG_TYPE} 2>/dev/null | head -n 1)
     if [ -n "$LOCAL_MAIN" ] && [ -f "$LOCAL_MAIN" ]; then
         LOCAL_VER=$(get_local_version "$LOCAL_MAIN")
         echo "📦 发现本地储备版本: ${LOCAL_VER:-未知}"
         
-        # 如果系统已安装，且能读出本地版本，执行严格的智能比对
         if [ -n "$INSTALLED_VER" ] && [ -n "$LOCAL_VER" ]; then
             if version_ge "$LOCAL_VER" "$INSTALLED_VER"; then
                 echo "✅ 本地储备版 ($LOCAL_VER) >= 当前运行版 ($INSTALLED_VER)，允许覆盖恢复！"
@@ -130,7 +141,6 @@ else
                 exit 0
             fi
         else
-            # 未安装或发生异常，强制放行救砖
             echo "✅ 系统核心未挂载，允许执行离线急救部署！"
         fi
     else
@@ -140,7 +150,7 @@ else
 fi
 
 # ==========================================
-# 4. 卸载旧版并注入新版 (安全顺序)
+# 4. 卸载旧版并注入新版
 # ==========================================
 echo "🧹 正在清理系统旧版本残留..."
 if [ "$PKG_TYPE" = "apk" ]; then
