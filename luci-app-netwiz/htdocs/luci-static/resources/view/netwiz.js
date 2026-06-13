@@ -383,6 +383,31 @@ var T = {
     'TXT_SCAN_TO_CONN': _('Scan to Connect'),
     'WARN_PPPOE_INVALID': _('⚠️ Current WAN is in Secondary Router mode. PPPoE dial-up will not take effect until applied.'),
     'WARN_ROUTER_INVALID': _('⚠️ Current WAN is in PPPoE mode. Secondary Router mode will not take effect until applied.'),
+    // ===== 高级设置 =====
+    'LBL_ADV_UTILS_TITLE': _('⚙️ Advanced Utilities'),
+    'LBL_MAC_CLONE_LINK': _('🔗 MAC Address Clone'),
+    'LBL_CRON_REBOOT_LINK': _('⏱️ Scheduled Reboot'),
+    'LBL_WEB_ACCESS_TOGGLE': _('🌐 Allow WAN Web Access'),
+    
+    'MSG_MAC_CLONE_TIP': _('💡 <b>Tip:</b> Some ISPs or campus networks bind to a specific device MAC. If dial-up fails, enter the cloned MAC here.'),
+    'BTN_GET_MAC': _('⚡ Extract accessing device MAC'),
+    'MSG_MAC_NOT_FOUND': _('No active device connection detected, please enter MAC address manually.'),
+    
+    'LBL_CRON_ENABLE': _('Enable Scheduled Reboot'),
+    'LBL_CRON_TIME': _('Reboot Time:'),
+    'LBL_CRON_DAYS': _('Repeat Days (Multi-select):'),
+    'MSG_CRON_NO_DAY': _('Please select at least one day!'),
+    
+    'LBL_DAY_1': _('Mon'),
+    'LBL_DAY_2': _('Tue'),
+    'LBL_DAY_3': _('Wed'),
+    'LBL_DAY_4': _('Thu'),
+    'LBL_DAY_5': _('Fri'),
+    'LBL_DAY_6': _('Sat'),
+    'LBL_DAY_0': _('Sun'),
+    
+    'BTN_ADV_HIDE': _('Advanced Settings ▲'),
+    'BTN_ADV_SHOW': _('Advanced Settings ▼'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -401,6 +426,10 @@ var callCheckStorage = rpc.declare({ object: 'netwiz', method: 'check_storage', 
 var callCheckRestoreStatus = rpc.declare({ object: 'netwiz', method: 'check_restore_status', expect: { '': {} } });
 var callCheckIpConflict = rpc.declare({ object: 'netwiz', method: 'check_ip_conflict', params: ['ip'], expect: { '': {} } });
 var callCheckMissingPkgs = rpc.declare({ object: 'netwiz', method: 'check_missing_pkgs', expect: { '': {} } });
+var callCheckInternet = rpc.declare({ object: 'netwiz', method: 'check_internet', expect: { '': {} } });
+var callGetClientMac = rpc.declare({ object: 'netwiz', method: 'get_client_mac', expect: { '': {} } });
+var callGetAdvSettings = rpc.declare({ object: 'netwiz', method: 'get_adv_settings', expect: { '': {} } });
+var callSetAdvSettings = rpc.declare({ object: 'netwiz', method: 'set_adv_settings', params: ['mac', 'web', 'cron'], expect: { result: 0 } });
 
 return view.extend({
     handleSaveApply: null,
@@ -608,7 +637,22 @@ return view.extend({
             '       <div id="current-mode-text" style="color: #fff;"><div class="nw-spinner" style="width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;"></div><div style="margin-top:10px; font-size:15px; font-weight:bold; color:#fff;">{{LOADING_CONFIG}}</div></div>',
             '    </div>',
             // 实验室功能区块
+            // --- 在此插入代码 ---
             '    <div style="margin: 20px auto 0; width: 100%; max-width: 820px; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">',
+            // --- 高级设置 ---
+            '    <div style="margin-top: 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 15px; text-align: left;">',
+            '        <div style="font-size:14px; font-weight:bold; color:#475569; margin-bottom:12px;">{{LBL_ADV_UTILS_TITLE}}</div>',
+            '        <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center; margin-bottom:12px; padding-bottom:12px; border-bottom: 1px dashed #cbd5e1;">',
+            '            <a href="javascript:void(0)" id="link-mac-clone" style="color:#0284c7; text-decoration:none; font-size:14.5px; font-weight:500;">{{LBL_MAC_CLONE_LINK}}</a>',
+            '            <a href="javascript:void(0)" id="link-cron-reboot" style="color:#0284c7; text-decoration:none; font-size:14.5px; font-weight:500;">{{LBL_CRON_REBOOT_LINK}}</a>',
+            '        </div>',
+            '        <div style="display:flex; justify-content:space-between; align-items:center;">',
+            '            <div style="font-size:14.5px; font-weight:500; color:#0284c7;">{{LBL_WEB_ACCESS_TOGGLE}}</div>',
+            '            <label class="nw-switch"><input type="checkbox" id="adv-web-toggle"><span class="nw-slider"></span></label>',
+            '        </div>',
+            '    </div>',
+            // --- 结束 ---
+            '    ',
             '        <div style="background: linear-gradient(90deg, #5E72E4 0%, #f1f5f9 100%); padding: 12px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">',
             '            <div style="display: flex; align-items: center; gap: 8px;">',
             '                <span style="font-size: 18px;">🧪</span>',
@@ -881,6 +925,219 @@ return view.extend({
     },
 
     bindEvents: function (container) {
+        // =================高级设置弹窗与逻辑=================
+        function showAdvModal(title, html, onOk) {
+            var bg = document.createElement('div');
+            bg.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(2px);';
+            var box = document.createElement('div');
+            box.style.cssText = 'background:#fff; width:360px; max-width:90%; border-radius:12px; padding:20px; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:sans-serif;';
+            box.innerHTML = '<div style="font-size:17px; font-weight:bold; color:#1e293b; margin-bottom:15px;">' + title + '</div>' + 
+                            '<div style="margin-bottom:20px; color:#475569;">' + html + '</div>' +
+                            '<div style="display:flex; justify-content:flex-end; gap:10px;">' +
+                            '<button id="mdl-cancel" class="nw-u-btn nw-u-btn-gray" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_CANCEL']||'取消') + '</button>' +
+                            '<button id="mdl-ok" class="nw-u-btn nw-u-btn-blue" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_OK']||'确定') + '</button>' +
+                            '</div>';
+            bg.appendChild(box); document.body.appendChild(bg);
+            box.querySelector('#mdl-cancel').onclick = function() { document.body.removeChild(bg); };
+            box.querySelector('#mdl-ok').onclick = function() { if(onOk(box) !== false) document.body.removeChild(bg); };
+        }
+
+        // ================= 高级与实验室：动态包裹与折叠逻辑 (物理高度丝滑版) =================
+        // 1. 在页面加载后，自动将高级设置和下方的所有区块包裹并隐藏
+        setTimeout(function() {
+            var cloneLink = container.querySelector('#link-mac-clone');
+            if (cloneLink) {
+                var advBlock = cloneLink.closest('div[style*="margin-top"]');
+                if (advBlock && advBlock.parentNode && !document.getElementById('nw-hidden-features')) {
+                    var wrapper = document.createElement('div');
+                    wrapper.id = 'nw-hidden-features';
+                    // 💡 核心：必须加上 overflow: hidden，高度折叠时内部元素才不会溢出
+                    wrapper.style.overflow = 'hidden'; 
+                    wrapper.style.display = 'none';
+                    wrapper.style.opacity = '0';
+                    wrapper.style.height = '0px'; // 初始高度为 0
+                    
+                    advBlock.parentNode.insertBefore(wrapper, advBlock);
+                    while (wrapper.nextElementSibling) {
+                        wrapper.appendChild(wrapper.nextElementSibling);
+                    }
+                    // 注：此版本由 JS 动态驱动高度，彻底抛弃 @keyframes 注入，代码更干净
+                }
+            }
+        }, 150);
+
+        // 2. 监听按钮点击，执行物理高度进出场动画
+        container.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'nw-toggle-adv') {
+                var wrapper = document.getElementById('nw-hidden-features');
+                if (wrapper && !wrapper.isAnimating) {
+                    wrapper.isAnimating = true; 
+                    var isHidden = wrapper.style.display === 'none';
+                    
+                    if (isHidden) {
+                        // 🟢 展开：先 display block，计算出真实需要的高度，然后从 0 平滑拉伸
+                        wrapper.style.display = 'block';
+                        var targetHeight = wrapper.scrollHeight; 
+                        
+                        wrapper.offsetHeight; // 强制浏览器重绘
+                        
+                        wrapper.style.transition = 'height 1s cubic-bezier(0.4, 0, 0.2, 1), opacity 1s cubic-bezier(0.4, 0, 0.2, 1)';
+                        wrapper.style.height = targetHeight + 'px';
+                        wrapper.style.opacity = '1';
+                        
+                        e.target.innerHTML = (T['BTN_ADV_HIDE'] || 'Advanced Settings ▲');
+                        e.target.style.background = 'rgba(0,0,0,0.3)';
+                        
+                        // 💡 滚动魔法终极修正：等 300ms 动画完全结束、高度彻底定型后，再执行精准滚动
+                        setTimeout(function() { 
+                            wrapper.style.height = 'auto'; // 解除高度锁定
+                            wrapper.isAnimating = false; 
+                            
+                            // 此时盒子已达到 100% 真实高度，触发平滑滚动，绝对能一管到底！
+                            wrapper.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        }, 500);
+                    } else {
+                        // 🔴 收合：先将 auto 变成具体的像素高度，然后平滑压缩到 0
+                        var currentHeight = wrapper.scrollHeight;
+                        wrapper.style.height = currentHeight + 'px'; 
+                        
+                        wrapper.offsetHeight; // 强制重绘
+                        
+                        wrapper.style.transition = 'height 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1)';
+                        wrapper.style.height = '0px';
+                        wrapper.style.opacity = '0';
+                        
+                        e.target.innerHTML = (T['BTN_ADV_SHOW'] || 'Advanced Settings ▼');
+                        e.target.style.background = 'rgba(0,0,0,0.15)';
+                        
+                        // 💡 向上滚动魔法：在收合动画开始的瞬间 (延迟 50ms)，平滑滚动回页面最上方
+                        setTimeout(function() {
+                            // 让整个插件的主容器顶部对齐屏幕顶部，兼容所有主题
+                            if (container) {
+                                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 50);
+                        
+                        // 💡 计时器同步：等 450 毫秒动画彻底播完后，再彻底隐藏元素
+                        setTimeout(function() {
+                            wrapper.style.display = 'none';
+                            wrapper.isAnimating = false;
+                        }, 450); 
+                    }
+                }
+            }
+        });
+        // =================================================================
+
+        // MAC 克隆
+        if(container.querySelector('#link-mac-clone')) {
+            container.querySelector('#link-mac-clone').addEventListener('click', function() {
+                callGetAdvSettings().then(function(res) {
+                    var currentMac = (res && res.mac !== 'none') ? res.mac : '';
+                    var html ='<div style="font-size:13px; color:#64748b; margin-bottom:12px; line-height:1.5; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">' +
+                               (T['MSG_MAC_CLONE_TIP'] || 'Tip: enter MAC here.') +
+                               '</div>' +
+                              '<input type="text" id="mdl-mac-val" value="'+currentMac+'" placeholder="AA:BB:CC:DD:EE:FF" style="width:100%; height:40px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-family:monospace; margin-bottom:10px; font-size:15px; box-sizing:border-box;">' +
+                               '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                               '<a href="javascript:void(0)" id="mdl-get-mac" style="color:#0284c7; font-size:13.5px; text-decoration:none;">' + (T['BTN_GET_MAC'] || 'Extract MAC') + '</a>' +
+                               '<a href="javascript:void(0)" id="mdl-clear-mac" style="color:#ef4444; font-size:13.5px; text-decoration:none;">' + (T['BTN_CLEAR_MAC'] || 'Clear') + '</a>' +
+                               '</div>';
+                    showAdvModal((T['LBL_MAC_CLONE'] || 'MAC Clone'), html, function(box) {
+                        var m = box.querySelector('#mdl-mac-val').value.trim();
+                        if (m && !/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(m)) { alert(T['M_FMT_IP'] || 'Invalid MAC'); return false; }
+                        openModal({ title: (T['LBL_MAC_CLONE'] || 'MAC Clone'), msg: (T['MSG_WRITING'] || 'Saving...'), spin: true });
+                        callSetAdvSettings(m || 'none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2500); });
+                    });
+                    document.getElementById('mdl-get-mac').onclick = function() {
+                        callGetClientMac().then(function(r) {
+                            if(r && r.mac) {
+                                document.getElementById('mdl-mac-val').value = r.mac.toUpperCase();
+                            } else {
+                                alert(T['MSG_MAC_NOT_FOUND'] || 'No active device connection detected.');
+                            }
+                        });
+                    };
+                    document.getElementById('mdl-clear-mac').onclick = function() { document.getElementById('mdl-mac-val').value = ''; };
+                });
+            });
+        }
+
+        // 定时重启 (多选增强版)
+        if(container.querySelector('#link-cron-reboot')) {
+            container.querySelector('#link-cron-reboot').addEventListener('click', function() {
+                callGetAdvSettings().then(function(res) {
+                    var c = res.cron || 'off'; 
+                    var isOff = (c === 'off');
+                    var m = "00", h = "04", d = "*";
+                    
+                    // 解析后端传来的 Cron 表达式
+                    if (!isOff && c.split(' ').length >= 5) { 
+                        var pts = c.split(' '); 
+                        m = pts[0].padStart(2, '0'); 
+                        h = pts[1].padStart(2, '0'); 
+                        d = pts[4]; 
+                    }
+                    
+                    // 将星期字符串转换为数组，方便匹配
+                    var dArr = (d === '*') ? ['0','1','2','3','4','5','6'] : d.split(',');
+                    // 辅助函数：如果在数组中，则直接在 HTML 层面打上勾
+                    var chk = function(val) { return dArr.indexOf(val) !== -1 ? 'checked' : ''; };
+                    
+                    // 复选框抵消 LuCI 全局主题的 top: .4rem 偏移
+                    var cbBoxStyle = 'margin:0; position:relative; top:0; transform:none; cursor:pointer;';
+                    
+                    var html = '<label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-weight:bold; color:#334155; cursor:pointer;">' +
+                               '<input type="checkbox" id="mdl-cron-en" style="' + cbBoxStyle + ' width:16px; height:16px;" '+(isOff?'':'checked')+'>' +
+                               '<span style="line-height:1; margin-top:-2px;">' + (T['LBL_CRON_ENABLE'] || 'Enable') + '</span></label>' +
+                               '<div id="mdl-cron-box" style="display:'+(isOff?'none':'block')+';">' +
+                               '<div style="font-size:13.5px; color:#64748b; margin-bottom:8px;">' + (T['LBL_CRON_TIME'] || 'Time:') + '</div>' +
+                               '<input type="time" id="mdl-cron-time" value="'+h+':'+m+'" style="width:100%; height:40px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:14.5px; font-family:monospace; margin-bottom:15px; box-sizing:border-box;">' +
+                               '<div style="font-size:13.5px; color:#64748b; margin-bottom:8px;">' + (T['LBL_CRON_DAYS'] || 'Days:') + '</div>' +
+                               '<div id="mdl-cron-days" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:5px;">' +
+                               '<label style="display:flex; align-items:center; gap:4px; font-size:14.5px; cursor:pointer;"><input type="checkbox" style="' + cbBoxStyle + '" class="c-day" value="1" '+chk('1')+'>' + (T['LBL_DAY_1'] || '1') + '</label>' +
+                               '<label style="display:flex; align-items:center; gap:4px; font-size:14.5px; cursor:pointer;"><input type="checkbox" style="' + cbBoxStyle + '" class="c-day" value="2" '+chk('2')+'>' + (T['LBL_DAY_2'] || '2') + '</label>' +
+                               '<label style="display:flex; align-items:center; gap:4px; font-size:14.5px; cursor:pointer;"><input type="checkbox" style="' + cbBoxStyle + '" class="c-day" value="3" '+chk('3')+'>' + (T['LBL_DAY_3'] || '3') + '</label>' +
+                               '<label style="display:flex; align-items:center; gap:4px; font-size:14.5px; cursor:pointer;"><input type="checkbox" style="' + cbBoxStyle + '" class="c-day" value="4" '+chk('4')+'>' + (T['LBL_DAY_4'] || '4') + '</label>' +
+                               '<label style="display:flex; align-items:center; gap:4px; font-size:14.5px; cursor:pointer;"><input type="checkbox" style="' + cbBoxStyle + '" class="c-day" value="5" '+chk('5')+'>' + (T['LBL_DAY_5'] || '5') + '</label>' +
+                               '<label style="display:flex; align-items:center; gap:4px; font-size:14.5px; cursor:pointer;"><input type="checkbox" style="' + cbBoxStyle + '" class="c-day" value="6" '+chk('6')+'>' + (T['LBL_DAY_6'] || '6') + '</label>' +
+                               '<label style="display:flex; align-items:center; gap:4px; font-size:14.5px; cursor:pointer;"><input type="checkbox" style="' + cbBoxStyle + '" class="c-day" value="0" '+chk('0')+'>' + (T['LBL_DAY_0'] || '0') + '</label>' +
+                               '</div></div>';
+                               
+                    showAdvModal((T['LBL_CRON_REBOOT'] || 'Scheduled Reboot'), html, function(box) {
+                        var en = box.querySelector('#mdl-cron-en').checked;
+                        var cronStr = 'off';
+                        if(en) {
+                            var sel = [];
+                            var chks = box.querySelectorAll('.c-day');
+                            for(var i=0; i<chks.length; i++) { if(chks[i].checked) sel.push(chks[i].value); }
+                            
+                            // 防呆：如果没有勾选任何一天，阻止保存
+                            if(sel.length === 0) { alert(T['MSG_CRON_NO_DAY'] || 'Please select at least one day!'); return false; }
+                            
+                            // 生成 Linux 标准 Cron 表达式 (7天全选则直接用星号)
+                            var dStr = (sel.length === 7) ? '*' : sel.join(',');
+                            var tParts = (box.querySelector('#mdl-cron-time').value || '04:00').split(':');
+                            cronStr = parseInt(tParts[1]) + " " + parseInt(tParts[0]) + " * * " + dStr;
+                        }
+                        openModal({ title: (T['LBL_CRON_REBOOT'] || 'Scheduled Reboot'), msg: (T['MSG_WRITING'] || 'Saving...'), spin: true });
+                        callSetAdvSettings('', '', cronStr).then(function() { setTimeout(function(){ window.location.reload(); }, 1500); });
+                    });
+                    
+                    // 弹窗出现后，初始化复选框与详情区域的联动显示逻辑
+                    document.getElementById('mdl-cron-en').onchange = function() { 
+                        document.getElementById('mdl-cron-box').style.display = this.checked ? 'block' : 'none'; 
+                    };
+                });
+            });
+        }
+
+        // 外网访问开关
+        if(container.querySelector('#adv-web-toggle')) {
+            callGetAdvSettings().then(function(res) { if(res && res.web === '1') container.querySelector('#adv-web-toggle').checked = true; });
+            container.querySelector('#adv-web-toggle').addEventListener('change', function() { callSetAdvSettings('', this.checked ? '1' : '0', ''); });
+        }
+        // ====================================================
+
         // ==============================================================
         // 防空指针，重定向 DOM 查找
         var oriQuery = container.querySelector.bind(container);
@@ -938,6 +1195,57 @@ return view.extend({
             var bandEl = container.querySelector('#nw-live-qr-band'); if (bandEl) bandEl.innerText = '(' + bandName + ')';
             renderWiFiQR('nw-live-qr-code', ssid, pwd, enc);
         };
+
+        // =================高级设置折叠与数据加载=================
+        var advHeader = container.querySelector('#nw-adv-utils-header');
+        var advBody = container.querySelector('#nw-adv-utils-body');
+        var advIcon = container.querySelector('#nw-adv-utils-icon');
+        var advLoaded = false;
+
+        if (advHeader) {
+            advHeader.addEventListener('click', function() {
+                if (advBody.style.display === 'none') {
+                    advBody.style.display = 'block';
+                    advIcon.style.transform = 'rotate(180deg)';
+                    if (!advLoaded) {
+                        callGetAdvSettings().then(function(res) {
+                            if (res) {
+                                if (res.mac && res.mac !== 'none') container.querySelector('#adv-mac-input').value = res.mac;
+                                container.querySelector('#adv-web-toggle').checked = (res.web === '1');
+                                container.querySelector('#adv-cron-select').value = res.cron || 'off';
+                                advLoaded = true;
+                            }
+                        });
+                    }
+                } else {
+                    advBody.style.display = 'none';
+                    advIcon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+        
+        if (container.querySelector('#btn-save-mac')) {
+            container.querySelector('#btn-save-mac').addEventListener('click', function() {
+                var m = container.querySelector('#adv-mac-input').value.trim();
+                if (m && !/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(m)) { alert(T['M_FMT_IP'] || 'Format Error'); return; }
+                openModal({ title: T['LBL_ADV_UTILS'], msg: T['MSG_WRITING'], spin: true });
+                callSetAdvSettings(m || 'none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2000); });
+            });
+        }
+        if (container.querySelector('#btn-clear-mac')) {
+            container.querySelector('#btn-clear-mac').addEventListener('click', function() {
+                container.querySelector('#adv-mac-input').value = '';
+                openModal({ title: T['LBL_ADV_UTILS'], msg: T['MSG_WRITING'], spin: true });
+                callSetAdvSettings('none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2000); });
+            });
+        }
+        if (container.querySelector('#adv-web-toggle')) {
+            container.querySelector('#adv-web-toggle').addEventListener('change', function() { callSetAdvSettings('', this.checked ? '1' : '0', ''); });
+        }
+        if (container.querySelector('#adv-cron-select')) {
+            container.querySelector('#adv-cron-select').addEventListener('change', function() { callSetAdvSettings('', '', this.value); });
+        }
+        // ========================================================
 
         // 鼠标跟随，无视底层 CSS 干扰
         var updateQRPos = function(e) {
@@ -1661,6 +1969,29 @@ return view.extend({
 
         function updateStatusDisplay(isSilent) {
             try {
+                // --- 互联网状态全域快取与防闪烁逻辑 (增强版定位) ---
+                if (typeof window.nwInetStatus === 'undefined') window.nwInetStatus = 'wait';
+                if (typeof window.nwInetLast === 'undefined') window.nwInetLast = 0;
+                
+                var now = Date.now();
+                if (now - window.nwInetLast > 8000) { // 每 8 秒在背景默默探测一次
+                    window.nwInetLast = now;
+                    callCheckInternet().then(function(res) { 
+                        window.nwInetStatus = (res.status === 'ok') ? 'ok' : 'fail'; 
+                        // 探测完成后，直接精准更新那个图标，而不是重绘整个界面
+                        var badgeEl = document.getElementById('nw-inet-badge');
+                        if (badgeEl) {
+                            badgeEl.innerHTML = window.nwInetStatus === 'ok' ? '🌐' : '❌';
+                            badgeEl.title = window.nwInetStatus === 'ok' ? '互联网已连通' : '互联网未连通';
+                        }
+                    });
+                }
+                
+                // 💡 核心修复：给图标加上 display:inline-block 和 min-width:26px 锁定物理空间，防止任何挤压跳动
+                var iconStr = window.nwInetStatus === 'ok' ? '🌐' : (window.nwInetStatus === 'fail' ? '❌' : '');
+                var titleStr = window.nwInetStatus === 'ok' ? '互联网已连通' : (window.nwInetStatus === 'fail' ? '互联网未连通' : '');
+                var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; min-width:26px; text-align:center; margin-left:4px; font-size:18px; vertical-align:middle; cursor:help; line-height:1;'>" + iconStr + "</span>";
+                // --------------------------
                 if (modeTextEl && !isSilent) modeTextEl.innerHTML = "<div class='nw-spinner' style='width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;'></div><div style='margin-top:10px; font-size:15px; font-weight:bold; color:#fff;'>" + T['LOADING_CONFIG'] + "</div>";
                 try { uci.unload('network'); uci.unload('dhcp'); uci.unload('wireless'); } catch(e) {}
                 
@@ -2387,26 +2718,29 @@ return view.extend({
                         } catch(ex) { }
                     }
 
+                    // ---- 替换开始 ----
                     var mkB = function(bg, txt) { return "<span style='font-size:14px; background:" + bg + "; color:#fff; padding:5px 10px; border-radius:12px; white-space:nowrap;'>" + txt + "</span>"; };
                     var mkD = function(l1, v1, l2, v2) { return "<span class='nw-info-item'>" + l1 + " <span class='nw-hl'>" + v1 + "</span></span><span class='nw-info-item'>" + l2 + " <span class='nw-hl'>" + v2 + "</span></span>"; };
-                    var sTitle = "", sDetails = "", statusBadge = "";
                     
+                    // 💡 终极防跳魔法：给不断跳动的时间套上“隐形束身衣”(固定95px宽度)，并启用等宽数字 (tabular-nums)。
+                    // 这样时间在内部怎么跳动，都绝对不会再挤压外部的排版！
+                    var fixedUpBadge = upBadgeHtml ? "<span style='display:inline-block; width:135px; text-align:center; font-variant-numeric: tabular-nums; margin:0 4px;'>" + upBadgeHtml + "</span>" : "";
+                    
+                    var sTitle = "", sDetails = "", statusBadge = "";
+                    var iconStr = window.nwInetStatus === 'ok' ? '🌐' : (window.nwInetStatus === 'fail' ? '❌' : '');
+                    var titleStr = window.nwInetStatus === 'ok' ? '互联网已连通' : (window.nwInetStatus === 'fail' ? '互联网未连通' : '');
+                    
+                    // 将图标也改为绝对的 width: 28px，彻底锁死它占用的空间
+                    var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; width:28px; text-align:center; font-size:18px; vertical-align:middle; cursor:help; line-height:1;'>" + iconStr + "</span>";
+
                     if (isBypass) { sTitle = T['STAT_BYPASS']; sDetails = mkD(T['TXT_DEV_IP'], lIp, T['TXT_UP_GW'], lGw); } 
-                    else if (isWispActive) { 
-                        // 无线中继生效显示
-                        sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; 
-                        statusBadge = mkB('#10b981', T['BDG_GOT'] || 'IP Acquired') + upBadgeHtml; 
-                        sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); 
-                    }
-                    else if (hasWispConfigured && !isWispActive) {
-                        sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; 
-                        statusBadge = mkB('#f59e0b', T['TXT_WISP_WAITING'] || 'Connecting...'); 
-                        sDetails = "<div style='color:#facc15; font-size:14.5px; font-weight:bold;'>" + (T['MSG_WISP_STUCK'] || '⚠️ Connecting to upstream... (Check password if stuck)') + "</div>";
-                    }
-                    else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']) + upBadgeHtml; sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } 
-                    else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']) + upBadgeHtml; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } 
-                    else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = activeWan.up ? mkB('#10b981', T['BDG_CONN']) + upBadgeHtml : mkB('#ef4444', T['BDG_UNPLUG']); sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } 
+                    else if (isWispActive) { sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; statusBadge = mkB('#10b981', T['BDG_GOT'] || 'IP Acquired') + fixedUpBadge + inetBadgeHtml; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); }
+                    else if (hasWispConfigured && !isWispActive) { sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; statusBadge = mkB('#f59e0b', T['TXT_WISP_WAITING'] || 'Connecting...'); sDetails = "<div style='color:#facc15; font-size:14.5px; font-weight:bold;'>" + (T['MSG_WISP_STUCK'] || '⚠️ Connecting to upstream...') + "</div>"; }
+                    else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']) + fixedUpBadge + inetBadgeHtml; sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } 
+                    else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']) + fixedUpBadge + inetBadgeHtml; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } 
+                    else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = activeWan.up ? mkB('#10b981', T['BDG_CONN']) + fixedUpBadge + inetBadgeHtml : mkB('#ef4444', T['BDG_UNPLUG']); sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } 
                     else { sTitle = T['STAT_LAN']; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_DHCP_SRV'], T['TXT_ON']); }
+                    // ---- 替换结束 ----
                     var sDnsHtml = "";
                     if (!isBypass && activeWan.up && dns1) {
                         sDnsHtml = "<div style='font-size:15.5px; font-weight:bold; color:#FFF; font-family:monospace; margin:6px 0 10px 0; display:flex; flex-wrap:wrap; justify-content:center; gap:0;'><span class='nw-info-item'>" + T['TXT_DNS1'] + " <span class='nw-hl'>" + dns1 + "</span></span>" + (dns2 ? "<span class='nw-info-item'>" + T['TXT_DNS2'] + " <span class='nw-hl'>" + dns2 + "</span></span>" : "") + "</div>";
@@ -2632,8 +2966,32 @@ return view.extend({
                     extraInfo += wifiLines.join('');
                     extraInfo += "</div>";
 
+                    // 当前是否已经处于展开状态，防止 8 秒一次的后台刷新把展开状态重置
+                    var isExpanded = document.getElementById('nw-hidden-features') && document.getElementById('nw-hidden-features').style.display === 'block';
+                    var btnText = isExpanded ? (T['BTN_ADV_HIDE'] || 'Advanced Settings ▲') : (T['BTN_ADV_SHOW'] || 'Advanced Settings ▼');
+                    var btnBg = isExpanded ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.15)';
+                    
+                    // 蓝色底板高级设置触发按钮
+                    var advToggleHtml = "<div style='text-align:center; margin-top:16px;'><span id='nw-toggle-adv' style='cursor:pointer; font-size:13.5px; color:rgba(255,255,255,0.9); background:" + btnBg + "; padding:5px 15px; border-radius:15px; transition:all 0.3s; user-select:none; display:inline-block; letter-spacing:0.5px;'>" + btnText + "</span></div>";
+
                     if (modeTextEl) {
-                        modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:8px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; max-width:100%; min-width:0;'><span style='white-space:nowrap; max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.3; max-width:100%; min-width:0;'>" + sDetails + "</div>" + sDnsHtml + ipv6Html + devMgrBtn + extraInfo;
+                        modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:8px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; max-width:100%; min-width:0;'><span style='white-space:nowrap; max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.3; max-width:100%; min-width:0;'>" + sDetails + "</div>" + sDnsHtml + ipv6Html + devMgrBtn + extraInfo + advToggleHtml;
+                        
+                        // 异步检测网络连通性
+                        if (statusBadge.indexOf('nw-inet-badge') !== -1) {
+                            callCheckInternet().then(function(res) {
+                                var el = document.getElementById('nw-inet-badge');
+                                if (el) {
+                                    if (res.status === 'ok') {
+                                        el.innerHTML = "🌐";
+                                        el.title = T['TXT_NET_OK'];
+                                    } else {
+                                        el.innerHTML = "❌";
+                                        el.title = T['TXT_NET_FAIL'];
+                                    }
+                                }
+                            });
+                        }
                     }
                     
                 }).catch(function() {});
