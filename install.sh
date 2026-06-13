@@ -103,7 +103,7 @@ for FILE in $FILES; do
     FILE_SIZE=$(ls -l "/tmp/${TARGET_FILE}" 2>/dev/null | awk '{print $5}')
     if [ -s "/tmp/${TARGET_FILE}" ] && [ "$FILE_SIZE" -gt 1000 ]; then
         DOWNLOAD_SUCCESS=$((DOWNLOAD_SUCCESS + 1))
-        echo "✅ ${TARGET_FILE} 获取成功，暂存备用！"
+        echo "✅ ${TARGET_FILE} 获取成功，暂存备用！⬇️⬇️⬇️"
     else
         rm -f "/tmp/${TARGET_FILE}"
     fi
@@ -179,7 +179,7 @@ elif [ -f "/etc/init.d/nginx" ]; then
     /etc/init.d/nginx restart 2>/dev/null
 fi
 
-echo -e "\n🎉 NetWiz 核心程序部署圆满完成！"
+echo -e "\n👉 👉 👉 🎉 NetWiz 核心程序部署完成！✅✅✅"
 echo -e "💡 登录状态已安全重置，请返回浏览器按下 【F5】 刷新即可看到新菜单！"
 
 # 6. 匿名安装量统计
