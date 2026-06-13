@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       new_version:
-        description: '【版本控制】 留空: 当前版本发布；输入0: 递增 0.01 修重大 Bug 版；输入1: 递增 0.1 加新功能版（如1.4.2->1.5.0）；填完整版本号（1.5.3）: 仅改版本不发布。'
+        description: '【版本控制】 留空: 当前版本发布；输入0: 递增 0.01 修重大Bug版；输入1: 递增 0.1 加新功能版（如1.4.2->1.5.0）；填完整版本号（1.5.3）: 仅改版本不发布。'
         required: false
         type: string
 
