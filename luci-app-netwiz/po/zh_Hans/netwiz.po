@@ -1722,3 +1722,63 @@ msgstr "⚠️ 当前 WAN 口为二级路由模式，本页应用配置前 PPPoE
 
 msgid "⚠️ Current WAN is in PPPoE mode. Secondary Router mode will not take effect until applied."
 msgstr "⚠️ 当前 WAN 口为主路由的 PPPoE 拨号，本页应用配置前二级路由模式无效。"
+
+msgid "⚙️ Advanced Utilities"
+msgstr "⚙️ 高级实用设置"
+
+msgid "🔗 MAC Address Clone"
+msgstr "🔗 MAC 地址克隆"
+
+msgid "⏱️ Scheduled Reboot"
+msgstr "⏱️ 定时重启设置"
+
+msgid "🌐 Allow WAN Web Access"
+msgstr "🌐 允许外网访问后台"
+
+msgid "💡 <b>Tip:</b> Some ISPs or campus networks bind to a specific device MAC. If dial-up fails, enter the cloned MAC here."
+msgstr "💡 <b>提示：</b>部分小区宽带或校园网绑定了特定的设备 MAC（如旧路由器或电脑）。若拨号失败，请在此填入该 MAC 进行伪装克隆。"
+
+msgid "⚡ Extract accessing device MAC"
+msgstr "⚡ 提取访问路由器的设备 MAC"
+
+msgid "No active device connection detected, please enter MAC address manually."
+msgstr "未检测到活动的设备连接，请手动输入 MAC 地址。"
+
+msgid "Enable Scheduled Reboot"
+msgstr "启用定时重启路由器功能"
+
+msgid "Reboot Time:"
+msgstr "重启时间:"
+
+msgid "Repeat Days (Multi-select):"
+msgstr "重复星期 (可多选):"
+
+msgid "Please select at least one day!"
+msgstr "请至少选择一天！"
+
+msgid "Mon"
+msgstr "一"
+
+msgid "Tue"
+msgstr "二"
+
+msgid "Wed"
+msgstr "三"
+
+msgid "Thu"
+msgstr "四"
+
+msgid "Fri"
+msgstr "五"
+
+msgid "Sat"
+msgstr "六"
+
+msgid "Sun"
+msgstr "日"
+
+msgid "Advanced Settings ▲"
+msgstr "高级设置 ▲"
+
+msgid "Advanced Settings ▼"
+msgstr "高级设置 ▼"
