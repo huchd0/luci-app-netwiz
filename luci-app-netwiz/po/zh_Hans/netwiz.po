@@ -1738,8 +1738,8 @@ msgstr "🌐 允许外网访问后台"
 msgid "💡 <b>Tip:</b> Some ISPs or campus networks bind to a specific device MAC. If dial-up fails, enter the cloned MAC here."
 msgstr "💡 <b>提示：</b>部分小区宽带或校园网绑定了特定的设备 MAC（如旧路由器或电脑）。若拨号失败，请在此填入该 MAC 进行伪装克隆。"
 
-msgid "⚡ Extract accessing device MAC"
-msgstr "⚡ 提取访问路由器的设备 MAC"
+msgid "⚡ Auto-fill MAC"
+msgstr "⚡ 一键填写 MAC"
 
 msgid "No active device connection detected, please enter MAC address manually."
 msgstr "未检测到活动的设备连接，请手动输入 MAC 地址。"
