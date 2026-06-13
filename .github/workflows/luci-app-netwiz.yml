@@ -90,7 +90,8 @@ jobs:
           fi
 
   build:
-    name: Compile IPK & APK
+    # 23.05 系统则显示 IPK，否则（如 snapshot 或新版）显示 APK
+    name: Compile ${{ contains(matrix.sdk_version, '23.05') && 'IPK' || 'APK' }}
     needs: prepare
     if: needs.prepare.outputs.skip_build != 'true'
     runs-on: ubuntu-22.04
