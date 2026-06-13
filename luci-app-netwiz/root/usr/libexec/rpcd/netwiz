@@ -261,16 +261,12 @@ case "$1" in
                 ;;
                 
             confirm)
-                # 收到前端存活信号，连通性确认成功！
-                # 无论之前挂了什么炸弹，一键清理所有看门狗标记与健康备份档案
-                if [ -f /tmp/nw_watchdog_active ] || [ -f /tmp/netwiz_rollback_time ] || [ -f /tmp/nw_bak_network ] || [ -f /etc/netwiz_pending_recovery ]; then
+                # 收到前端存活信号，连通性确认成功
+                # 一键清理所有看门狗标记与健康备份档案
+                if [ -f /tmp/netwiz_rollback_time ] || [ -f /etc/netwiz_pending_recovery ]; then
                     
-                    # 拆除热重载看门狗 (/tmp) 和异常断电备份
-                    rm -f /tmp/nw_watchdog_active \
-                          /tmp/nw_bak_network \
-                          /tmp/nw_bak_dhcp \
-                          /tmp/nw_bak_wireless \
-                          /tmp/netwiz_rollback_time \
+                    # 拆除 LAN 120 秒看门狗与异常断电备份
+                    rm -f /tmp/netwiz_rollback_time \
                           /tmp/netwiz_target_ip \
                           /etc/config/network.netwiz_bak \
                           /etc/config/dhcp.netwiz_bak \
@@ -431,45 +427,6 @@ case "$1" in
                 # -------------------------------------------------------------
 
                 CURRENT_LAN_IP=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
-
-                # ==========================================
-                # 启动高级防砖看门狗 (Watchdog Rollback)
-                # ==========================================
-                # 只要不是界面切换，且不是lan模式（lan有专属的物理跨重启防砖），就挂上180秒炸弹
-                if [ "$mode" != "set_wizard" ] && [ "$mode" != "lan" ]; then
-                    log "正在备份健康网络配置，并启动 180 秒防砖看门狗..."
-                    
-                    # 1. 备份当前健康的配置文件
-                    cp -p /etc/config/network /tmp/nw_bak_network 2>/dev/null
-                    cp -p /etc/config/dhcp /tmp/nw_bak_dhcp 2>/dev/null
-                    cp -p /etc/config/wireless /tmp/nw_bak_wireless 2>/dev/null
-                    
-                    # 2. 挂上危险标记
-                    touch /tmp/nw_watchdog_active
-                    
-                    # 3. 剥离一个后台幽灵进程，倒数 180 秒
-                    (
-                        sleep 180
-                        # 3分钟后苏醒，如果标记还在，说明前端失联了！
-                        if [ -f "/tmp/nw_watchdog_active" ]; then
-                            logger -t Netwiz "[WATCHDOG] 🚨 严重超时！前端失联，触发自动回滚自救机制！"
-                            echo "$(date '+%F %T') [WATCHDOG] 🚨 前端失联超时，执行网络配置回滚！" >> /etc/netwiz_recovery.log
-                            
-                            # 强行覆盖回健康的配置
-                            cp -p /tmp/nw_bak_network /etc/config/network 2>/dev/null
-                            cp -p /tmp/nw_bak_dhcp /etc/config/dhcp 2>/dev/null
-                            cp -p /tmp/nw_bak_wireless /etc/config/wireless 2>/dev/null
-                            
-                            # 强行重启网络服务自救
-                            /etc/init.d/network restart
-                            /etc/init.d/dnsmasq restart
-                            
-                            # 清除标记
-                            rm -f /tmp/nw_watchdog_active
-                        fi
-                    ) </dev/null >/dev/null 2>&1 &
-                fi
-                # ==========================================
 
                 # 各模式网络写入
                 
