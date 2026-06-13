@@ -152,6 +152,10 @@ case "$1" in
                 for file in /etc/netwiz/custom_pkgs/*.[ia]pk; do
                     if [ -f "$file" ]; then
                         filename=$(basename "$file")
+                        # 保险箱有netwiz，直接跳过，显示在「已备妥」清单
+                        if echo "$filename" | grep -qi "netwiz"; then
+                            continue
+                        fi
                         provided_pkgs="$provided_pkgs $filename"
                     fi
                 done
@@ -204,6 +208,11 @@ case "$1" in
                     avail_pkgs=$(opkg list 2>/dev/null | awk '{print $1}')
                     
                     for pkg in $installed; do
+                        # opkg扫描时遇到netwiz相关文件直接跳过，不列入比对名单
+                        if echo "$pkg" | grep -qi "netwiz"; then
+                            continue
+                        fi
+                        
                         if echo "$avail_pkgs" | grep -qx "$pkg"; then
                             official_pkgs="$official_pkgs $pkg"
                         else
@@ -219,6 +228,11 @@ case "$1" in
                     fi
                     
                     for pkg in $installed; do
+                        # apk扫描时遇到netwiz相关文件直接跳过，不列入比对名单
+                        if echo "$pkg" | grep -qi "netwiz"; then
+                            continue
+                        fi
+                        
                         # 精确查询，逐个查验
                         if [ -n "$(apk search -q -e "$pkg" 2>/dev/null)" ]; then
                             official_pkgs="$official_pkgs $pkg"
