@@ -1791,3 +1791,12 @@ msgstr "MAC 克隆"
 
 msgid "Clear"
 msgstr "🗑️ 清空(恢复默认)"
+
+msgid "Internet Connected"
+msgstr "互联网已连通"
+
+msgid "Internet Disconnected"
+msgstr "互联网未连通"
+
+msgid "Ignore"
+msgstr "忽略"
