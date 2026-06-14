@@ -1999,7 +1999,7 @@ return view.extend({
                 // 💡 核心修复：给图标加上 display:inline-block 和 min-width:26px 锁定物理空间，防止任何挤压跳动
                 var iconStr = window.nwInetStatus === 'ok' ? '🌐' : (window.nwInetStatus === 'fail' ? '❌' : '');
                 var titleStr = window.nwInetStatus === 'ok' ? '互联网已连通' : (window.nwInetStatus === 'fail' ? '互联网未连通' : '');
-                var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; min-width:26px; text-align:center; margin-left:4px; font-size:18px; vertical-align:middle; cursor:help; line-height:1;'>" + iconStr + "</span>";
+                var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; min-width:26px; text-align:center; margin-left:4px; font-size:18px; vertical-align:middle; cursor:default; line-height:1;'>" + iconStr + "</span>";
                 // --------------------------
                 if (modeTextEl && !isSilent) modeTextEl.innerHTML = "<div class='nw-spinner' style='width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;'></div><div style='margin-top:10px; font-size:15px; font-weight:bold; color:#fff;'>" + T['LOADING_CONFIG'] + "</div>";
                 try { uci.unload('network'); uci.unload('dhcp'); uci.unload('wireless'); } catch(e) {}
