@@ -1054,8 +1054,13 @@ return view.extend({
                                '</div>';
                     showAdvModal((T['LBL_MAC_CLONE'] || 'MAC Clone'), html, function(box) {
                         var m = box.querySelector('#mdl-mac-val').value.trim();
-                        if (m && !/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(m)) { alert(T['M_FMT_MAC'] || 'Invalid MAC address format!'); return false; }
+                        if (m && !/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(m)) { 
+                            openModal({ title: T['M_FMT_TIT'] || 'Format Error', msg: '<div style="font-size:15px; color:#ef4444; font-weight:bold;">' + (T['M_FMT_MAC'] || 'Invalid MAC address format!') + '</div>', okText: T['BTN_OK'] || 'OK' });
+                            var gm = document.getElementById('nw-global-modal'); if (gm) gm.style.zIndex = '100000';
+                            return false; 
+                        }
                         openModal({ title: (T['LBL_MAC_CLONE'] || 'MAC Clone'), msg: (T['MSG_WRITING'] || 'Saving...'), spin: true });
+                        var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000'; // 儲存動畫也要確保在頂層
                         callSetAdvSettings(m || 'none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2500); });
                     });
                     document.getElementById('mdl-get-mac').onclick = function() {
@@ -1063,7 +1068,8 @@ return view.extend({
                             if(r && r.mac) {
                                 document.getElementById('mdl-mac-val').value = r.mac.toUpperCase();
                             } else {
-                                alert(T['MSG_MAC_NOT_FOUND'] || 'No active device connection detected.');
+                                openModal({ title: T['M_SYS_ERR'] || 'Notice', msg: '<div style="font-size:15px; color:#f59e0b; font-weight:bold;">' + (T['MSG_MAC_NOT_FOUND'] || 'No active device connection detected.') + '</div>', okText: T['BTN_OK'] || 'OK' });
+                                var gm = document.getElementById('nw-global-modal'); if (gm) gm.style.zIndex = '100000';
                             }
                         });
                     };
@@ -1121,8 +1127,12 @@ return view.extend({
                             var chks = box.querySelectorAll('.c-day');
                             for(var i=0; i<chks.length; i++) { if(chks[i].checked) sel.push(chks[i].value); }
                             
-                            // 防呆：如果没有勾选任何一天，阻止保存
-                            if(sel.length === 0) { alert(T['MSG_CRON_NO_DAY'] || 'Please select at least one day!'); return false; }
+                            // 没有勾选任何一天，阻止保存
+                            if(sel.length === 0) { 
+                                openModal({ title: T['M_INC_TIT'] || 'Notice', msg: '<div style="font-size:15px; color:#ef4444; font-weight:bold;">' + (T['MSG_CRON_NO_DAY'] || 'Please select at least one day!') + '</div>', okText: T['BTN_OK'] || 'OK' });
+                                var gm = document.getElementById('nw-global-modal'); if (gm) gm.style.zIndex = '100000';
+                                return false; 
+                            }
                             
                             // 生成 Linux 标准 Cron 表达式 (7天全选则直接用星号)
                             var dStr = (sel.length === 7) ? '*' : sel.join(',');
@@ -1130,6 +1140,7 @@ return view.extend({
                             cronStr = parseInt(tParts[1]) + " " + parseInt(tParts[0]) + " * * " + dStr;
                         }
                         openModal({ title: (T['LBL_CRON_REBOOT'] || 'Scheduled Reboot'), msg: (T['MSG_WRITING'] || 'Saving...'), spin: true });
+                        var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
                         callSetAdvSettings('', '', cronStr).then(function() { setTimeout(function(){ window.location.reload(); }, 1500); });
                     });
                     
