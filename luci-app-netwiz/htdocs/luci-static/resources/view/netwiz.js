@@ -2286,6 +2286,11 @@ return view.extend({
                         var pppoeForm=container.querySelector('#main-pppoe-fields');
                         if (pppoeForm) {
                             if (window._nwMultiPppoe) {
+                                var oldUser = container.querySelector('#pppoe-user');
+                                if (oldUser) oldUser.remove();
+                                var oldPass = container.querySelector('#pppoe-pass');
+                                if (oldPass) oldPass.remove();
+
                                 var mHtml = '<div style="color:#b45309; font-size:13.5px; font-weight:bold; margin-bottom:15px; padding:10px; background:#fef3c7; border-radius:6px; line-height:1.4;">' + (T['MSG_MULTI_WAN'] || '💡 系統偵測到多線撥號環境...') + '</div>';
                                 window._nwMultiPppoe.forEach(function(iface) {
                                     mHtml += '<div class="nw-multi-pppoe-box" data-iface="' + iface.name + '" style="margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #cbd5e1;">';
