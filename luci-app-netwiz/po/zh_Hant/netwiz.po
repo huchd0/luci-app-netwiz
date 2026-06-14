@@ -1789,7 +1789,7 @@ msgstr "定時重啟"
 msgid "MAC Clone"
 msgstr "MAC 複製"
 
-msgid "Clear"
+msgid "Clear (Restore Default)"
 msgstr "🗑️ 清空(恢復預設)"
 
 msgid "Internet Connected"
