@@ -411,7 +411,12 @@ var T = {
 
     'LBL_CRON_REBOOT': _('Scheduled Reboot'),
     'LBL_MAC_CLONE': _('MAC Clone'),
-    'BTN_CLEAR': _('Clear'),
+    'BTN_CLEAR': _('Clear (Restore Default)'),
+    'TXT_NET_OK': _('Internet Connected'),
+    'TXT_NET_FAIL': _('Internet Disconnected'),
+    'BTN_CANCEL': _('Cancel'),
+    'BTN_OK': _('OK'),
+    'M_CANCEL': _('Ignore'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -938,8 +943,8 @@ return view.extend({
             box.innerHTML = '<div style="font-size:17px; font-weight:bold; color:#1e293b; margin-bottom:15px;">' + title + '</div>' + 
                             '<div style="margin-bottom:20px; color:#475569;">' + html + '</div>' +
                             '<div style="display:flex; justify-content:flex-end; gap:10px;">' +
-                            '<button id="mdl-cancel" class="nw-u-btn nw-u-btn-gray" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_CANCEL']||'取消') + '</button>' +
-                            '<button id="mdl-ok" class="nw-u-btn nw-u-btn-blue" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_OK']||'确定') + '</button>' +
+                            '<button id="mdl-cancel" class="nw-u-btn nw-u-btn-gray" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_CANCEL']||'Cancel') + '</button>' +
+                            '<button id="mdl-ok" class="nw-u-btn nw-u-btn-blue" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_OK']||'OK') + '</button>' +
                             '</div>';
             bg.appendChild(box); document.body.appendChild(bg);
             box.querySelector('#mdl-cancel').onclick = function() { document.body.removeChild(bg); };
@@ -1044,7 +1049,7 @@ return view.extend({
                               '<input type="text" id="mdl-mac-val" value="'+currentMac+'" placeholder="AA:BB:CC:DD:EE:FF" style="width:100%; height:40px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-family:monospace; margin-bottom:10px; font-size:15px; box-sizing:border-box;">' +
                                '<div style="display:flex; justify-content:space-between; align-items:center;">' +
                                '<a href="javascript:void(0)" id="mdl-get-mac" style="color:#0284c7; font-size:13.5px; text-decoration:none;">' + (T['BTN_GET_MAC'] || '⚡ Auto-fill MAC') + '</a>' +
-                               '<a href="javascript:void(0)" id="mdl-clear-mac" style="color:#ef4444; font-size:13.5px; text-decoration:none;">' + (T['BTN_CLEAR'] || 'Clear') + '</a>' +
+                               '<a href="javascript:void(0)" id="mdl-clear-mac" style="color:#ef4444; font-size:13.5px; text-decoration:none;">' + (T['BTN_CLEAR'] || 'Clear (Restore Default)') + '</a>' +
                                '</div>';
                     showAdvModal((T['LBL_MAC_CLONE'] || 'MAC Clone'), html, function(box) {
                         var m = box.querySelector('#mdl-mac-val').value.trim();
@@ -1986,7 +1991,7 @@ return view.extend({
                         var badgeEl = document.getElementById('nw-inet-badge');
                         if (badgeEl) {
                             badgeEl.innerHTML = window.nwInetStatus === 'ok' ? '🌐' : '❌';
-                            badgeEl.title = window.nwInetStatus === 'ok' ? '互联网已连通' : '互联网未连通';
+                            badgeEl.title = window.nwInetStatus === 'ok' ? (T['TXT_NET_OK'] || 'Internet Connected') : (T['TXT_NET_FAIL'] || 'Internet Disconnected');
                         }
                     });
                 }
@@ -2045,7 +2050,7 @@ return view.extend({
                         return res;
                     };
                     var uptimeStr = formatUptime(wanUptime);
-                    var upBadgeHtml = uptimeStr ? "<span style='font-size:18px; color:#fff; font-weight:600; margin-left:4px; font-family:monospace;'>🕒" + uptimeStr + "</span>" : "";
+                    var upBadgeHtml = uptimeStr ? "<span style='font-size:15px; color:#fff; font-weight:600; margin-left:0; font-family:monospace;'>🕒" + uptimeStr + "</span>" : "";
 
                     // 提取主备 DNS
                     var dnsServers = activeWan['dns-server'] || [];
@@ -2722,29 +2727,31 @@ return view.extend({
                         } catch(ex) { }
                     }
 
-                    // ---- 替换开始 ----
+                    // ---- 开始 ----
                     var mkB = function(bg, txt) { return "<span style='font-size:14px; background:" + bg + "; color:#fff; padding:5px 10px; border-radius:12px; white-space:nowrap;'>" + txt + "</span>"; };
                     var mkD = function(l1, v1, l2, v2) { return "<span class='nw-info-item'>" + l1 + " <span class='nw-hl'>" + v1 + "</span></span><span class='nw-info-item'>" + l2 + " <span class='nw-hl'>" + v2 + "</span></span>"; };
-                    
-                    // 💡 终极防跳魔法：给不断跳动的时间套上“隐形束身衣”(固定95px宽度)，并启用等宽数字 (tabular-nums)。
+
                     // 这样时间在内部怎么跳动，都绝对不会再挤压外部的排版！
-                    var fixedUpBadge = upBadgeHtml ? "<span style='display:inline-block; width:135px; text-align:center; font-variant-numeric: tabular-nums; margin:0 4px;'>" + upBadgeHtml + "</span>" : "";
+                    var fixedUpBadge = upBadgeHtml ? "<span style='display:inline-block; width:AUTO; text-align:left; font-variant-numeric: tabular-nums; margin:0 0;'>" + upBadgeHtml + "</span>" : "";
                     
                     var sTitle = "", sDetails = "", statusBadge = "";
-                    var iconStr = window.nwInetStatus === 'ok' ? '🌐' : (window.nwInetStatus === 'fail' ? '❌' : '');
-                    var titleStr = window.nwInetStatus === 'ok' ? '互联网已连通' : (window.nwInetStatus === 'fail' ? '互联网未连通' : '');
                     
-                    // 将图标也改为绝对的 width: 28px，彻底锁死它占用的空间
-                    var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; width:28px; text-align:center; font-size:18px; vertical-align:middle; cursor:help; line-height:1;'>" + iconStr + "</span>";
+                    // 底层物理网口/PPPoE已断开，或还未获取到IP，强制立刻显示断开的X，不等待8秒的ping缓存
+                    if (!activeWan.up || !liveWanIp) { window.nwInetStatus = 'fail'; }
+
+                    var iconStr = window.nwInetStatus === 'ok' ? '🌐' : (window.nwInetStatus === 'fail' ? '❌' : '');
+                    var titleStr = window.nwInetStatus === 'ok' ? (T['TXT_NET_OK'] || 'Internet Connected') : (window.nwInetStatus === 'fail' ? (T['TXT_NET_FAIL'] || 'Internet Disconnected') : '');
+                    
+                    var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; width:28px; text-align:center; font-size:22px; vertical-align:middle; cursor:help; line-height:1;'>" + iconStr + "</span>";
 
                     if (isBypass) { sTitle = T['STAT_BYPASS']; sDetails = mkD(T['TXT_DEV_IP'], lIp, T['TXT_UP_GW'], lGw); } 
-                    else if (isWispActive) { sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; statusBadge = mkB('#10b981', T['BDG_GOT'] || 'IP Acquired') + fixedUpBadge + inetBadgeHtml; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); }
-                    else if (hasWispConfigured && !isWispActive) { sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; statusBadge = mkB('#f59e0b', T['TXT_WISP_WAITING'] || 'Connecting...'); sDetails = "<div style='color:#facc15; font-size:14.5px; font-weight:bold;'>" + (T['MSG_WISP_STUCK'] || '⚠️ Connecting to upstream...') + "</div>"; }
-                    else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']) + fixedUpBadge + inetBadgeHtml; sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } 
-                    else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']) + fixedUpBadge + inetBadgeHtml; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']); sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } 
-                    else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = activeWan.up ? mkB('#10b981', T['BDG_CONN']) + fixedUpBadge + inetBadgeHtml : mkB('#ef4444', T['BDG_UNPLUG']); sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } 
+                    else if (isWispActive) { sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; statusBadge = mkB('#10b981', T['BDG_GOT'] || 'IP Acquired') + inetBadgeHtml + fixedUpBadge; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); }
+                    else if (hasWispConfigured && !isWispActive) { sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; statusBadge = mkB('#f59e0b', T['TXT_WISP_WAITING'] || 'Connecting...') + inetBadgeHtml + fixedUpBadge; sDetails = "<div style='color:#facc15; font-size:14.5px; font-weight:bold;'>" + (T['MSG_WISP_STUCK'] || '⚠️ Connecting to upstream...') + "</div>"; }
+                    else if (wProto === 'pppoe') { sTitle = T['STAT_MAIN_PPPOE']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_SUCC']) + inetBadgeHtml + fixedUpBadge; sDetails = mkD(T['TXT_PUB_IP'], liveWanIp, T['TXT_REM_GW'], liveGw); } else { statusBadge = mkB('#ef4444', T['BDG_DIAL']) + inetBadgeHtml + fixedUpBadge; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_WAIT_REM']); } } 
+                    else if (wProto === 'dhcp') { sTitle = T['STAT_SEC_DHCP']; if (activeWan.up && liveWanIp) { statusBadge = mkB('#10b981', T['BDG_GOT']) + inetBadgeHtml + fixedUpBadge; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); } else { statusBadge = mkB('#f59e0b', T['BDG_WAIT']) + inetBadgeHtml + fixedUpBadge; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_STATUS'], T['TXT_GET_IP']); } } 
+                    else if (wProto === 'static') { sTitle = T['STAT_SEC_STATIC']; statusBadge = (activeWan.up ? mkB('#10b981', T['BDG_CONN']) : mkB('#ef4444', T['BDG_UNPLUG'])) + inetBadgeHtml + fixedUpBadge; sDetails = mkD(T['TXT_WAN_IP'], wIp, T['TXT_UP_GW'], wGw); } 
                     else { sTitle = T['STAT_LAN']; sDetails = mkD(T['TXT_LAN_IP'], lIp, T['TXT_DHCP_SRV'], T['TXT_ON']); }
-                    // ---- 替换结束 ----
+                    // ---- 结束 ----
                     var sDnsHtml = "";
                     if (!isBypass && activeWan.up && dns1) {
                         sDnsHtml = "<div style='font-size:15.5px; font-weight:bold; color:#FFF; font-family:monospace; margin:6px 0 10px 0; display:flex; flex-wrap:wrap; justify-content:center; gap:0;'><span class='nw-info-item'>" + T['TXT_DNS1'] + " <span class='nw-hl'>" + dns1 + "</span></span>" + (dns2 ? "<span class='nw-info-item'>" + T['TXT_DNS2'] + " <span class='nw-hl'>" + dns2 + "</span></span>" : "") + "</div>";
