@@ -417,6 +417,7 @@ var T = {
     'BTN_CANCEL': _('Cancel'),
     'BTN_OK': _('OK'),
     'M_CANCEL': _('Ignore'),
+    'M_FMT_MAC': _('Invalid MAC address format!'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1053,7 +1054,7 @@ return view.extend({
                                '</div>';
                     showAdvModal((T['LBL_MAC_CLONE'] || 'MAC Clone'), html, function(box) {
                         var m = box.querySelector('#mdl-mac-val').value.trim();
-                        if (m && !/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(m)) { alert(T['M_FMT_IP'] || 'Invalid MAC'); return false; }
+                        if (m && !/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(m)) { alert(T['M_FMT_MAC'] || 'Invalid MAC address format!'); return false; }
                         openModal({ title: (T['LBL_MAC_CLONE'] || 'MAC Clone'), msg: (T['MSG_WRITING'] || 'Saving...'), spin: true });
                         callSetAdvSettings(m || 'none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2500); });
                     });
@@ -1995,12 +1996,7 @@ return view.extend({
                         }
                     });
                 }
-                
-                // 💡 核心修复：给图标加上 display:inline-block 和 min-width:26px 锁定物理空间，防止任何挤压跳动
-                var iconStr = window.nwInetStatus === 'ok' ? '🌐' : (window.nwInetStatus === 'fail' ? '❌' : '');
-                var titleStr = window.nwInetStatus === 'ok' ? '互联网已连通' : (window.nwInetStatus === 'fail' ? '互联网未连通' : '');
-                var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; min-width:26px; text-align:center; margin-left:4px; font-size:18px; vertical-align:middle; cursor:default; line-height:1;'>" + iconStr + "</span>";
-                // --------------------------
+    
                 if (modeTextEl && !isSilent) modeTextEl.innerHTML = "<div class='nw-spinner' style='width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;'></div><div style='margin-top:10px; font-size:15px; font-weight:bold; color:#fff;'>" + T['LOADING_CONFIG'] + "</div>";
                 try { uci.unload('network'); uci.unload('dhcp'); uci.unload('wireless'); } catch(e) {}
                 
@@ -2742,7 +2738,7 @@ return view.extend({
                     var iconStr = window.nwInetStatus === 'ok' ? '🌐' : (window.nwInetStatus === 'fail' ? '❌' : '');
                     var titleStr = window.nwInetStatus === 'ok' ? (T['TXT_NET_OK'] || 'Internet Connected') : (window.nwInetStatus === 'fail' ? (T['TXT_NET_FAIL'] || 'Internet Disconnected') : '');
                     
-                    var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; width:28px; text-align:center; font-size:22px; vertical-align:middle; cursor:help; line-height:1;'>" + iconStr + "</span>";
+                    var inetBadgeHtml = "<span id='nw-inet-badge' title='" + titleStr + "' style='display:inline-block; width:28px; text-align:center; font-size:22px; vertical-align:middle; cursor:default; line-height:1;'>" + iconStr + "</span>";
 
                     if (isBypass) { sTitle = T['STAT_BYPASS']; sDetails = mkD(T['TXT_DEV_IP'], lIp, T['TXT_UP_GW'], lGw); } 
                     else if (isWispActive) { sTitle = T['TXT_WISP_ON'] || 'WISP Enabled'; statusBadge = mkB('#10b981', T['BDG_GOT'] || 'IP Acquired') + inetBadgeHtml + fixedUpBadge; sDetails = mkD(T['TXT_WAN_IP'], liveWanIp, T['TXT_UP_GW'], liveGw); }
@@ -4899,7 +4895,7 @@ return view.extend({
                                         document.getElementById('nw-global-msg').innerHTML = '<div style="color:#10b981; font-weight:bold; font-size:15px; margin-top:20px; margin-bottom:10px;">' + T['MSG_WAIT_OLD'].replace('{sec}', rollbackSec) + '</div><div style="color:#64748b; font-size:14px;">' + T['MSG_ABANDONING'] + '</div>'; 
                                         fetchProbe('http://' + h + '/cgi-bin/luci/?v=' + Date.now(), 2000)
                                         .then(function() { 
-                                            clearInterval(checkSameTimer); 
+                                            clearInterval(checkOldIpTimer);
                                             
                                             // 网络恢复后，向后端发送确认信号，解除看门狗回滚警报
                                             var confirmRpc = rpc.declare({ object: 'netwiz', method: 'confirm' });
