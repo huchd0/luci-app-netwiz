@@ -1842,3 +1842,9 @@ msgstr "💡 <b>纯文本高级模式</b>：支持批量粘贴。格式：<code>
 
 msgid "IP and Domain cannot be empty!"
 msgstr "IP 和 域名 不能为空！"
+
+msgid "Invalid IP address format!"
+msgstr "IP 地址格式不正确！"
+
+msgid "Invalid domain format! Spaces and special characters are not allowed."
+msgstr "域名格式不正确！不允许包含空格或特殊危险字符。"
