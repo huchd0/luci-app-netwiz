@@ -2291,24 +2291,14 @@ return view.extend({
                                 var oldPass = container.querySelector('#pppoe-pass');
                                 if (oldPass) oldPass.remove();
 
-                                var mHtml = '<div style="color:#b45309; font-size:13.5px; font-weight:bold; margin-bottom:15px; padding:10px; background:#fef3c7; border-radius:6px; line-height:1.4;">' + (T['MSG_MULTI_WAN'] || '💡 Multi-WAN detected...') + '</div>';
+                                var mHtml = '<div style="color:#b45309; font-size:13.5px; font-weight:bold; margin-bottom:15px; padding:10px; background:#fef3c7; border-radius:6px; line-height:1.4;">' + (T['MSG_MULTI_WAN'] || '💡 系統偵測到多線撥號環境...') + '</div>';
                                 window._nwMultiPppoe.forEach(function(iface) {
                                     mHtml += '<div class="nw-multi-pppoe-box" data-iface="' + iface.name + '" style="margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #cbd5e1;">';
-                                    mHtml += '<div style="font-size:15px; font-weight:bold; color:#0284c7; margin-bottom:12px;">' + (T['LBL_IFACE'] || 'Interface:') + ' ' + iface.name.toUpperCase() + '</div>';
-                                    
-                                    // 账号输入框
-                                    mHtml += '<div style="margin-bottom:12px;">';
-                                    mHtml += '<div style="font-size:13.5px; color:#475569; font-weight:500; margin-bottom:6px;">' + (T['LBL_USER'] || 'User') + '</div>';
-                                    mHtml += '<input type="search" class="m-user nd-input" placeholder="' + (T['PH_USER'] || '') + '" value="' + iface.user + '" style="width:100%; height:44px; border:1px solid #cbd5e1; border-radius:8px; padding:0 12px; box-sizing:border-box; color:#334155; background:#fff; font-size:15px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#cbd5e1\'">';
-                                    mHtml += '</div>';
-
-                                    // 密码输入框
-                                    mHtml += '<div>';
-                                    mHtml += '<div style="font-size:13.5px; color:#475569; font-weight:500; margin-bottom:6px;">' + (T['LBL_PASS'] || 'Pass') + '</div>';
-                                    mHtml += '<input type="search" class="m-pass nd-input" placeholder="' + (T['PH_PASS'] || '') + '" value="' + iface.pass + '" style="width:100%; height:44px; border:1px solid #cbd5e1; border-radius:8px; padding:0 12px; box-sizing:border-box; color:#334155; background:#fff; font-size:15px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#cbd5e1\'">';
-                                    mHtml += '</div>';
-
-                                    mHtml += '</div>';
+                                    mHtml += '<div style="font-size:14px; font-weight:bold; color:#0284c7; margin-bottom:10px;">' + (T['LBL_IFACE'] || 'Interface:') + ' ' + iface.name.toUpperCase() + '</div>';
+                                    mHtml += '<div style="display:grid; gap:10px;">';
+                                    mHtml += '<input type="search" class="m-user nd-input" placeholder="' + (T['LBL_USER'] || 'User') + '" value="' + iface.user + '" style="flex:1; height:46px; border:1px solid #cbd5e1; border-radius:8px; padding:0 16px; box-sizing:border-box;">';
+                                    mHtml += '<input type="search" class="m-pass nd-input" placeholder="' + (T['LBL_PASS'] || 'Pass') + '" value="' + iface.pass + '" style="flex:1; height:46px; border:1px solid #cbd5e1; border-radius:8px; padding:0 16px; box-sizing:border-box;">';
+                                    mHtml += '</div></div>';
                                 });
                                 mHtml += '<button type="submit" id="main-pppoe-submit" style="display:none;">Apply</button>';
                                 pppoeForm.innerHTML = mHtml;
