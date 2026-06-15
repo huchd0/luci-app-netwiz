@@ -1175,7 +1175,7 @@ return view.extend({
                     try { hostsArr = (typeof res.hosts === 'string') ? JSON.parse(res.hosts) : (res.hosts || []); if (!Array.isArray(hostsArr)) hostsArr = []; } catch(e) { hostsArr = []; }
                     var esc = function(s) { return (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); };
 
-                    // 💡 记录打开时的初始数据快照，用于“未修改防呆拦截”
+                    // 记录打开时的初始数据快照，用于“未修改防呆拦截”
                     var initialData = hostsArr.filter(function(item) { return item.ip.trim() !== '' && item.dom.trim() !== ''; });
                     var initialJsonStr = JSON.stringify(initialData);
 
@@ -1268,7 +1268,7 @@ return view.extend({
                         var totalItems = hostsArr.length;
                         hostsArr.forEach(function(item, idx) {
                             var opacity = item.en ? '1' : '0.5';
-                            // 💡 倒序排列公式：总长度减去当前索引
+                            // 倒序排列公式：总长度减去当前索引
                             var displayNum = totalItems - idx; 
                             
                             listHtml += '<div style="margin-bottom:12px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; transition:opacity 0.2s;" id="h-row-'+idx+'" style="opacity:'+opacity+';">';
@@ -1298,7 +1298,7 @@ return view.extend({
                                     var isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(ipVal);
                                     var isIpv6 = /^[a-fA-F0-9:]+:[a-fA-F0-9:]+$/.test(ipVal);
                                     if (ipVal !== '' && !isIpv4 && !isIpv6) { 
-                                        // 💡 使用精美弹窗替换 alert()
+                                        // 替换 原生alert()弹窗
                                         openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['M_FMT_IP'] || 'Invalid IP format!', okText: T['M_CLOSE'] || 'Close' }); 
                                         this.value = hostsArr[idx].ip; 
                                         return; 
@@ -1309,7 +1309,7 @@ return view.extend({
                                 if(this.classList.contains('h-dom')) {
                                     var domVal = this.value.trim();
                                     if (/[\s<>"']/.test(domVal)) { 
-                                        // 💡 使用精美弹窗替换 alert()
+                                        // 替换 原生alert()弹窗
                                         openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['M_FMT_DOMAIN'] || 'Invalid domain format!', okText: T['M_CLOSE'] || 'Close' }); 
                                         this.value = hostsArr[idx].dom; 
                                         return; 
@@ -1341,19 +1341,19 @@ return view.extend({
                             var domVal = domInput.value.trim();
                             
                             if (!ipVal || !domVal) { 
-                                // 💡 使用精美弹窗替换 alert()
+                                // 替换 原生alert()弹窗
                                 openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['MSG_HOSTS_REQ'] || 'IP and Domain cannot be empty!', okText: T['M_CLOSE'] || 'Close' }); 
                                 return; 
                             }
                             var isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(ipVal);
                             var isIpv6 = /^[a-fA-F0-9:]+:[a-fA-F0-9:]+$/.test(ipVal);
                             if (!isIpv4 && !isIpv6) { 
-                                // 💡 使用精美弹窗替换 alert()
+                                // 替换 原生alert()弹窗
                                 openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['M_FMT_IP'] || 'Invalid IP format!', okText: T['M_CLOSE'] || 'Close' }); 
                                 return; 
                             }
                             if (/[\s<>"']/.test(domVal)) { 
-                                // 💡 使用精美弹窗替换 alert()
+                                // 替换 原生alert()弹窗
                                 openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['M_FMT_DOMAIN'] || 'Invalid domain format!', okText: T['M_CLOSE'] || 'Close' }); 
                                 return; 
                             }
