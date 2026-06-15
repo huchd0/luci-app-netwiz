@@ -1805,10 +1805,10 @@ msgid "Invalid MAC address format!"
 msgstr "MAC 地址格式不正确，请检查！"
 
 msgid "💡 Multi-WAN detected. You can modify the account and password for each line separately (other settings remain unchanged)."
-msgstr "💡 系统检测到多线拨号环境，可分别修改各线路的账号密码（其他设置保持不变）。"
+msgstr "💡 系统检测到多个拨号环境，可分别修改各拨号的账号密码（其他设置保持不变）。"
 
 msgid "Interface:"
 msgstr "线路接口:"
 
 msgid "💡 Multi-WAN detected. Only the primary WAN will be configured here, other lines remain unchanged."
-msgstr "💡 系统检测到多线环境，向导中仅配置主线路 (WAN)，其余线路将保持原样。"
+msgstr "💡 系统检测到多拨环境，向导中仅配置主线路 (WAN)，其余将保持原样。"
