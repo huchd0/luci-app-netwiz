@@ -12,28 +12,28 @@ body {
 
 /* 所有输入框的占位符样式 */
 /* -------  开始  ------*/
-input::placeholder { 
-   color: #94a3b8 !important; 
-   opacity: 1 !important; 
-   font-weight: 500 !important;
+body input::placeholder { 
+  color: #94a3b8 !important; 
+  opacity: 1 !important; 
+  font-weight: 500 !important; 
 }
 
-input::-webkit-input-placeholder { 
-   color: #94a3b8 !important; 
-   opacity: 1 !important; 
-   font-weight: 500 !important;
+body input::-webkit-input-placeholder { 
+  color: #94a3b8 !important; 
+  opacity: 1 !important; 
+  font-weight: 500 !important; 
 }
 
-input::-moz-placeholder { 
-   color: #94a3b8 !important; 
-   opacity: 1 !important; 
-   font-weight: 500 !important;
+body input::-moz-placeholder { 
+  color: #94a3b8 !important; 
+  opacity: 1 !important; 
+  font-weight: 500 !important; 
 }
 
-input:-ms-input-placeholder { 
-   color: #94a3b8 !important; 
-   opacity: 1 !important; 
-   font-weight: 500 !important;
+body input:-ms-input-placeholder { 
+  color: #94a3b8 !important; 
+  opacity: 1 !important; 
+  font-weight: 500 !important; 
 }
 /* -------  结束  ------*/
 
