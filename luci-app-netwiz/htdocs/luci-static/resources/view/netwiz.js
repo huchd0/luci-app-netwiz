@@ -955,8 +955,7 @@ return view.extend({
             box.querySelector('#mdl-ok').onclick = function() { if(onOk(box) !== false) document.body.removeChild(bg); };
         }
 
-        // ================= 高级与实验室：动态包裹与折叠逻辑 (物理高度丝滑版) =================
-        // 1. 在页面加载后，自动将高级设置和下方的所有区块包裹并隐藏
+        // ================= 高级与实验室：动态包裹与折叠逻辑 =================
         setTimeout(function() {
             var cloneLink = container.querySelector('#link-mac-clone');
             if (cloneLink) {
@@ -964,7 +963,7 @@ return view.extend({
                 if (advBlock && advBlock.parentNode && !document.getElementById('nw-hidden-features')) {
                     var wrapper = document.createElement('div');
                     wrapper.id = 'nw-hidden-features';
-                    // 💡 核心：必须加上 overflow: hidden，高度折叠时内部元素才不会溢出
+                    // 加上 overflow: hidden，高度折叠时内部元素才不会溢出
                     wrapper.style.overflow = 'hidden'; 
                     wrapper.style.display = 'none';
                     wrapper.style.opacity = '0';
@@ -974,12 +973,11 @@ return view.extend({
                     while (wrapper.nextElementSibling) {
                         wrapper.appendChild(wrapper.nextElementSibling);
                     }
-                    // 注：此版本由 JS 动态驱动高度，彻底抛弃 @keyframes 注入，代码更干净
                 }
             }
         }, 150);
 
-        // 2. 监听按钮点击，执行物理高度进出场动画
+        // 2. 监听按钮点击，出场动画
         container.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'nw-toggle-adv') {
                 var wrapper = document.getElementById('nw-hidden-features');
@@ -988,7 +986,7 @@ return view.extend({
                     var isHidden = wrapper.style.display === 'none';
                     
                     if (isHidden) {
-                        // 🟢 展开：先 display block，计算出真实需要的高度，然后从 0 平滑拉伸
+                        // 动画
                         wrapper.style.display = 'block';
                         var targetHeight = wrapper.scrollHeight; 
                         
@@ -1001,16 +999,15 @@ return view.extend({
                         e.target.innerHTML = (T['BTN_ADV_HIDE'] || 'Advanced Settings ▲');
                         e.target.style.background = 'rgba(0,0,0,0.3)';
                         
-                        // 💡 滚动魔法终极修正：等 300ms 动画完全结束、高度彻底定型后，再执行精准滚动
+                        // 动画
                         setTimeout(function() { 
                             wrapper.style.height = 'auto'; // 解除高度锁定
                             wrapper.isAnimating = false; 
                             
-                            // 此时盒子已达到 100% 真实高度，触发平滑滚动，绝对能一管到底！
                             wrapper.scrollIntoView({ behavior: 'smooth', block: 'end' });
                         }, 500);
                     } else {
-                        // 🔴 收合：先将 auto 变成具体的像素高度，然后平滑压缩到 0
+                        // 收合
                         var currentHeight = wrapper.scrollHeight;
                         wrapper.style.height = currentHeight + 'px'; 
                         
@@ -1023,7 +1020,7 @@ return view.extend({
                         e.target.innerHTML = (T['BTN_ADV_SHOW'] || 'Advanced Settings ▼');
                         e.target.style.background = 'rgba(0,0,0,0.15)';
                         
-                        // 💡 向上滚动魔法：在收合动画开始的瞬间 (延迟 50ms)，平滑滚动回页面最上方
+                        // 收合动画滚动回页面最上方
                         setTimeout(function() {
                             // 让整个插件的主容器顶部对齐屏幕顶部，兼容所有主题
                             if (container) {
@@ -1031,7 +1028,7 @@ return view.extend({
                             }
                         }, 50);
                         
-                        // 💡 计时器同步：等 450 毫秒动画彻底播完后，再彻底隐藏元素
+                        // 计时器同步：等 450 毫秒动画彻底播完后，再彻底隐藏元素
                         setTimeout(function() {
                             wrapper.style.display = 'none';
                             wrapper.isAnimating = false;
@@ -2291,14 +2288,24 @@ return view.extend({
                                 var oldPass = container.querySelector('#pppoe-pass');
                                 if (oldPass) oldPass.remove();
 
-                                var mHtml = '<div style="color:#b45309; font-size:13.5px; font-weight:bold; margin-bottom:15px; padding:10px; background:#fef3c7; border-radius:6px; line-height:1.4;">' + (T['MSG_MULTI_WAN'] || '💡 系統偵測到多線撥號環境...') + '</div>';
+                                var mHtml = '<div style="color:#b45309; font-size:13.5px; font-weight:bold; margin-bottom:15px; padding:10px; background:#fef3c7; border-radius:6px; line-height:1.4;">' + (T['MSG_MULTI_WAN'] || '💡 Multi-WAN detected...') + '</div>';
                                 window._nwMultiPppoe.forEach(function(iface) {
                                     mHtml += '<div class="nw-multi-pppoe-box" data-iface="' + iface.name + '" style="margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #cbd5e1;">';
-                                    mHtml += '<div style="font-size:14px; font-weight:bold; color:#0284c7; margin-bottom:10px;">' + (T['LBL_IFACE'] || 'Interface:') + ' ' + iface.name.toUpperCase() + '</div>';
-                                    mHtml += '<div style="display:grid; gap:10px;">';
-                                    mHtml += '<input type="search" class="m-user nd-input" placeholder="' + (T['LBL_USER'] || 'User') + '" value="' + iface.user + '" style="flex:1; height:46px; border:1px solid #cbd5e1; border-radius:8px; padding:0 16px; box-sizing:border-box;">';
-                                    mHtml += '<input type="search" class="m-pass nd-input" placeholder="' + (T['LBL_PASS'] || 'Pass') + '" value="' + iface.pass + '" style="flex:1; height:46px; border:1px solid #cbd5e1; border-radius:8px; padding:0 16px; box-sizing:border-box;">';
-                                    mHtml += '</div></div>';
+                                    mHtml += '<div style="font-size:15px; font-weight:bold; color:#0284c7; margin-bottom:12px;">' + (T['LBL_IFACE'] || 'Interface:') + ' ' + iface.name.toUpperCase() + '</div>';
+                                    
+                                    // 账号输入框（带上方独立 Label，强制白底深色字，附带聚焦变蓝效果）
+                                    mHtml += '<div style="margin-bottom:12px;">';
+                                    mHtml += '<div style="font-size:13.5px; color:#475569; font-weight:500; margin-bottom:6px;">' + (T['LBL_USER'] || 'User') + '</div>';
+                                    mHtml += '<input type="search" class="m-user nd-input" placeholder="' + (T['PH_USER'] || '') + '" value="' + iface.user + '" style="width:100%; height:44px; border:1px solid #cbd5e1; border-radius:8px; padding:0 12px; box-sizing:border-box; color:#334155; background:#fff; font-size:15px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#cbd5e1\'">';
+                                    mHtml += '</div>';
+
+                                    // 密码输入框
+                                    mHtml += '<div>';
+                                    mHtml += '<div style="font-size:13.5px; color:#475569; font-weight:500; margin-bottom:6px;">' + (T['LBL_PASS'] || 'Pass') + '</div>';
+                                    mHtml += '<input type="search" class="m-pass nd-input" placeholder="' + (T['PH_PASS'] || '') + '" value="' + iface.pass + '" style="width:100%; height:44px; border:1px solid #cbd5e1; border-radius:8px; padding:0 12px; box-sizing:border-box; color:#334155; background:#fff; font-size:15px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#cbd5e1\'">';
+                                    mHtml += '</div>';
+
+                                    mHtml += '</div>';
                                 });
                                 mHtml += '<button type="submit" id="main-pppoe-submit" style="display:none;">Apply</button>';
                                 pppoeForm.innerHTML = mHtml;
