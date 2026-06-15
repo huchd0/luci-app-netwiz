@@ -1114,9 +1114,6 @@ msgstr "✅ 匯出成功"
 msgid "Core network configuration file has been successfully downloaded!"
 msgstr "核心網路配置檔案已成功下載！"
 
-msgid "Close"
-msgstr "關閉"
-
 msgid "❌ Export Failed"
 msgstr "❌ 匯出失敗"
 
@@ -1848,3 +1845,9 @@ msgstr "IP 位址格式不正確！"
 
 msgid "Invalid domain format! Spaces and special characters are not allowed."
 msgstr "網域格式不正確！不允許包含空格或特殊危險字元。"
+
+msgid "No changes have been made."
+msgstr "您沒有進行任何修改！"
+
+msgid "Notice"
+msgstr "提示訊息"
