@@ -1812,3 +1812,33 @@ msgstr "線路介面:"
 
 msgid "💡 Multi-WAN detected. Only the primary WAN will be configured here, other lines remain unchanged."
 msgstr "💡 系統偵測到多線環境，向導中僅配置主線路 (WAN)，其餘線路將保持原樣。"
+
+msgid "✏️ Custom Hosts"
+msgstr "✏️ 自訂 Hosts"
+
+msgid "Custom <a href=\"javascript:void(0)\" id=\"nw-hosts-raw-toggle\" style=\"color:red; text-decoration:underline dashed; transition:color 0.2s;\" title=\"Click to toggle pure text advanced mode\">Hosts</a>👈 (Domain Hijack)"
+msgstr "自訂 <a href=\"javascript:void(0)\" id=\"nw-hosts-raw-toggle\" style=\"color:red; text-decoration:underline dashed; transition:color 0.2s;\" title=\"點擊切換純文本高級模式\">Hosts</a>👈 (網域劫持)"
+
+msgid "💡 Quick Add:"
+msgstr "💡 快速新增紀錄:"
+
+msgid "➕ Add"
+msgstr "➕ 新增"
+
+msgid "No custom Hosts, please add below."
+msgstr "暫無自訂 Hosts，請點擊上方新增紀錄"
+
+msgid "IP (e.g., 192.168.1.50)"
+msgstr "指向 IP (如 192.168.1.50)"
+
+msgid "Domain (e.g., router.lan)"
+msgstr "劫持網域 (如 router.lan)"
+
+msgid "Comment (Optional)"
+msgstr "備註說明 (選填)"
+
+msgid "💡 <b>Pure Text Advanced Mode</b>: Supports batch pasting. Format: <code>IP Domain #Comment</code>"
+msgstr "💡 <b>純文本高級模式</b>：支援批次貼上。格式：<code>IP 網域 #備註</code>"
+
+msgid "IP and Domain cannot be empty!"
+msgstr "IP 和 網域 不能為空！"
