@@ -1297,9 +1297,6 @@ msgstr "請再次輸入密碼"
 msgid "Passwords do not match, please try again!"
 msgstr "兩次輸入的密碼不一致，請重新檢查！"
 
-msgid "Skip Password Setup (Keep current)"
-msgstr "暫不配置 管理員密碼 (保持現狀)"
-
 msgid "Router Admin Password (Optional)"
 msgstr "路由器管理密碼 (可選)"
 
