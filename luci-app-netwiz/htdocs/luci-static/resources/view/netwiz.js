@@ -213,7 +213,6 @@ var T = {
     'PH_CONFIRM_PWD': _('Enter password again'),
     'M_PWD_MISMATCH': _('Passwords do not match, please try again!'),
     'WIZ_SKIP': _('Skip this time'),
-    'WIZ_SKIP_PWD': _('Skip Password Setup (Keep current)'),
     'TXT_NOT_CONFIGURED': _('Not configured (Keep current)'),
     'WIZ_WIFI_DESC': _('Set your wireless network name and password.'),
     'WIZ_HIDE': _("Don't show this again"),
@@ -547,15 +546,6 @@ return view.extend({
             '      <div style="padding: 10px 10px 5px; overflow-y: auto;">',
             '         <div id="wiz-step-1-area">',
             '            <div class="nw-step-title" style="margin-bottom: 20px; font-size: 19px;">{{WIZ_PWD}}</div>',
-            
-            // 密码暫不配置复选框
-            '            <div style="text-align: center; margin-bottom: 15px; padding: 14px 10px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; width: 100%; box-sizing: border-box;">',
-            '               <label class="nw-wiz-cb-wrap" style="display: inline-flex; align-items: center; justify-content: center; font-size: 16.5px; color: #ef4444; font-weight: bold; margin: 0 auto;">',
-            '                  <input type="checkbox" id="wiz-skip-pwd-checkbox">',
-            '                  <span class="nw-wiz-checkmark" style="border-color:#ef4444;"></span>',
-            '                  <span style="line-height: 1.3; display: inline-block;">{{WIZ_SKIP_PWD}}</span>',
-            '               </label>',
-            '            </div>',
 
             // 密码输入核心区
             '            <div id="wiz-pwd-input-area" style="margin-bottom: 20px; padding-bottom: 20px;">',
@@ -1520,45 +1510,24 @@ return view.extend({
             });
         }
 
-        // 密码跳过联动
-        var skipPwdCb = container.querySelector('#wiz-skip-pwd-checkbox');
-        var pwdInputArea = container.querySelector('#wiz-pwd-input-area');
-        if (skipPwdCb && pwdInputArea) {
-            skipPwdCb.addEventListener('change', function() {
-                pwdInputArea.style.opacity = this.checked ? '0.3' : '1';
-                pwdInputArea.style.pointerEvents = this.checked ? 'none' : 'auto';
-                if (this.checked) {
-                    container.querySelector('#nw-admin-pwd').value = '';
-                    container.querySelector('#nw-admin-pwd-confirm').value = '';
-                }
-            });
-        }
-
+        // 密码跳过联动已移除（不再需要打勾，直接留空即可跳过）
         // ================== 4 步向导 ==================
         wBtnNext.addEventListener('click', function() {
             if (currentWizStep === 1) {
-                // 第一步
-                var isSkipPwd = skipPwdCb ? skipPwdCb.checked : false;
-                if (!isSkipPwd) {
-                    var p1 = container.querySelector('#nw-admin-pwd').value;
-                    var p2 = container.querySelector('#nw-admin-pwd-confirm').value;
-                    if (!p1) {
-                        openModal({ 
-                            title: T['M_INC_TIT'] || 'Notice', 
-                            msg: T['M_PWD_REQ'] || 'Password required!', 
-                            okText: T['M_CLOSE'] || 'Close' 
-                        });
-                        return;
-                    }
-                    if (p1 !== p2) {
-                        openModal({ 
-                            title: T['M_INC_TIT'] || 'Notice', 
-                            msg: T['M_PWD_MISMATCH'], 
-                            okText: T['M_CLOSE'] || 'Close'
-                        });
-                        return;
-                    }
+                // 第一步：密码留空则跳过，填写则必须一致
+                var p1 = container.querySelector('#nw-admin-pwd').value;
+                var p2 = container.querySelector('#nw-admin-pwd-confirm').value;
+                
+                if (p1 !== p2) {
+                    openModal({ 
+                        title: T['M_INC_TIT'] || 'Notice', 
+                        msg: T['M_PWD_MISMATCH'] || 'Passwords do not match, please try again!', 
+                        okText: T['M_CLOSE'] || 'Close'
+                    });
+                    return;
                 }
+                
+                // 只要密码一致（包含两者都为空），就直接进入下一步
                 wArea1.style.display = 'none'; wArea2.style.display = 'block'; 
                 wBtnPrev.style.display = 'block'; currentWizStep = 2; updateWizSteps(2);
             } else if (currentWizStep === 2) {
