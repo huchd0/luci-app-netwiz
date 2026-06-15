@@ -1262,17 +1262,14 @@ return view.extend({
                                     
                                     if (line.charAt(0) === '#') {
                                         var uncommented = line.substring(1).trim();
-                                        if (/^[a-fA-F0-9\.:]+\s+[^\s#]+/.test(uncommented)) {
-                                            en = false; 
-                                            line = uncommented;
-                                        } else {
-                                            return; 
-                                        }
+                                        if (/^[a-fA-F0-9\.:]+\s+[^\s#]+/.test(uncommented)) { en = false; line = uncommented; } else { return; }
                                     }
-                                    
-                                    var match = line.match(/^([a-fA-F0-9\.:]+)\s+([^\s#]+)(?:\s+#\s*(.*))?$/);
-                                    if (match) {
-                                        newArr.push({ ip: match[1], dom: match[2], cmt: match[3] || '', en: en });
+                                    var match = line.match(/^([a-fA-F0-9\.:]+)\s+([^\s<>"'#]+)(?:\s+#\s*(.*))?$/);
+                                    if (match) { 
+                                        var parsedIp = match[1];
+                                        var isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(parsedIp);
+                                        var isIpv6 = /^[a-fA-F0-9:]+:[a-fA-F0-9:]+$/.test(parsedIp);
+                                        if (isIpv4 || isIpv6) { newArr.push({ ip: parsedIp, dom: match[2], cmt: match[3] || '', en: en }); }
                                     }
                                 });
                                 hostsArr = newArr;
@@ -1310,13 +1307,23 @@ return view.extend({
                         listContainer.querySelectorAll('.h-en, .h-ip, .h-dom, .h-cmt').forEach(function(el) {
                             el.addEventListener('change', function() {
                                 var idx = parseInt(this.getAttribute('data-idx'), 10);
-                                if(this.classList.contains('h-en')) { 
-                                    hostsArr[idx].en = this.checked; 
-                                    document.getElementById('h-row-'+idx).style.opacity = this.checked ? '1' : '0.5'; 
+                                if(this.classList.contains('h-en')) { hostsArr[idx].en = this.checked; document.getElementById('h-row-'+idx).style.opacity = this.checked ? '1' : '0.5'; }
+                                if(this.classList.contains('h-ip')) {
+                                    var ipVal = this.value.trim();
+                                    var isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(ipVal);
+                                    var isIpv6 = /^[a-fA-F0-9:]+:[a-fA-F0-9:]+$/.test(ipVal);
+                                    if (ipVal !== '' && !isIpv4 && !isIpv6) { alert(T['M_FMT_IP'] || 'Invalid IP format!'); this.value = hostsArr[idx].ip; return; }
+                                    hostsArr[idx].ip = ipVal;
                                 }
-                                if(this.classList.contains('h-ip')) hostsArr[idx].ip = this.value;
-                                if(this.classList.contains('h-dom')) hostsArr[idx].dom = this.value;
-                                if(this.classList.contains('h-cmt')) hostsArr[idx].cmt = this.value;
+                                if(this.classList.contains('h-dom')) {
+                                    var domVal = this.value.trim();
+                                    if (/[\s<>"']/.test(domVal)) { alert(T['M_FMT_DOMAIN'] || 'Invalid domain format!'); this.value = hostsArr[idx].dom; return; }
+                                    hostsArr[idx].dom = domVal;
+                                }
+                                if(this.classList.contains('h-cmt')) {
+                                    hostsArr[idx].cmt = this.value.trim().replace(/[<>"']/g, '');
+                                    this.value = hostsArr[idx].cmt;
+                                }
                             });
                         });
                         
@@ -1341,22 +1348,11 @@ return view.extend({
                             var ipVal = ipInput.value.trim();
                             var domVal = domInput.value.trim();
                             
-                            if (!ipVal || !domVal) {
-                                alert(T['MSG_HOSTS_REQ'] || 'IP and Domain cannot be empty!');
-                                return;
-                            }
-
-                            // IP防呆：必须符合IPv4（x.x.x.x）或IPv6（含有冒号）格式
-                            if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(ipVal) && !/^[a-fA-F0-9:]+$/.test(ipVal)) {
-                                alert(T['M_FMT_IP'] || 'Invalid IP address format!');
-                                return;
-                            }
-
-                            // 域名防呆与防注入：不允许有空格，且不允许包含HTML标签特征 (<, >, ", ')
-                            if (/[\s<>"']/.test(domVal)) {
-                                alert(T['M_FMT_DOMAIN'] || 'Invalid domain format!');
-                                return;
-                            }
+                            if (!ipVal || !domVal) { alert(T['MSG_HOSTS_REQ'] || 'IP and Domain cannot be empty!'); return; }
+                            var isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(ipVal);
+                            var isIpv6 = /^[a-fA-F0-9:]+:[a-fA-F0-9:]+$/.test(ipVal);
+                            if (!isIpv4 && !isIpv6) { alert(T['M_FMT_IP'] || 'Invalid IP format!'); return; }
+                            if (/[\s<>"']/.test(domVal)) { alert(T['M_FMT_DOMAIN'] || 'Invalid domain format!'); return; }
                             
                             // 写入数组时，针对备注字段做基础的净化
                             hostsArr.unshift({ ip: ipVal, dom: domVal, cmt: cmtInput.value.trim().replace(/[<>"']/g, ''), en: true });
