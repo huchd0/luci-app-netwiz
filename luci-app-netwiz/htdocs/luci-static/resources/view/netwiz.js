@@ -1277,10 +1277,10 @@ return view.extend({
                             listHtml += '<input type="text" class="h-dom nd-input" data-idx="'+idx+'" value="'+esc(item.dom)+'" placeholder="' + (T['PH_HOSTS_DOMAIN']||'Domain') + '" style="flex:1; width:50% !important; height:34px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:13.5px; box-sizing:border-box; min-height: 34px !important;">';
                             listHtml += '<input type="text" class="h-ip nd-input" data-idx="'+idx+'" value="'+esc(item.ip)+'" placeholder="' + (T['PH_HOSTS_IP']||'IP') + '" style="flex:1; width:50% !important; height:34px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:13.5px; color: #000; box-sizing:border-box; min-height: 34px !important;">';
                             listHtml += '</div>';
-                            listHtml += '<div style="display:flex; gap:8px; align-items:center; padding-left:34px;">';
+                            listHtml += '<div style="display:flex; gap:8px; align-items:center;">';
                             listHtml += '<label class="nw-switch nw-flex-shrink-0" style="margin:0;"><input type="checkbox" class="h-en" data-idx="'+idx+'" '+(item.en?'checked':'')+'><span class="nw-slider"></span></label>';
                             listHtml += '<input type="text" class="h-cmt nd-input" data-idx="'+idx+'" value="'+esc(item.cmt)+'" placeholder="' + (T['PH_HOSTS_CMT']||'Comment') + '" style="flex:1; height:34px; min-height: 34px !important; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:13px; box-sizing:border-box; color:#64748b;">';
-                            listHtml += '<button class="h-del nw-u-btn nw-u-btn-red" data-idx="'+idx+'" style="width:34px; height:34px; min-height:34px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:6px;" title="Delete">✕</button>';
+                            listHtml += '<button class="h-del nw-u-btn nw-u-btn-red" data-idx="'+idx+'" style="width:44px; min-width: 34px; height:34px; min-height:34px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:6px;" title="Delete">✕</button>';
                             listHtml += '</div></div>';
                         });
                         
