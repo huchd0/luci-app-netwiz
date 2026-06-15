@@ -431,6 +431,8 @@ var T = {
     'PH_HOSTS_CMT': _('Comment (Optional)'),
     'LBL_HOSTS_RAW_TIP': _('💡 <b>Pure Text Advanced Mode</b>: Supports batch pasting. Format: <code>IP Domain #Comment</code>'),
     'MSG_HOSTS_REQ': _('IP and Domain cannot be empty!'),
+    'M_FMT_IP': _('Invalid IP address format!'),
+    'M_FMT_DOMAIN': _('Invalid domain format! Spaces and special characters are not allowed.'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1173,7 +1175,15 @@ return view.extend({
                         if (!Array.isArray(hostsArr)) hostsArr = [];
                     } catch(e) { hostsArr = []; }
                     
-                    var esc = function(s) { return (s || '').replace(/"/g, '&quot;'); };
+                    // XSS防御：转义所有可能破坏DOM的危险字元
+                    var esc = function(s) { 
+                        return (s || '').toString()
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;'); 
+                    };
                     var html = '<div id="nw-hosts-visual-ui">' +
                                    '<div style="background:#eff6ff; border:1px dashed #93c5fd; padding:12px; border-radius:8px; margin-bottom:15px;">' +
                                        '<div style="font-size:13px; color:#1e3a8a; font-weight:bold; margin-bottom:10px;">' + (T['LBL_HOSTS_VISUAL'] || '💡 Quick Add:') + '</div>' +
@@ -1335,8 +1345,21 @@ return view.extend({
                                 alert(T['MSG_HOSTS_REQ'] || 'IP and Domain cannot be empty!');
                                 return;
                             }
+
+                            // IP防呆：必须符合IPv4（x.x.x.x）或IPv6（含有冒号）格式
+                            if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(ipVal) && !/^[a-fA-F0-9:]+$/.test(ipVal)) {
+                                alert(T['M_FMT_IP'] || 'Invalid IP address format!');
+                                return;
+                            }
+
+                            // 域名防呆与防注入：不允许有空格，且不允许包含HTML标签特征 (<, >, ", ')
+                            if (/[\s<>"']/.test(domVal)) {
+                                alert(T['M_FMT_DOMAIN'] || 'Invalid domain format!');
+                                return;
+                            }
                             
-                            hostsArr.unshift({ ip: ipVal, dom: domVal, cmt: cmtInput.value.trim(), en: true });
+                            // 写入数组时，针对备注字段做基础的净化
+                            hostsArr.unshift({ ip: ipVal, dom: domVal, cmt: cmtInput.value.trim().replace(/[<>"']/g, ''), en: true });
                             renderHosts();
                             
                             ipInput.value = '127.0.0.1'; 
