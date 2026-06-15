@@ -172,7 +172,15 @@ case "$1" in
                 if grep -q "netwiz_reboot" /etc/crontabs/root 2>/dev/null; then
                     cron=$(grep "netwiz_reboot" /etc/crontabs/root | head -n 1 | awk '{print $1" "$2" "$3" "$4" "$5}')
                 fi
-                echo "{\"mac\":\"$mac\", \"web\":\"$web\", \"cron\":\"$cron\"}"
+                
+                # --- 读取自定义 Hosts ---
+                hosts_json="[]"
+                if [ -f /etc/netwiz/hosts.json ]; then
+                    hosts_json=$(cat /etc/netwiz/hosts.json)
+                fi
+                
+                # 输出 JSON 时将 hosts 原样嵌入
+                echo "{\"mac\":\"$mac\", \"web\":\"$web\", \"cron\":\"$cron\", \"hosts\":$hosts_json}"
                 exit 0
                 ;;
             set_adv_settings)
@@ -180,6 +188,29 @@ case "$1" in
                 mac=$(echo "$input" | jsonfilter -e '@.mac')
                 web=$(echo "$input" | jsonfilter -e '@.web')
                 cron=$(echo "$input" | jsonfilter -e '@.cron')
+
+                # --- 接收前端传来的 Hosts JSON 字符串 ---
+                hosts_str=$(echo "$input" | jsonfilter -e '@.hosts')
+                
+                # --- 处理 Hosts 并生成 Dnsmasq 规则 ---
+                if echo "$input" | grep -q '"hosts"'; then
+                    mkdir -p /etc/netwiz
+                    # 1. 完整保存前端发来的 JSON 数据，供下次打开页面时回显
+                    echo "$hosts_str" > /etc/netwiz/hosts.json
+                    
+                    # 2. 提取开启状态 (en:true) 的数据，生成 dnsmasq 要求的 "IP 域名" 格式
+                    > /etc/dnsmasq.hosts.custom
+                    if [ -n "$hosts_str" ] && [ "$hosts_str" != "[]" ]; then
+                        echo "$hosts_str" | sed 's/},{/\n/g' | grep '"en":true' | sed 's/.*"ip":"\([^"]*\)".*"dom":"\([^"]*\)".*/\1 \2/' > /etc/dnsmasq.hosts.custom
+                    fi
+                    
+                    # 3. 将生成的文件挂载到 DHCP 核心组件并重启生效
+                    if ! uci -q get dhcp.@dnsmasq[0].addnhosts | grep -q '/etc/dnsmasq.hosts.custom'; then
+                        uci add_list dhcp.@dnsmasq[0].addnhosts='/etc/dnsmasq.hosts.custom'
+                        uci commit dhcp
+                    fi
+                    /etc/init.d/dnsmasq restart &
+                fi
                 
                 if [ -n "$mac" ]; then
                     if [ "$mac" = "none" ]; then uci delete network.wan.macaddr 2>/dev/null
