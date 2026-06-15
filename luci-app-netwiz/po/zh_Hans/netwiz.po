@@ -1854,3 +1854,6 @@ msgstr "提示信息"
 
 msgid "This IP and Domain combination already exists!"
 msgstr "此 IP 和 域名的组合已经存在，请勿重复添加！"
+
+msgid "Duplicate records found in Hosts! Please remove them before continuing."
+msgstr "Hosts文件中发现重复的 IP+域名 规则！请手动删除重复项后再试。"
