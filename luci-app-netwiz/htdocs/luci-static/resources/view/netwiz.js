@@ -436,7 +436,8 @@ var T = {
     'MSG_NO_CHANGE': _('No changes have been made.'),
     'M_INC_TIT': _('Notice'),
     'MSG_WAIT': _('Please wait...'),
-    'MSG_HOSTS_DUP': _('This IP and Domain combination already exists!')
+    'MSG_HOSTS_DUP': _('This IP and Domain combination already exists!'),
+    'MSG_HOSTS_DUP_RAW': _('Duplicate records found in Hosts! Please remove them before continuing.')
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1203,12 +1204,16 @@ return view.extend({
 
                     showAdvModal((T['LBL_HOSTS_TITLE']), html, function(box) {
                         if (isRawMode) { var tBtn = document.getElementById('nw-hosts-raw-toggle'); if(tBtn) tBtn.click(); }
+                        
+                        // 修复与拦截：因为有重复项纯文本转换失败，isRawMode 会被恢复为 true。return false 阻止弹窗关闭和保存
+                        if (isRawMode) return false;
+
                         var finalData = hostsArr.filter(function(item) { return item.ip.trim() !== '' && item.dom.trim() !== ''; });
                         var jsonStr = JSON.stringify(finalData);
                         
                         // 拦截未修改：比对最终数据与初始数据快照
                         if (jsonStr === initialJsonStr) {
-                            openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['MSG_NO_CHANGE'] || 'No changes have been made.', okText: T['M_CLOSE'] || 'Close' });
+                            openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['MSG_NO_CHANGE'] || 'No changes have been made.', okText: T['BTN_CLOSE'] || 'Close' });
                             return false; // 终止后续的写入与重启
                         }
                         
@@ -1230,7 +1235,9 @@ return view.extend({
                             var visualUi = document.getElementById('nw-hosts-visual-ui');
                             var rawUi = document.getElementById('nw-hosts-raw-ui');
                             var rawText = document.getElementById('nw-hosts-raw-text');
+                            
                             if (isRawMode) {
+                                // 1. UI 切 纯文本
                                 var textContent = '';
                                 hostsArr.forEach(function(item) {
                                     var prefix = item.en ? '' : '# '; 
@@ -1240,8 +1247,11 @@ return view.extend({
                                 rawText.value = textContent;
                                 visualUi.style.display = 'none'; rawUi.style.display = 'block'; this.style.color = '#2563eb'; 
                             } else {
+                                // 2. 纯文本 切 UI
                                 var lines = rawText.value.split('\n');
                                 var newArr = [];
+                                var hasDupError = false; // 重复标记
+
                                 lines.forEach(function(line) {
                                     line = line.trim(); if (!line) return;
                                     var en = true;
@@ -1255,14 +1265,24 @@ return view.extend({
                                         var isIpv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(parsedIp);
                                         var isIpv6 = /^[a-fA-F0-9:]+:[a-fA-F0-9:]+$/.test(parsedIp);
                                         if (isIpv4 || isIpv6) { 
-                                            // 静默去重：若纯文本中存在重复的IP+域名，仅保留首次出现的一笔
+                                            // 发现重复，立刻标记报错
                                             var isDup = newArr.some(function(x) { return x.ip === parsedIp && x.dom === match[2]; });
-                                            if (!isDup) {
+                                            if (isDup) {
+                                                hasDupError = true;
+                                            } else {
                                                 newArr.push({ ip: parsedIp, dom: match[2], cmt: match[3] || '', en: en }); 
                                             }
                                         }
                                     }
                                 });
+
+                                // 发现重复项，使用精美弹窗警告，并强制留在纯文本模式！
+                                if (hasDupError) {
+                                    openModal({ title: T['M_INC_TIT'] || 'Notice', msg: T['MSG_HOSTS_DUP_RAW'] || 'Duplicate records found in text! Please remove them.', okText: T['BTN_CLOSE'] || 'Close' });
+                                    isRawMode = true; // 恢复状态变量
+                                    return; // 终止 UI 转换
+                                }
+
                                 hostsArr = newArr;
                                 renderHosts();
                                 rawUi.style.display = 'none'; visualUi.style.display = 'block'; this.style.color = 'inherit';
