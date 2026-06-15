@@ -1857,3 +1857,9 @@ msgstr "此 IP 和 網域的組合已經存在，請勿重複新增！"
 
 msgid "Duplicate records found in Hosts! Please remove them before continuing."
 msgstr "Hosts文件中發現重複的 IP+網域 規則！請手動刪除重複項後再試。"
+
+msgid "Smart Auto-fill"
+msgstr "智能補全"
+
+msgid "Auto-fill IPv4/v6 & www domain combinations"
+msgstr "自動生成 IPv4/v6 以及帶 www 和不帶 www 的組合規則"
