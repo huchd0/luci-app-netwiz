@@ -1866,3 +1866,6 @@ msgstr "自動生成 IPv4/v6 以及帶 www 和不帶 www 的組合規則"
 
 msgid "💡 This feature forces specific domains to resolve to designated IPs. Commonly used for blocking domain access or local device redirection."
 msgstr "💡 此功能可制將特定網域強解析到指定的 IP 位址。常用於阻止某網域連網 或 區域網路設備重定向。"
+
+msgid "Found {count} invalid or duplicate records!\n\nClick [OK] to automatically discard them and continue, or [Cancel] to manually fix them."
+msgstr "在純文字中發現了 {count} 條格式錯誤或重複的記錄！\n\n點擊【確定】將自動捨棄錯誤項並繼續，點擊【取消】則留在這裡手動修改。"
