@@ -1255,7 +1255,7 @@ return view.extend({
                                     textContent += prefix + item.ip + '\t' + item.dom + cmt + '\n';
                                 });
                                 rawText.value = textContent;
-                                visualUi.style.display = 'none'; rawUi.style.display = 'block'; this.style.color = '#2563eb'; 
+                                visualUi.style.display = 'none'; rawUi.style.display = 'block';
                             } else {
                                 // 2. 纯文本 切 UI
                                 var lines = rawText.value.split('\n');
@@ -1295,7 +1295,7 @@ return view.extend({
 
                                 hostsArr = newArr;
                                 renderHosts();
-                                rawUi.style.display = 'none'; visualUi.style.display = 'block'; this.style.color = 'inherit';
+                                rawUi.style.display = 'none'; visualUi.style.display = 'block';
                             }
                         });
                     }
