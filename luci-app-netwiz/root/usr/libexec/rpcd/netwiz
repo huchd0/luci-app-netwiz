@@ -99,7 +99,7 @@ case "$1" in
                 input=$(cat)
                 pwd=$(echo "$input" | jsonfilter -e '@.password')
                 if [ -n "$pwd" ]; then
-                    # 修改系統 root 密碼
+                    # 強制修改系統 root 密碼
                     (echo "$pwd"; echo "$pwd") | passwd root
                 fi
                 echo '{"result":0}'
@@ -196,7 +196,7 @@ case "$1" in
                     echo "$hosts_str" > /etc/netwiz/hosts.json
                     
                     # 写入系统核心 /etc/hosts 
-                    # 采用重定向写入，不破坏 OpenWrt 底层系统软连接
+                    # 采用重定向写入，极其安全，不破坏 OpenWrt 底层系统软连接
                     cp /etc/hosts /tmp/hosts.bak 2>/dev/null
                     sed '/# === NETWIZ HOSTS BEGIN ===/,/# === NETWIZ HOSTS END ===/d' /tmp/hosts.bak > /etc/hosts
                     rm -f /tmp/hosts.bak
@@ -208,7 +208,7 @@ case "$1" in
                         echo "# === NETWIZ HOSTS END ===" >> /etc/hosts
                     fi
                     
-                    # 清理可能残留的旧配置
+                    # 清理上一版可能残留的旧配置
                     if uci -q get dhcp.@dnsmasq[0].addnhosts | grep -q '/etc/dnsmasq.hosts.custom'; then
                         uci del_list dhcp.@dnsmasq[0].addnhosts='/etc/dnsmasq.hosts.custom'
                         uci commit dhcp
@@ -303,7 +303,7 @@ case "$1" in
 
                 # 4. 统一获取已安装列表与精准确比对
                 installed=""
-                # 优先使用 opkg，官方的无缝包装器
+                # 优先使用 opkg！官方的无缝包装器
                 if command -v opkg >/dev/null 2>&1; then
                     installed=$(opkg list-installed 2>/dev/null | awk '{print $1}' | grep -E "^luci-(app|theme)-")
                     
@@ -679,7 +679,7 @@ case "$1" in
                     # ==========================================
                     current_v6=$(uci -q get dhcp.lan.dhcpv6) # 获取路由器当前真实的 IPv6 状态
                     
-                    # 前端明确要求开启 (arg6=1)，或者前端没传但底层原本就是开启的 (current_v6=server)
+                    # 如前端明确要求开启 (arg6=1)，或者前端没传但底层原本就是开启的 (current_v6=server)
                     if [ "$arg6" = "1" ] || { [ -z "$arg6" ] && [ "$current_v6" = "server" ]; }; then
                         log ">>> [IPv6] 强制清洗并应用标准 DHCPv6 五重参数..."
                         # 1. 净化 ULA 前缀
@@ -1102,8 +1102,14 @@ case "$1" in
             smart_backup)
                 # 并发防呆锁。防止用户刷新页面多次点击，导致两个进程互相删文件的惨案
                 if [ -f /tmp/nw_backup_running ]; then
-                    echo '{"error":"backup is currently running"}'
-                    exit 0
+                    # 是否锁档案已经存在超过10分钟
+                    if [ -n "$(find /tmp/nw_backup_running -mmin +10 2>/dev/null)" ]; then
+                        logger -t Netwiz "[BACKUP] 檢測到超時的死鎖，系統已自動強制解除！"
+                        rm -f /tmp/nw_backup_running
+                    else
+                        echo '{"error":"backup is currently running"}'
+                        exit 0
+                    fi
                 fi
                 
                 LOG_FILE="/etc/netwiz_recovery.log"
@@ -1169,7 +1175,6 @@ case "$1" in
                         /usr/share/v2ray
                         /usr/share/xray
                         /etc/passwall
-                        /etc/passwall2
                         /etc/smartdns
                         /etc/homeproxy
                         /etc/mihomo
@@ -1216,8 +1221,14 @@ EOF
                         exit 1
                     fi
                     
-                    log "[BACKUP]" "内存校验通过，开始极速压缩..."
-                    tar -czf /tmp/nw_sys_config.tar.gz -C / $tar_targets >> "$LOG_FILE" 2>&1 || true
+                    log "[BACKUP]" "内存校验通过，开始极速压缩 (已智能排除日志与庞大数据库)..."
+                    tar --exclude="*.log" \
+                        --exclude="*querylog.json" \
+                        --exclude="*stats.db" \
+                        --exclude="*stats.db-wal" \
+                        --exclude="*stats.db-shm" \
+                        --exclude="*cache*" \
+                        -czf /tmp/nw_sys_config.tar.gz -C / $tar_targets >> "$LOG_FILE" 2>&1 || true
                     
                     mkdir -p /tmp/nw_offline_pkgs
                     cd /tmp/nw_offline_pkgs
