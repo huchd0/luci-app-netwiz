@@ -961,7 +961,7 @@ return view.extend({
             bg.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(2px);';
             var box = document.createElement('div');
             box.style.cssText = 'background:#fff; width:360px; max-width:90%; border-radius:12px; padding:20px; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:sans-serif;';
-            box.innerHTML = '<div style="font-size:17px; font-weight:bold; color:#1e293b; margin-bottom:15px;">' + title + '</div>' + 
+            box.innerHTML = '<div style="font-size:17px; font-weight:bold; color:#1e293b; margin-bottom:8px;">' + title + '</div>' + 
                             '<div style="margin-bottom:20px; color:#475569;">' + html + '</div>' +
                             '<div style="display:flex; justify-content:flex-end; gap:10px;">' +
                             '<button id="mdl-cancel" class="nw-u-btn nw-u-btn-gray" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_CANCEL']||'Cancel') + '</button>' +
