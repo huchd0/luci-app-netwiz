@@ -1843,8 +1843,8 @@ msgstr "IP 和 域名 不能为空！"
 msgid "Invalid IP address format!"
 msgstr "IP 地址格式不正确！"
 
-msgid "Invalid domain format! Spaces and special characters are not allowed."
-msgstr "域名格式不正确！不允许包含空格或特殊危险字符。"
+msgid "Invalid domain! Spaces, wildcards (*), and special characters are not allowed."
+msgstr "域名格式不正确！不支持泛解析(*)，且不允许包含空格或特殊危险字符。"
 
 msgid "No changes have been made."
 msgstr "您没有进行任何修改！"
@@ -1864,5 +1864,5 @@ msgstr "智能补全"
 msgid "Auto-fill IPv4/v6 & www domain combinations"
 msgstr "自动生成 IPv4/v6 以及带 www 和不带 www 的组合规则"
 
-msgid "💡 This feature forces specific domains to resolve to designated IPs. Commonly used for ad blocking or local NAS redirection."
-msgstr "💡 此功能可强制将特定域名解析到指定的 IP 地址。常用于屏蔽广告或内网 设备 定向。"
+msgid "💡 This feature forces specific domains to resolve to designated IPs. Commonly used for blocking domain access or local device redirection."
+msgstr "💡 此功能可将特定域名强制解析到指定的 IP 地址。常用于阻止某域名联网 或 内网设备重定向。"
