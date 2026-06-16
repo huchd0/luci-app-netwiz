@@ -1825,8 +1825,8 @@ msgstr "➕ 新增"
 msgid "No custom Hosts, please add below."
 msgstr "暫無自訂 Hosts，請點擊上方新增紀錄"
 
-msgid "IP (e.g., 192.168.1.50)"
-msgstr "指向 IP (如 192.168.1.50)"
+msgid "IP (e.g., 127.0.0.1 or ::1)"
+msgstr "指向 IP (127.0.0.1 或 ::1)"
 
 msgid "Domain (e.g., router.lan)"
 msgstr "劫持網域 (如 router.lan)"
