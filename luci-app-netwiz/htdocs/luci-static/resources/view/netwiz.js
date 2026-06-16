@@ -441,7 +441,7 @@ var T = {
     'LBL_SMART_ADD': _('Smart Auto-fill'),
     'TIP_SMART_ADD': _('Auto-fill IPv4/v6 & www domain combinations'),
     'LBL_HOSTS_DESC': _('💡 This feature forces specific domains to resolve to designated IPs. Commonly used for blocking domain access or local device redirection.'),
-    'MSG_RAW_ERR_1': _('Found invalid or duplicate records: '),
+    'MSG_RAW_ERR_1': _('Found invalid or duplicate records:'),
     'MSG_RAW_ERR_2': _('Click [OK] to automatically discard them and continue, or [Cancel] to manually fix them.')
 };
 
@@ -1312,7 +1312,7 @@ return view.extend({
 
                                 if (errorCount > 0) {
                                     isRawMode = true; 
-                                    var confirmMsg = (T['MSG_RAW_ERR_1'] || 'Found invalid or duplicate records: ') + 
+                                    var confirmMsg = (T['MSG_RAW_ERR_1'] || 'Found invalid or duplicate records:') + ' ' + 
                                     '<b style="color:#ef4444; font-size:16px;">' + errorCount + '</b><br><br>' + 
                                     (T['MSG_RAW_ERR_2'] || 'Click [OK] to automatically discard them and continue, or [Cancel] to manually fix them.');
                                     
