@@ -1835,7 +1835,7 @@ msgid "Comment (Optional)"
 msgstr "備註說明 (選填)"
 
 msgid "💡 <b>Pure Text Mode</b>: <b>Paste</b> to import, <b>Copy</b> to export. Format: <code>IP Domain #Comment</code>"
-msgstr "💡 <b>純文字模式</b>：<b>貼上</b>即匯入，<b>全選複製</b>即匯出。格式：<code>IP 網域 #備註</code>"
+msgstr "💡 <b>純文字模式</b>：<b>貼上</b>匯入，<b>全選複製</b>可匯出保存到txt。格式：<code>IP 網域 #備註</code>"
 
 msgid "IP and Domain cannot be empty!"
 msgstr "IP 和 網域 不能為空！"
