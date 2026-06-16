@@ -1871,4 +1871,4 @@ msgid "Found invalid or duplicate records:"
 msgstr "在純文字中發現了格式錯誤或重複的記錄，共計："
 
 msgid "Click [OK] to automatically discard them and continue, or [Cancel] to manually fix them."
-msgstr "點擊【確定】將自動捨棄錯誤項並繼續，點擊【取消】則留在這裡手動修改。"
+msgstr "點擊【確定】將自動捨棄錯誤項並保存，點擊【取消】則返回手動修改。"
