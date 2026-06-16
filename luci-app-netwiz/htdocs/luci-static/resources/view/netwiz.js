@@ -3449,7 +3449,33 @@ return view.extend({
                                     var checkTimer = setInterval(function() {
                                         if (isDone) { clearInterval(checkTimer); return; }
                                         callCheckBackup().then(function(cRes) {
-                                            if (cRes && cRes.status === 'done' && !isDone) {
+                                            // 判断running状态并动态生成终端机黑框
+                                            if (cRes && cRes.status === 'running' && cRes.log) {
+                                                // 前端显示“Downloading”的行
+                                                var cleanLog = cRes.log.split('\n').filter(function(line) {
+                                                    return line.indexOf('Downloading') !== -1;
+                                                }).join('\n');
+
+                                                // 显示Downloading的日志
+                                                if (cleanLog) {
+                                                    var logEl = document.getElementById('nw-backup-log');
+                                                    if (!logEl) {
+                                                        var modalMsg = document.querySelector('#nw-global-msg');
+                                                        if (modalMsg) {
+                                                            logEl = document.createElement('div');
+                                                            logEl.id = 'nw-backup-log';
+                                                            logEl.style.cssText = 'margin-top:18px; padding:12px; background:#0f172a; color:#10b981; font-family:monospace; font-size:12px; text-align:left; border-radius:8px; white-space:pre-wrap; word-break:break-all; max-height:110px; overflow-y:hidden; box-shadow:inset 0 2px 4px rgba(0,0,0,0.5); line-height:1.5; border:1px solid #1e293b;';
+                                                            modalMsg.appendChild(logEl);
+                                                        }
+                                                    }
+                                                    // 更新文字并自动滚动到底部
+                                                    if (logEl && logEl.innerText !== cleanLog) {
+                                                        logEl.innerText = cleanLog;
+                                                        logEl.scrollTop = logEl.scrollHeight; 
+                                                    }
+                                                }
+                                            }
+                                            else if (cRes && cRes.status === 'done' && !isDone) {
                                                 isDone = true;
                                                 clearInterval(checkTimer);
                                                 var a = document.createElement("a");
@@ -3474,7 +3500,7 @@ return view.extend({
                                                 });
                                             }
                                         }).catch(function() {});
-                                    }, 3000);
+                                    }, 2000);
                                 } else {
                                     openModal({ title: T['M_BAK_FAIL_TIT'], msg: T['M_BAK_FAIL_MSG'], hideCancel: true, okText: T['M_CLOSE'] });
                                 }
@@ -3795,7 +3821,7 @@ return view.extend({
                                         callCheckRestoreStatus().then(function(res) {
                                             errCount = 0;
                                             
-                                            // 🛡️ 核心修复：安全解包。处理 LuCI RPC 底层可能返回数组 [0, {data}] 的情况
+                                            // 安全解包。处理 LuCI RPC 底层可能返回数组 [0, {data}] 的情况
                                             var data = (Array.isArray(res) && res.length > 1) ? res[1] : (res || {});
                                             
                                             var s = data.status;
@@ -3873,7 +3899,33 @@ return view.extend({
                                 var checkTimer = setInterval(function() {
                                     if (isRegretDone) { clearInterval(checkTimer); return; }
                                     callCheckBackup().then(function(cRes) {
-                                        if (cRes && cRes.status === 'done' && !isDone) {
+                                        // 判断running状态并动态生成终端机黑框
+                                        if (cRes && cRes.status === 'running' && cRes.log) {
+                                            // 前端显示“Downloading”的行
+                                            var cleanLog = cRes.log.split('\n').filter(function(line) {
+                                                return line.indexOf('Downloading') !== -1;
+                                            }).join('\n');
+
+                                            // 显示Downloading的日志
+                                            if (cleanLog) {
+                                                var logEl = document.getElementById('nw-backup-log');
+                                                if (!logEl) {
+                                                    var modalMsg = document.querySelector('#nw-global-msg');
+                                                    if (modalMsg) {
+                                                        logEl = document.createElement('div');
+                                                        logEl.id = 'nw-backup-log';
+                                                        logEl.style.cssText = 'margin-top:18px; padding:12px; background:#0f172a; color:#10b981; font-family:monospace; font-size:12px; text-align:left; border-radius:8px; white-space:pre-wrap; word-break:break-all; max-height:110px; overflow-y:hidden; box-shadow:inset 0 2px 4px rgba(0,0,0,0.5); line-height:1.5; border:1px solid #1e293b;';
+                                                        modalMsg.appendChild(logEl);
+                                                    }
+                                                }
+                                                // 更新文字并自动滚动到底部
+                                                if (logEl && logEl.innerText !== cleanLog) {
+                                                    logEl.innerText = cleanLog;
+                                                    logEl.scrollTop = logEl.scrollHeight; 
+                                                }
+                                            }
+                                        }
+                                        else if (cRes && cRes.status === 'done' && !isDone) {
                                             isDone = true;
                                             clearInterval(checkTimer);
                                             var a = document.createElement("a");
@@ -3894,7 +3946,7 @@ return view.extend({
                                             });
                                         }
                                     }).catch(function() {});
-                                }, 3000);
+                                }, 2000);
                             } else {
                                 execRestore();
                             }
