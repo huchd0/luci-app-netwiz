@@ -427,7 +427,7 @@ var T = {
     'BTN_HOSTS_ADD': _('➕ Add'),
     'TXT_HOSTS_EMPTY': _('No custom Hosts, please add below.'),
     'PH_HOSTS_IP': _('IP (e.g., 127.0.0.1 or ::1)'),
-    'PH_HOSTS_DOMAIN': _('Domain (e.g., router.lan)'),
+    'PH_HOSTS_DOMAIN': _('Domain (e.g., abc.com)'),
     'PH_HOSTS_CMT': _('Comment (Optional)'),
     'LBL_HOSTS_RAW_TIP': _('💡 <b>Pure Text Mode</b>: <b>Paste</b> to import, <b>Copy</b> to export. Format: <code>IP Domain #Comment</code>'),
     'MSG_HOSTS_REQ': _('IP and Domain cannot be empty!'),
