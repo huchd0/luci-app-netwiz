@@ -1223,7 +1223,7 @@ return view.extend({
                 } 
             });
             
-            // 开关事件优化 打开静默允许输入 关闭则明确弹出重整
+            // 开关事件优化 打开静默允许输入 关闭则明确弹出重整 3500毫秒防止防火墙重启阻塞UBUS导致WiFi卡片消失
             webTog.addEventListener('change', function() { 
                 if (this.checked) {
                     var p = webPort.value.trim();
@@ -1231,7 +1231,8 @@ return view.extend({
                 } else {
                     openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                     var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
-                    callSetAdvSettings('', '0', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 1500); });
+                    // 1500 改為 3500
+                    callSetAdvSettings('', '0', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 3500); });
                 }
             });
 
@@ -1240,14 +1241,12 @@ return view.extend({
                 if (e.key === 'Enter') this.blur(); 
             });
 
-            // 端口保存逻辑 加入200ms避让机制解决点击冲突
+            // 端口修改保存逻辑 加入200ms避让机制 延长重载时间至3500毫秒
             webPort.addEventListener('change', function() {
                 var self = this;
                 var pText = this.value.trim();
                 
-                // 延迟200ms给开关的点击事件让路
                 setTimeout(function() {
-                    // 如果这200ms内开关被关掉了 直接中止保存端口
                     if (!webTog.checked) return;
 
                     if (pText !== '') {
@@ -1276,7 +1275,7 @@ return view.extend({
                     
                     openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                     var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
-                    callSetAdvSettings('', val, '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 1500); });
+                    callSetAdvSettings('', val, '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 3500); });
                 }, 200);
             });
         }
