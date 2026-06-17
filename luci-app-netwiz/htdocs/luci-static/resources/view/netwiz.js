@@ -448,7 +448,7 @@ var T = {
     'M_REP_SCAN_TIT': _('Please wait'),
     'M_REP_SCAN_MSG': _('Scanning for repairable plugins...'),
     'M_REP_DESC': _('Standard uninstallation does not remove plugin configuration files. If a plugin malfunctions after reinstallation, select it below to reset it to its initial state.'),
-    'M_REP_OPT': _(' Factory Default'),
+    'M_REP_OPT': _('Factory Default'),
     'M_REP_TIT': _('🚑 Plugin Repair Toolkit'),
     'M_REP_OK': _('Repair Now'),
     'M_REP_PROC_TIT': _('Processing'),
@@ -464,6 +464,10 @@ var T = {
     'M_REP_EMPTY_MSG': _('No repairable plugins found'),
     'M_REP_GET_ERR': _('Failed to get plugin list'),
     // ---------------------------
+    'M_PORT_RANGE': _('⚠️ Port number must be between 1 and 65535'),
+    'M_PORT_ERR1': _('⚠️ For system security, do not use'),
+    'M_PORT_ERR2': _('as the external port. It is a reserved high-risk port.'),
+    'M_PORT_SUGG': _('It is recommended to use 8080 or a port above 10000.'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -700,7 +704,10 @@ return view.extend({
             '            <a href="javascript:void(0)" id="link-repair-plugin" style="color:#ef4444; text-decoration:none; font-size:14.5px; font-weight:500;">{{LBL_REPAIR_BTN}}</a>',
             '        </div>',
             '        <div style="display:flex; justify-content:space-between; align-items:center;">',
-            '            <div style="font-size:14.5px; font-weight:500; color:#0284c7;">{{LBL_WEB_ACCESS_TOGGLE}}</div>',
+            '            <div style="display:flex; align-items:center; gap:10px;">',
+            '                <div style="font-size:14.5px; font-weight:500; color:#0284c7;">{{LBL_WEB_ACCESS_TOGGLE}}</div>',
+            '                <input type="number" id="adv-web-port" placeholder="80" title="自定义外网端口默认80" style="width:75px; height:26px; border:1px solid #cbd5e1; border-radius:4px; padding:0 8px; font-size:13px; outline:none;" min="1" max="65535">',
+            '            </div>',
             '            <label class="nw-switch"><input type="checkbox" id="adv-web-toggle"><span class="nw-slider"></span></label>',
             '        </div>',
             '    </div>',
@@ -1193,10 +1200,77 @@ return view.extend({
             });
         }
 
-        // 外网访问开关
+        // 外网访问开关与自定义端口
         if(container.querySelector('#adv-web-toggle')) {
-            callGetAdvSettings().then(function(res) { if(res && res.web === '1') container.querySelector('#adv-web-toggle').checked = true; });
-            container.querySelector('#adv-web-toggle').addEventListener('change', function() { callSetAdvSettings('', this.checked ? '1' : '0', ''); });
+            var webTog = container.querySelector('#adv-web-toggle');
+            var webPort = container.querySelector('#adv-web-port');
+            
+            callGetAdvSettings().then(function(res) { 
+                if (res) {
+                    // 如果有历史记忆端口，先把它填入框内
+                    if (res.last_port && res.last_port !== '80' && res.last_port !== '1' && res.last_port !== '0') {
+                        webPort.value = res.last_port;
+                    }
+                    // 如果开关是打开状态，覆盖为当前真实生效的端口并打开开关
+                    if (res.web && res.web !== '0') { 
+                        webTog.checked = true; 
+                        if (res.web !== '1') {
+                            webPort.value = res.web;
+                        }
+                    }
+                } 
+            });
+            
+            webTog.addEventListener('change', function() { 
+                var p = webPort.value.trim();
+                var val = this.checked ? (p ? p : '1') : '0';
+                callSetAdvSettings('', val, '', ''); 
+            });
+
+            // 修改端口号失去焦点后触发写入并重载
+            webPort.addEventListener('change', function() {
+                if (webTog.checked) {
+                    var pText = this.value.trim();
+                    if (pText !== '') {
+                        var pNum = parseInt(pText);
+                        
+                        // 1 拦截非法数字范围
+                        if (isNaN(pNum) || pNum < 1 || pNum > 65535) {
+                            openModal({ 
+                                title: T['M_REP_NOTICE_TIT'] || 'Notice', 
+                                msg: T['M_PORT_RANGE'] || '⚠️ Port number must be between 1 and 65535', 
+                                okText: T['M_CLOSE'] || 'Close', 
+                                hideCancel: true 
+                            });
+                            this.value = '';
+                            return;
+                        }
+                        
+                        // 2 拦截系统核心高危端口
+                        var dangerPorts = [21, 22, 23, 53, 67, 68];
+                        if (dangerPorts.indexOf(pNum) !== -1) {
+                            var e1 = T['M_PORT_ERR1'] || '⚠️ For system security, do not use';
+                            var e2 = T['M_PORT_ERR2'] || 'as the external port. It is a reserved high-risk port.';
+                            var sg = T['M_PORT_SUGG'] || 'It is recommended to use 8080 or a port above 10000.';
+                            
+                            // 换成 openModal 并使用 br 标签实现优雅换行
+                            openModal({ 
+                                title: T['M_REP_NOTICE_TIT'] || 'Notice', 
+                                msg: e1 + ' <span style="color:#ef4444; font-weight:bold;">' + pNum + '</span> ' + e2 + '<br><br>' + sg, 
+                                okText: T['M_CLOSE'] || 'Close', 
+                                hideCancel: true 
+                            });
+                            this.value = '';
+                            return;
+                        }
+                    }
+
+                    var val = pText ? pText : '1';
+                    openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
+                    var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
+                    callSetAdvSettings('', val, '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 1500); });
+                }
+            });
         }
         // ====================================================
 
@@ -1211,7 +1285,7 @@ return view.extend({
                         var descText = T['M_REP_DESC'] || 'Standard uninstallation does not remove plugin configuration files. If a plugin malfunctions after reinstallation, select it below to reset it to its initial state.';
                         var descHtml = '<p style="color:#64748b; font-size:13px; margin-bottom:15px; line-height:1.5;">' + descText + '</p>';
                         
-                        var optText = T['M_REP_OPT'] || ' Factory Default';
+                        var optText = ' (' + (T['M_REP_OPT'] || 'Factory Default') + ')';
                         var selectHtml = '<select id="nw-repair-select" style="width:100%; height:40px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:14px; outline:none; margin-bottom:10px;">';
                         res.configs.forEach(function(pluginName) {
                             selectHtml += '<option value="' + pluginName + '">' + pluginName + optText + '</option>';
@@ -1660,57 +1734,6 @@ return view.extend({
             var bandEl = container.querySelector('#nw-live-qr-band'); if (bandEl) bandEl.innerText = '(' + bandName + ')';
             renderWiFiQR('nw-live-qr-code', ssid, pwd, enc);
         };
-
-        // =================高级设置折叠与数据加载=================
-        var advHeader = container.querySelector('#nw-adv-utils-header');
-        var advBody = container.querySelector('#nw-adv-utils-body');
-        var advIcon = container.querySelector('#nw-adv-utils-icon');
-        var advLoaded = false;
-
-        if (advHeader) {
-            advHeader.addEventListener('click', function() {
-                if (advBody.style.display === 'none') {
-                    advBody.style.display = 'block';
-                    advIcon.style.transform = 'rotate(180deg)';
-                    if (!advLoaded) {
-                        callGetAdvSettings().then(function(res) {
-                            if (res) {
-                                if (res.mac && res.mac !== 'none') container.querySelector('#adv-mac-input').value = res.mac;
-                                container.querySelector('#adv-web-toggle').checked = (res.web === '1');
-                                container.querySelector('#adv-cron-select').value = res.cron || 'off';
-                                advLoaded = true;
-                            }
-                        });
-                    }
-                } else {
-                    advBody.style.display = 'none';
-                    advIcon.style.transform = 'rotate(0deg)';
-                }
-            });
-        }
-        
-        if (container.querySelector('#btn-save-mac')) {
-            container.querySelector('#btn-save-mac').addEventListener('click', function() {
-                var m = container.querySelector('#adv-mac-input').value.trim();
-                if (m && !/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(m)) { alert(T['M_FMT_IP'] || 'Format Error'); return; }
-                openModal({ title: T['LBL_ADV_UTILS'], msg: T['MSG_WRITING'], spin: true });
-                callSetAdvSettings(m || 'none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2000); });
-            });
-        }
-        if (container.querySelector('#btn-clear-mac')) {
-            container.querySelector('#btn-clear-mac').addEventListener('click', function() {
-                container.querySelector('#adv-mac-input').value = '';
-                openModal({ title: T['LBL_ADV_UTILS'], msg: T['MSG_WRITING'], spin: true });
-                callSetAdvSettings('none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2000); });
-            });
-        }
-        if (container.querySelector('#adv-web-toggle')) {
-            container.querySelector('#adv-web-toggle').addEventListener('change', function() { callSetAdvSettings('', this.checked ? '1' : '0', ''); });
-        }
-        if (container.querySelector('#adv-cron-select')) {
-            container.querySelector('#adv-cron-select').addEventListener('change', function() { callSetAdvSettings('', '', this.value); });
-        }
-        // ========================================================
 
         // 鼠标跟随，无视底层 CSS 干扰
         var updateQRPos = function(e) {
