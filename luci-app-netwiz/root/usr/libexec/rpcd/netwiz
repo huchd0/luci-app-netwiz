@@ -327,6 +327,31 @@ case "$1" in
                 fi
                 # 外网访问配置逻辑
                 if [ -n "$web" ]; then
+                    
+                    # --- 后端核心安全校验 (防绕过与防注入) ---
+                    if [ "$web" != "0" ] && [ "$web" != "1" ] && [ "$web" != "80" ] && [ "$web" != "443" ]; then
+                        # 1. 校验必须是纯数字 (拦截非法字符与恶意 Shell 注入)
+                        if ! expr "$web" + 0 >/dev/null 2>&1; then
+                            echo '{"status":"error", "msg":"Security Block: Invalid port format"}'
+                            exit 1
+                        fi
+                        
+                        # 2. 校验必须在 1-65535 之间 (拦截溢出攻击)
+                        if [ "$web" -lt 1 ] || [ "$web" -gt 65535 ]; then
+                            echo '{"status":"error", "msg":"Security Block: Port out of range"}'
+                            exit 1
+                        fi
+                        
+                        # 3. 拦截高危与系统保留端口 (防 SSH/FTP 等核心服务裸奔)
+                        case "$web" in
+                            21|22|23|53|67|68)
+                                echo '{"status":"error", "msg":"Security Block: Danger port is not allowed"}'
+                                exit 1
+                                ;;
+                        esac
+                    fi
+                    # --- 校验通过，允许放行 ---
+
                     uci -q delete firewall.netwiz_web
                     
                     # 记忆用户输入的非标端口统一保存到底层UCI配置文件
