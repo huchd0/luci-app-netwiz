@@ -1206,17 +1206,22 @@ return view.extend({
             var webTog = container.querySelector('#adv-web-toggle');
             var webPort = container.querySelector('#adv-web-port');
             
+            // 增加一个变量来记忆旧端口防止输错后变成默认的80
+            var lastValidPort = '';
+            
             callGetAdvSettings().then(function(res) { 
                 if (res) {
-                    // 如果有历史记忆端口，先把它填入框内
+                    // 有历史记忆端口先把它填入框内并记忆
                     if (res.last_port && res.last_port !== '80' && res.last_port !== '1' && res.last_port !== '0') {
                         webPort.value = res.last_port;
+                        lastValidPort = res.last_port;
                     }
-                    // 如果开关是打开状态，覆盖为当前真实生效的端口并打开开关
+                    // 开关是打开状态覆盖为当前真实生效的端口并记忆
                     if (res.web && res.web !== '0') { 
                         webTog.checked = true; 
                         if (res.web !== '1') {
                             webPort.value = res.web;
+                            lastValidPort = res.web;
                         }
                     }
                 } 
@@ -1228,7 +1233,6 @@ return view.extend({
                 callSetAdvSettings('', val, '', ''); 
             });
 
-            // 修改端口号失去焦点后触发写入并重载
             webPort.addEventListener('change', function() {
                 if (webTog.checked) {
                     var pText = this.value.trim();
@@ -1243,7 +1247,8 @@ return view.extend({
                                 okText: T['M_CLOSE'] || 'Close', 
                                 hideCancel: true 
                             });
-                            this.value = '';
+                            // 输错后不将其清空而是恢复为合法的旧端口
+                            this.value = lastValidPort;
                             return;
                         }
                         
@@ -1254,19 +1259,23 @@ return view.extend({
                             var e2 = T['M_PORT_ERR2'] || 'as the external port. It is a reserved high-risk port.';
                             var sg = T['M_PORT_SUGG'] || 'It is recommended to use 8080 or a port above 10000.';
                             
-                            // 换成 openModal 并使用 br 标签实现优雅换行
                             openModal({ 
                                 title: T['M_REP_NOTICE_TIT'] || 'Notice', 
                                 msg: e1 + ' <span style="color:#ef4444; font-weight:bold;">' + pNum + '</span> ' + e2 + '<br><br>' + sg, 
                                 okText: T['M_CLOSE'] || 'Close', 
                                 hideCancel: true 
                             });
-                            this.value = '';
+                            // 输错后不将其清空而是恢复为旧端口
+                            this.value = lastValidPort;
                             return;
                         }
                     }
 
                     var val = pText ? pText : '1';
+                    
+                    // 成功通过了防呆检查就把这个新端口更新为记忆端口
+                    lastValidPort = pText;
+                    
                     openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                     var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
                     callSetAdvSettings('', val, '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 1500); });
