@@ -1292,7 +1292,7 @@ return view.extend({
                         var descHtml = '<p style="color:#64748b; font-size:13px; margin-bottom:15px; line-height:1.5;">' + descText + '</p>';
                         
                         var optText = ' (' + (T['M_REP_OPT'] || 'Factory Default') + ')';
-                        var selectHtml = '<select id="nw-repair-select" style="width:100%; height:40px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:14px; outline:none; margin-bottom:10px; background-color: #fff; color: #000;">';
+                        var selectHtml = '<select id="nw-repair-select" style="width:100%; height:40px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:14px; outline:none; margin-bottom:10px; background-color: #fff !important; color: #000;">';
                         res.configs.forEach(function(pluginName) {
                             selectHtml += '<option value="' + pluginName + '">' + pluginName + optText + '</option>';
                         });
