@@ -1897,8 +1897,8 @@ msgstr "立即修復"
 msgid "Processing"
 msgstr "處理中"
 
-msgid "Repairing and restarting "
-msgstr "正在修復並且重啟 "
+msgid "Repairing and restarting"
+msgstr "正在修復並且重啟"
 
 msgid " please wait"
 msgstr " 請稍候"
@@ -1906,8 +1906,8 @@ msgstr " 請稍候"
 msgid "Repair Successful"
 msgstr "修復成功"
 
-msgid " has been successfully restored"
-msgstr " 已經成功恢復"
+msgid "has been successfully restored"
+msgstr "已經成功恢復"
 
 msgid "Repair Failed"
 msgstr "修復失敗"
