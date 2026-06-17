@@ -250,21 +250,38 @@ case "$1" in
                 ;;
             get_adv_settings)
                 mac=$(uci -q get network.wan.macaddr)
-                web=$(uci -q get firewall.netwiz_web.target)
-                [ "$web" = "ACCEPT" ] && web="1" || web="0"
+                
+                web="0"
+                _src=$(uci -q get firewall.netwiz_web.src_dport 2>/dev/null)
+                _dest=$(uci -q get firewall.netwiz_web.dest_port 2>/dev/null)
+                
+                if [ -n "$_src" ]; then
+                    web="$_src"
+                elif [ -n "$_dest" ]; then
+                    if [ "$_dest" = "80 443" ]; then
+                        web="1"
+                    else
+                        web="$_dest"
+                    fi
+                fi
+                
                 cron="off"
                 if grep -q "netwiz_reboot" /etc/crontabs/root 2>/dev/null; then
                     cron=$(grep "netwiz_reboot" /etc/crontabs/root | head -n 1 | awk '{print $1" "$2" "$3" "$4" "$5}')
                 fi
                 
-                # --- 读取自定义 Hosts ---
                 hosts_json="[]"
-                if [ -f /etc/netwiz/hosts.json ]; then
-                    hosts_json=$(cat /etc/netwiz/hosts.json)
+                if [ -s /etc/netwiz/hosts.json ]; then
+                    _tmp=$(cat /etc/netwiz/hosts.json 2>/dev/null)
+                    [ -n "$_tmp" ] && hosts_json="$_tmp"
                 fi
                 
-                # 输出 JSON 时将 hosts 原样嵌入
-                echo "{\"mac\":\"$mac\", \"web\":\"$web\", \"cron\":\"$cron\", \"hosts\":$hosts_json}"
+                # 从UCI配置文件读取曾经保存过的自定义端口
+                last_port=$(uci -q get netwiz.main.web_port 2>/dev/null)
+                [ -z "$last_port" ] && last_port="80"
+                
+                # 输出 JSON 时加上 last_port
+                echo "{\"mac\":\"$mac\", \"web\":\"$web\", \"cron\":\"$cron\", \"hosts\":$hosts_json, \"last_port\":\"$last_port\"}"
                 exit 0
                 ;;
             set_adv_settings)
@@ -308,16 +325,49 @@ case "$1" in
                     uci commit network
                     /etc/init.d/network restart &
                 fi
+                # 外网访问配置逻辑
                 if [ -n "$web" ]; then
-                    if [ "$web" = "1" ]; then
-                        uci set firewall.netwiz_web=rule
-                        uci set firewall.netwiz_web.name='Allow-Web-Access'
-                        uci set firewall.netwiz_web.src='wan'
-                        uci set firewall.netwiz_web.target='ACCEPT'
-                        uci set firewall.netwiz_web.dest_port='80 443'
-                    else uci delete firewall.netwiz_web 2>/dev/null; fi
+                    uci -q delete firewall.netwiz_web
+                    
+                    # 记忆用户输入的非标端口统一保存到底层UCI配置文件
+                    if [ "$web" != "0" ] && [ "$web" != "1" ] && [ "$web" != "80" ] && [ "$web" != "443" ]; then
+                        [ ! -f /etc/config/netwiz ] && touch /etc/config/netwiz
+                        uci -q get netwiz.main >/dev/null 2>&1 || uci set netwiz.main=main
+                        uci set netwiz.main.web_port="$web"
+                        uci commit netwiz
+                    fi
+                    
+                    if [ "$web" != "0" ]; then
+                        if [ "$web" = "1" ] || [ "$web" = "80" ] || [ "$web" = "443" ]; then
+                            uci set firewall.netwiz_web=rule
+                            uci set firewall.netwiz_web.name='Netwiz_Web_Access'
+                            uci set firewall.netwiz_web.src='wan'
+                            if [ "$web" = "1" ]; then
+                                uci set firewall.netwiz_web.dest_port='80 443'
+                            else
+                                uci set firewall.netwiz_web.dest_port="$web"
+                            fi
+                            uci set firewall.netwiz_web.target='ACCEPT'
+                            uci set firewall.netwiz_web.proto='tcp'
+                        else
+                            uhttpd_port=$(uci -q get uhttpd.main.listen_http | head -n1 | awk -F':' '{print $NF}')
+                            [ -z "$uhttpd_port" ] && uhttpd_port="80"
+                            
+                            lan_ip=$(uci -q get network.lan.ipaddr | cut -d/ -f1)
+                            
+                            uci set firewall.netwiz_web=redirect
+                            uci set firewall.netwiz_web.name='Netwiz_Web_Custom'
+                            uci set firewall.netwiz_web.src='wan'
+                            uci set firewall.netwiz_web.src_dport="$web"
+                            uci set firewall.netwiz_web.dest='lan'
+                            [ -n "$lan_ip" ] && uci set firewall.netwiz_web.dest_ip="$lan_ip"
+                            uci set firewall.netwiz_web.dest_port="$uhttpd_port"
+                            uci set firewall.netwiz_web.proto='tcp'
+                        fi
+                    fi
+                    
                     uci commit firewall
-                    /etc/init.d/firewall restart &
+                    /etc/init.d/firewall restart >/dev/null 2>&1 &
                 fi
                 if [ -n "$cron" ]; then
                     touch /etc/crontabs/root
