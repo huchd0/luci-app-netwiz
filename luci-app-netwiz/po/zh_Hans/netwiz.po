@@ -1727,7 +1727,7 @@ msgid "⏱️ Scheduled Reboot"
 msgstr "⏱️ 定时重启设置"
 
 msgid "🌐 Allow WAN Web Access"
-msgstr "🌐 允许外网访问后台"
+msgstr "🌐 允许外网访问后台，外网端口："
 
 msgid "💡 <b>Tip:</b> Some ISPs or campus networks bind to a specific device MAC. If dial-up fails, enter the cloned MAC here."
 msgstr "💡 <b>提示：</b>部分小区宽带或校园网绑定了特定的设备 MAC（如旧路由器或电脑）。若拨号失败，请在此填入该 MAC 进行伪装克隆。"
