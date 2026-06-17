@@ -1941,3 +1941,6 @@ msgstr "作為外網埠號此為系統保留高危險埠號"
 
 msgid "It is recommended to use 8080 or a port above 10000."
 msgstr "建議使用 8080 或 10000 以上的埠號"
+
+msgid "Enter custom external port number"
+msgstr "填寫自訂外網埠號"
