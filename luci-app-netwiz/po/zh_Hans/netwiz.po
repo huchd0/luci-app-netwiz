@@ -1796,7 +1796,7 @@ msgid "MAC Clone"
 msgstr "MAC 克隆"
 
 msgid "Clear (Restore Default)"
-msgstr "🗑️ 清空(恢复默认)"
+msgstr "清空(恢复默认)"
 
 msgid "Internet Connected"
 msgstr "互联网已连通"
