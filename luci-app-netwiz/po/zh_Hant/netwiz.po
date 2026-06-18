@@ -256,8 +256,11 @@ msgstr "旁路由（AP有線中繼）模式下，閘道器為必填項。"
 msgid "WAN Static IP MUST NOT be the same as the gateway!"
 msgstr "WAN 靜態 IP 絕對不能和閘道器一模一樣！"
 
-msgid "In AP/Relay mode, the device IP MUST NOT be the exact same as the Gateway! (Tip: The Gateway should be the LAN IP of your upstream main router, and this device needs its own unique IP)"
-msgstr "【旁路由 / 有線中繼 (AP)】模式下，本設備 IP 絕對不能與網關完全一樣但網段需要相同！（💡 提示：網關請填寫上級主路由的 LAN 口 IP 地址）"
+msgid "In AP/Relay mode, the device IP MUST NOT be the exact same as the Gateway! ("
+msgstr "【旁路由 / 有線中繼 (AP)】模式下，本設備 IP 絕對不能與網關完全一樣但網段需要相同！（"
+
+msgid "Tip: The Gateway should be the LAN IP of your upstream main router, and this device needs its own unique IP)"
+msgstr "提示：網關請填寫上級主路由的 LAN 口 IP 位址）"
 
 msgid "No Changes Needed"
 msgstr "未發生更改"
@@ -292,8 +295,11 @@ msgstr "WAN 靜態 IP 必須與閘道器處於同一網段！"
 msgid "e.g., if gateway is {gw}, the IP must be {ip}.x"
 msgstr "例如：如果閘道器是 {gw}，則 IP 必須是 {ip}.x"
 
-msgid "In AP/Relay mode, the device IP must be in the same subnet as the Gateway! (Tip: The Gateway should be the LAN IP of your upstream main router)"
-msgstr "【旁路由 / 有線中繼 (AP)】模式下，本設備 IP 必須與網關處於同一網段！（💡 提示：網關請填寫上級主路由的 LAN 口 IP 地址）"
+msgid "In AP/Relay mode, the device IP must be in the same subnet as the Gateway! ("
+msgstr "【旁路由 / 有線中繼 (AP)】模式下，本設備 IP 必須與網關處於同一網段！（"
+
+msgid "Tip: The Gateway should be the LAN IP of your upstream main router)"
+msgstr "提示：網關請填寫上級主路由的 LAN 口 IP 位址）"
 
 msgid "Config Warning"
 msgstr "高危操作警告"
@@ -1204,8 +1210,11 @@ msgstr "與預設參數不一致 (建議使用預設設定)"
 msgid "Cable Unplugged or Wrong Port"
 msgstr "網線未連接 或 插錯網口"
 
-msgid "System detected NO SIGNAL on the <b>WAN port</b>!<br><br><b style=\"color:#ef4444;\">Troubleshooting:</b><br>1. Did you plug the upstream cable into the <b>LAN port</b>?<br>2. Are both ends plugged in tightly? Is the modem powered on?<br>"
-msgstr "系統檢測到路由器的 <b>WAN 口（外網口）</b> 沒有信號！<br><br><b style=\"color:#ef4444;\">💡 新手常見錯誤排查：</b><br>1. 您是不是把上級網線 <b>插錯到了 LAN 口</b>？<br>2. 網線兩端是否已插緊？光貓/牆壁網口是否已通電？<br>"
+msgid "System detected NO SIGNAL on the <b>WAN port</b>!<br><br><b style=\"color:#ef4444;\">"
+msgstr "系統檢測到路由器的 <b>WAN 口（外網口）</b> 沒有信號！<br><br><b style=\"color:#ef4444;\">"
+
+msgid "Troubleshooting:</b><br>1. Did you plug the upstream cable into the <b>LAN port</b>?<br>2. Are both ends plugged in tightly? Is the modem powered on?<br>"
+msgstr "新手常見錯誤排查：</b><br>1. 您是不是把上級網線 <b>插錯到了 LAN 口</b>？<br>2. 網線兩端是否已插緊？光貓/牆壁網口是否已通電？<br>"
 
 msgid "Detecting in background... This will close automatically once connected."
 msgstr "正在後台極速偵測... 插好後本窗口將自動消失"
@@ -1423,8 +1432,11 @@ msgstr "無法啟動後台備份任務"
 msgid "Confirm System Restore"
 msgstr "確認還原系統"
 
-msgid "<span style=\"color:#ef4444; font-weight:bold;\">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br><span style=\"color:#059669; font-size: 14px;\">🛡️ Safe Mode: Auto-rollback if connection is lost for 300s.</span><br><br>"
-msgstr "<span style='color:#ef4444; font-weight:bold;'>警告：此操作將覆蓋現有的網路設定並重新安裝外掛！</span><br><br>完成後路由器將自動重啟，請確保選擇的檔案無誤。<br><br><span style='color:#059669; font-size: 14px;'>🛡️ 安全機制：若重啟後失聯 300 秒，系統將自動回退設定以防變磚。</span><br><br>"
+msgid "<span style=\"color:#ef4444; font-weight:bold;\">WARNING: This will overwrite current configs and reinstall plugins!</span><br><br>Router will auto-reboot upon completion. Ensure file is correct.<br><br><span style=\"color:#059669; font-size: 14px;\">"
+msgstr "<span style=\"color:#ef4444; font-weight:bold;\">警告：此操作將覆蓋現有的網路設定並重新安裝外掛！</span><br><br>完成後路由器將自動重啟，請確保選擇的檔案無誤。<br><br><span style=\"color:#059669; font-size: 14px;\">"
+
+msgid "Safe Mode: Auto-rollback if connection is lost for 300s.</span><br><br>"
+msgstr "安全機制：若重啟後失聯 300 秒，系統將自動回退配置以防變磚。</span><br><br>"
 
 msgid "Auto-download current state backup before restore (Regret Pill)"
 msgstr "恢復前自動下載目前狀態備份 (後悔藥)"
@@ -1435,8 +1447,11 @@ msgstr "確認並選擇檔案"
 msgid "Native Fast Restore Mode"
 msgstr "原生極速還原模式"
 
-msgid "Transferring capsule via high-speed system channel...<br><br><b style=\"color:#ef4444;\">DO NOT power off. Router will auto-reboot upon completion.</b><br><br><span style=\"color:#059669; font-size: 14px;\">🛡️ Safe Mode: Auto-rollback if connection is lost for 300s.</span>"
-msgstr "正在呼叫系統底層高速通道直傳膠囊...<br><br><b style=\"color:#ef4444;\">請勿斷開電源，路由器將在完成後自動重啟。</b><br><br><span style=\"color:#059669; font-size: 14px;\">🛡️ 安全機制：若重啟後失聯 300 秒，系統將自動回退設定以防變磚。</span>"
+msgid "Transferring capsule via high-speed system channel...<br><br><b style=\"color:#ef4444;\">DO NOT power off. Router will auto-reboot upon completion.</b><br><br><span style=\"color:#059669; font-size: 14px;\">"
+msgstr "正在呼叫系統底層高速通道直傳膠囊...<br><br><b style=\"color:#ef4444;\">請勿斷開電源，路由器將在完成後自動重啟。</b><br><br><span style=\"color:#059669; font-size: 14px;\">"
+
+msgid "Safe Mode: Auto-rollback if connection is lost for 300s.</span>"
+msgstr "安全機制：若重啟後失聯 300 秒，系統將自動回退配置以防變磚。</span>"
 
 msgid "Capsule delivered, preparing offline task..."
 msgstr "膠囊已送達底層，準備執行脫機任務..."
