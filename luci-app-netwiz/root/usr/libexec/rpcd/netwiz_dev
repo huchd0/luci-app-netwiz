@@ -187,7 +187,7 @@ case "$1" in
                 visitor_ips=$(netstat -nt 2>/dev/null | awk '$4 ~ /:(80|443)$/ && $6 ~ /ESTABLISHED/ {split($5, a, ":"); if(a[1]!="") print a[1]}' | sort -u | tr '\n' ' ')
                 curr_time=$(date +%s)
 
-                # --- ⚠️ 新增：IPv6 与 LAN NAT 冲突检测 ---
+                # --- IPv6 与 LAN NAT 冲突检测 ---
                 lan_zone_idx=$(uci show firewall 2>/dev/null | grep -E "\.name='?lan'?" | cut -d'.' -f2 | head -n 1)
                 lan_nat_conflict="false"
                 if [ -n "$lan_zone_idx" ]; then
@@ -197,7 +197,7 @@ case "$1" in
                     fi
                 fi
                 
-                # 新增：让后端自己查 IPv6 有没有开
+                # 后端查 IPv6 有没有开
                 ipv6_enabled="false"
                 v6_dhcp=$(uci -q get dhcp.lan.dhcpv6)
                 if [ "$v6_dhcp" = "server" ] || [ "$v6_dhcp" = "relay" ]; then
@@ -205,7 +205,11 @@ case "$1" in
                 fi
                 # ------------------------------------------
 
-                json_data=$(awk -v current_time="$curr_time" -v lan_nat_conflict="$lan_nat_conflict" -v ipv6_enabled="$ipv6_enabled" -v wifi_str="$wifi_macs" -v arp_str="$arp_cache" -v lease_str="$leases" -v hosts_str="$hosts_str" -v ubus_str="$ubus_leases" -v uci_str="$uci_hosts" -v gw_ip="$gw_ip" -v lan_ip="$lan_ip" -v lan_mac="$lan_mac" -v local_ips_str="$local_ips" -v visitor_ips_str="$visitor_ips" -v fw_str_input="$fw_str" -v ipv6_str="$ipv6_neigh" '
+                # 提取本机的全局 IPv6 地址 (排除 fd/fe80 等内网或链路地址)
+                lan_ip6=$(ip -6 addr show br-lan scope global 2>/dev/null | grep inet6 | grep -v " fd" | awk '{print $2}' | cut -d/ -f1 | tr '\n' ' ' | sed 's/ $//')
+
+                # 注意：下面这一行多加了一个传参 -v lan_ip6="$lan_ip6"
+                json_data=$(awk -v current_time="$curr_time" -v lan_nat_conflict="$lan_nat_conflict" -v ipv6_enabled="$ipv6_enabled" -v wifi_str="$wifi_macs" -v arp_str="$arp_cache" -v lease_str="$leases" -v hosts_str="$hosts_str" -v ubus_str="$ubus_leases" -v uci_str="$uci_hosts" -v gw_ip="$gw_ip" -v lan_ip="$lan_ip" -v lan_ip6="$lan_ip6" -v lan_mac="$lan_mac" -v local_ips_str="$local_ips" -v visitor_ips_str="$visitor_ips" -v fw_str_input="$fw_str" -v ipv6_str="$ipv6_neigh" '
                 BEGIN {
                     now_ts = current_time;
                     exp_ts = 2592000; # 30天过期时间
@@ -248,7 +252,10 @@ case "$1" in
                     for(i in vip_arr) if(vip_arr[i] != "" && vip_arr[i] != "127.0.0.1") visitor_ips[vip_arr[i]] = 1;
 
                     if (lan_mac != "" && lan_ip != "") {
-                        all_macs[lan_mac] = 1; arp_ip[lan_mac] = lan_ip; arp_online[lan_mac] = 1; ubus_name[lan_mac] = "OpenWrt (Local)";
+                        all_macs[lan_mac] = 1;
+                        arp_ip[lan_mac] = lan_ip; arp_online[lan_mac] = 1; ubus_name[lan_mac] = "OpenWrt (Local)";
+                        # 本机的 IPv6 写入字典，弥补邻居表中可能缺失的情况
+                        if (lan_ip6 != "") ipv6_map[lan_mac] = lan_ip6;
                     }
 
                     split(wifi_str, warr, "\n");
@@ -434,8 +441,8 @@ case "$1" in
                         if(p[1]!="") conn_count[p[1]] = p[2];
                     }
                     close("/tmp/nw_conns_cache.txt");
-
-                    printf "{\"lan_nat_conflict\": %s, \"ipv6_enabled\": %s, \"devices\": [", lan_nat_conflict, ipv6_enabled;
+                    # 输出的 JSON 头部带上 local_ip 和 local_ip6，前端直接可用
+                    printf "{\"lan_nat_conflict\": %s, \"ipv6_enabled\": %s, \"local_ip\": \"%s\", \"local_ip6\": \"%s\", \"devices\": [", lan_nat_conflict, ipv6_enabled, lan_ip, lan_ip6;
                     first=1;
                     for(mac in all_macs) {
                         is_online = (arp_online[mac]==1 || wifi_online[mac]==1) ? 1 : 0;
