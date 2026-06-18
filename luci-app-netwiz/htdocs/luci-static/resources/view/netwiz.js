@@ -1219,8 +1219,9 @@ return view.extend({
                     // 拦截非法数字范围
                     if (isNaN(pNum) || pNum < 1 || pNum > 65535) {
                         openModal({ title: T['M_REP_NOTICE_TIT'] || 'Notice', msg: T['M_PORT_RANGE'] || '⚠️ Port number must be between 1 and 65535', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
-                        webPort.value = lastValidPort; // 恢复旧端口
-                        webTog.checked = false;        // 强制把被点开的开关关回去
+                        webPort.value = lastValidPort; 
+                        // 根据历史状态来决定开关是开是关
+                        if (lastValidPort === '') webTog.checked = false; else webTog.checked = true;
                         return;
                     }
                     
@@ -1231,8 +1232,9 @@ return view.extend({
                         var e2 = T['M_PORT_ERR2'] || 'as the external port. It is a reserved high-risk port.';
                         var sg = T['M_PORT_SUGG'] || 'It is recommended to use 8080 or a port above 10000.';
                         openModal({ title: T['M_REP_NOTICE_TIT'] || 'Notice', msg: e1 + ' <span style="color:#ef4444; font-weight:bold;">' + pNum + '</span> ' + e2 + '<br><br>' + sg, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
-                        webPort.value = lastValidPort; // 恢复旧端口
-                        webTog.checked = false;        // 强制把被点开的开关关回去
+                        webPort.value = lastValidPort;
+                        // 根据历史状态来决定开关是开是关
+                        if (lastValidPort === '') webTog.checked = false; else webTog.checked = true;
                         return;
                     }
                 }
