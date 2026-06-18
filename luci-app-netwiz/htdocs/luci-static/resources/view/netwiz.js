@@ -468,6 +468,7 @@ var T = {
     'M_PORT_ERR2': _('as the external port. It is a reserved high-risk port.'),
     'M_PORT_SUGG': _('It is recommended to use 8080 or a port above 10000.'),
     'LBL_WEB_PORT_TITLE': _('Enter custom external port number'),
+    'M_PORT_CONFLICT': _('⚠️ Port is already in use by another application!'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1244,7 +1245,14 @@ return view.extend({
                 
                 openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                 var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
-                callSetAdvSettings('', val, '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 3500); });
+                callSetAdvSettings('', val, '', '').then(function() { 
+                    setTimeout(function(){ window.location.reload(); }, 3500); 
+                }).catch(function(err) {
+                    isSaving = false; // 解除保存锁
+                    webPort.value = lastValidPort; // 恢复旧端口显示
+                    if (lastValidPort === '') webTog.checked = false; // 如果本来是关的，把开关恢复关闭
+                    openModal({ title: T['M_REP_NOTICE_TIT'] || 'Notice', msg: '<div style="color:#ef4444; font-weight:bold;">' + (T['M_PORT_CONFLICT'] || '⚠️ Port is already in use!') + '</div>', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                });
             }
 
             // 1. 页面初始化加载历史状态
@@ -1293,7 +1301,12 @@ return view.extend({
                     isSaving = true;
                     openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                     var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
-                    callSetAdvSettings('', '0', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 3500); });
+                    callSetAdvSettings('', '0', '', '').then(function() { 
+                        setTimeout(function(){ window.location.reload(); }, 3500); 
+                    }).catch(function() {
+                        isSaving = false;
+                        window.location.reload(); // 异常兜底直接刷新
+                    });
                 }
             });
 
