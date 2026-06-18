@@ -280,8 +280,8 @@ case "$1" in
                 last_port=$(uci -q get netwiz.main.web_port 2>/dev/null)
                 [ -z "$last_port" ] && last_port="80"
                 
-                # --- 提取全局公网 IPv6 地址 (过滤掉局域网 fd 开头的地址) ---
-                wan6_ip=$(ip -6 addr list scope global 2>/dev/null | grep inet6 | grep -v " fd" | awk '{print $2}' | cut -d'/' -f1 | head -n 1)
+                # --- 提取全局活跃公网 IPv6 地址 (过滤掉局域网 fd 开头的地址) ---
+                wan6_ip=$(ip -o -6 addr list scope global 2>/dev/null | grep -v "deprecated" | grep -v " fd" | awk '{print $4}' | cut -d'/' -f1 | head -n 1)
                 
                 # 输出 JSON 时加上 last_port 和 wan6_ip
                 echo "{\"mac\":\"$mac\", \"web\":\"$web\", \"cron\":\"$cron\", \"hosts\":$hosts_json, \"last_port\":\"$last_port\", \"wan6_ip\":\"$wan6_ip\"}"
