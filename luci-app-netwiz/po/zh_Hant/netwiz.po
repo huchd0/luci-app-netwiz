@@ -970,11 +970,11 @@ msgstr "無法開啟 DMZ：該設備尚未獲取到有效 IP，或不在線！"
 msgid "Denied! Only one DMZ host allowed."
 msgstr "拒絕！僅允許設定一台 DMZ 主機。"
 
-msgid "Device [ "
-msgstr "設備 [ "
+msgid "Device ["
+msgstr "設備 ["
 
-msgid " ] is currently the DMZ."
-msgstr " ] 目前已是 DMZ。"
+msgid "] is currently the DMZ."
+msgstr "] 目前已是 DMZ。"
 
 msgid "Please disable its DMZ first!"
 msgstr "請先關閉該設備的 DMZ 功能！"
