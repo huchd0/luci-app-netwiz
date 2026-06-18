@@ -328,7 +328,8 @@ case "$1" in
                     uci commit network
                     /etc/init.d/network restart &
                 fi
-                # 外网访问配置逻辑
+                
+                # ========== 1. 外网访问配置逻辑 (包含 Procd 保活) ==========
                 if [ -n "$web" ]; then
                     
                 # --- 后端核心安全校验 (防绕过与防注入) ---
@@ -394,6 +395,31 @@ case "$1" in
                             uci set firewall.netwiz_web.target='ACCEPT'
                             uci set firewall.netwiz_web.proto='tcp'
                         fi
+
+                        # 双保险：动态生成 OpenWrt 原生 procd 守护服务
+                        cat << 'EOF' > /etc/init.d/netwiz-keepalive
+#!/bin/sh /etc/rc.common
+START=99
+USE_PROCD=1
+
+start_service() {
+    procd_open_instance
+    procd_set_param command /bin/sh -c "while true; do ping -6 -c 1 -W 1 2400:3200::1 >/dev/null 2>&1; sleep 20; done"
+    procd_set_param respawn
+    procd_close_instance
+}
+EOF
+                        chmod +x /etc/init.d/netwiz-keepalive
+                        /etc/init.d/netwiz-keepalive enable
+                        /etc/init.d/netwiz-keepalive start
+
+                    else
+                        # 关闭外网访问时，停止并彻底销毁保活守护进程
+                        if [ -f /etc/init.d/netwiz-keepalive ]; then
+                            /etc/init.d/netwiz-keepalive stop >/dev/null 2>&1
+                            /etc/init.d/netwiz-keepalive disable >/dev/null 2>&1
+                            rm -f /etc/init.d/netwiz-keepalive
+                        fi
                     fi
                     
                     uci commit firewall
@@ -408,6 +434,7 @@ case "$1" in
                         restart_depend_apps >/dev/null 2>&1
                     ) &
                 fi
+                # ========== 2. 定时重启逻辑 (保留您原本的，完全不用改) ==========
                 if [ -n "$cron" ]; then
                     touch /etc/crontabs/root
                     grep -v "netwiz_reboot" /etc/crontabs/root > /tmp/cron.tmp 2>/dev/null || true
