@@ -991,14 +991,14 @@ return view.extend({
         function showAdvModal(title, html, onOk) {
             var bg = document.createElement('div');
             bg.id = 'nw-adv-modal';
-            bg.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(2px);';
+            bg.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px);';
             var box = document.createElement('div');
-            box.style.cssText = 'background:#fff; width:360px; max-width:90%; border-radius:12px; padding:20px; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:sans-serif;';
-            box.innerHTML = '<div style="font-size:17px; font-weight:bold; color:#1e293b; margin-bottom:8px;">' + title + '</div>' + 
-                            '<div style="margin-bottom:20px; color:#475569;">' + html + '</div>' +
-                            '<div style="display:flex; justify-content:flex-end; gap:10px;">' +
-                            '<button id="mdl-cancel" class="nw-u-btn nw-u-btn-gray" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_CANCEL']||'Cancel') + '</button>' +
-                            '<button id="mdl-ok" class="nw-u-btn nw-u-btn-blue" style="padding:0 15px; height:36px; min-height:36px;">' + (T['BTN_OK']||'OK') + '</button>' +
+            box.style.cssText = 'background:#fff; width:420px; max-width:90%; border-radius:12px; padding:24px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); font-family:sans-serif;';
+            box.innerHTML = '<div style="font-size:18px; font-weight:bold; color:#1e293b; margin-bottom:15px; text-align:center;">' + title + '</div>' + 
+                            '<div style="margin-bottom:20px; color:#475569; text-align:left; font-size:14.5px;">' + html + '</div>' +
+                            '<div class="nw-modal-btn-wrap" style="display:flex; justify-content:space-between; gap:12px; margin-top:25px;">' +
+                            '<button id="mdl-cancel" class="nw-u-btn nw-u-btn-gray" style="flex:1; margin:0;">' + (T['BTN_CANCEL']||'Cancel') + '</button>' +
+                            '<button id="mdl-ok" class="nw-u-btn nw-u-btn-blue" style="flex:1; margin:0;">' + (T['BTN_OK']||'OK') + '</button>' +
                             '</div>';
             bg.appendChild(box); document.body.appendChild(bg);
             box.querySelector('#mdl-cancel').onclick = function() { document.body.removeChild(bg); };
@@ -2111,6 +2111,7 @@ return view.extend({
                             title: T['M_CFLT_INTERCEPT_TIT'], 
                             msg: T['M_CFLT_WIZ_MSG'].replace('{wan_ip}', sysWanIp).replace('{lan_ip}', currentLanIp).replace('{safe_ip}', newSafeIp), 
                             okText: T['BTN_AUTO_EVADE'],
+                            cancelText: T['BTN_EDIT_MYSELF'], // 手动修改(取消)按钮
                             isDanger: true,
                             onOk: function() {
                                 container.querySelector('#lan-ip').value = newSafeIp;
@@ -5105,6 +5106,7 @@ return view.extend({
                             title: T['M_CFLT_INTERCEPT_TIT'], 
                             msg: T['M_CFLT_ROUTER_MSG'].replace('{wan_ip}', sysWanIp).replace('{lan_ip}', currentLanIp).replace('{safe_ip}', newSafeIp), 
                             okText: T['BTN_AUTO_EVADE'],
+                            cancelText: T['BTN_EDIT_MYSELF'], // 手动修改(取消)按钮
                             isDanger: true,
                             onOk: function() {
                                 // 强制重定向到修改 LAN IP，并附带 120 秒回滚保护！
