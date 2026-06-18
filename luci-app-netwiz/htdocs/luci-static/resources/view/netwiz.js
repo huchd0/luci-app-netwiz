@@ -1225,7 +1225,7 @@ return view.extend({
                     }
                     
                     // 拦截高危系统端口
-                    var dangerPorts = [21, 22, 23, 53, 67, 68];
+                    var dangerPorts = [21, 22, 23, 53, 67, 68, 445];
                     if (dangerPorts.indexOf(pNum) !== -1) {
                         var e1 = T['M_PORT_ERR1'] || '⚠️ For system security, do not use';
                         var e2 = T['M_PORT_ERR2'] || 'as the external port. It is a reserved high-risk port.';
