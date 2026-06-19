@@ -98,10 +98,58 @@ extract_device_duid() {
     echo "$out_duid"
 }
 # ------------------------------
+# 智能 IPv6 保活状态评估引擎 (中央决策)
+evaluate_keepalive() {
+    local need_keepalive=0
+    
+    # 1. 检查是否开启了全局外网访问后台
+    local web_rule=$(uci -q get firewall.netwiz_web.target 2>/dev/null)
+    if [ "$web_rule" = "ACCEPT" ]; then
+        need_keepalive=1
+    fi
+    
+    # 2. 检查是否有任何设备开启了外网直连 (白名单)
+    if [ "$need_keepalive" -eq 0 ]; then
+        local expose_count=$(uci -q show firewall 2>/dev/null | grep -c "\.name='nw_expose_")
+        if [ "$expose_count" -gt 0 ]; then
+            need_keepalive=1
+        fi
+    fi
+    
+    # 3. 动态管理 procd 守护进程
+    if [ "$need_keepalive" -eq 1 ]; then
+        if [ ! -f /etc/init.d/netwiz-keepalive ]; then
+            cat << 'EOF' > /etc/init.d/netwiz-keepalive
+#!/bin/sh /etc/rc.common
+START=99
+USE_PROCD=1
+
+start_service() {
+    procd_open_instance
+    procd_set_param command /bin/sh -c "while true; do ping -6 -c 1 -W 1 2400:3200::1 >/dev/null 2>&1; sleep 20; done"
+    procd_set_param respawn
+    procd_close_instance
+}
+EOF
+            chmod +x /etc/init.d/netwiz-keepalive
+            /etc/init.d/netwiz-keepalive enable
+            /etc/init.d/netwiz-keepalive start
+            logger -t Netwiz "[保活引擎] 智能联动: 已启动 IPv6 (20秒超高频) 保活服务"
+        fi
+    else
+        if [ -f /etc/init.d/netwiz-keepalive ]; then
+            /etc/init.d/netwiz-keepalive stop >/dev/null 2>&1
+            /etc/init.d/netwiz-keepalive disable >/dev/null 2>&1
+            rm -f /etc/init.d/netwiz-keepalive
+            logger -t Netwiz "[保活引擎] 智能联动: 无任何外网穿透需求，已彻底销毁保活服务"
+        fi
+    fi
+}
+# ------------------------------
 
 case "$1" in
     list)
-        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "wake_device": { "mac": "string" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "get_smart_ranges": {}, "save_smart_ranges": { "data": "string" }, "v6_keep_alive": { "mac": "string", "name": "string" }, "reset_all": {}, "analyze_conns": { "ip": "string" }, "export_config": {}, "import_config": { "data": "string", "file": "string" }, "list_backups": {}, "auto_backup": {}, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean", "dmz_en": "boolean" } }'
+        echo '{ "get_list": { "show_conns": "boolean" }, "bind": { "mac": "string", "ip": "string", "name": "string", "dept": "string", "no_reload": "boolean" }, "unbind": { "mac": "string", "no_reload": "boolean" }, "wake_device": { "mac": "string" }, "apply_dhcp": {}, "get_depts": {}, "save_depts": { "data": "string" }, "get_smart_ranges": {}, "save_smart_ranges": { "data": "string" }, "v6_keep_alive": { "mac": "string", "name": "string" }, "reset_all": {}, "analyze_conns": { "ip": "string" }, "export_config": {}, "import_config": { "data": "string", "file": "string" }, "list_backups": {}, "auto_backup": {}, "fw_set": { "mac": "string", "ip": "string", "blk_en": "boolean", "iso_en": "boolean", "dmz_en": "boolean", "expose_en": "boolean", "expose_proto": "string" } }'
         exit 0
         ;;
     call)
@@ -405,11 +453,13 @@ case "$1" in
                         if (index(line, "firewall.@rule[") == 1) {
                             eq_idx = index(line, "=");
                             if (eq_idx > 0) {
-                                prop_full = substr(line, 1, eq_idx - 1); val = substr(line, eq_idx + 1); gsub(/[\047"\r\n]/, "", val);
+                                prop_full = substr(line, 1, eq_idx - 1);
+                                val = substr(line, eq_idx + 1); gsub(/[\047"\r\n]/, "", val);
                                 split(prop_full, kp, ".");
                                 if (kp[1] == "firewall" && kp[2] != "" && kp[3] != "") {
                                     obj = kp[2]; prop = kp[3];
                                     if (prop == "name" && val ~ /^nw_/) fw_name[obj] = val;
+                                    else if (prop == "family") fw_family[obj] = val; # 新增：讀取協議狀態
                                 }
                             }
                         }
@@ -424,15 +474,22 @@ case "$1" in
                     }
 
                     for (obj in fw_name_dmz) {
-                        name = fw_name_dmz[obj]; split(name, parts, "_"); mac_clean = tolower(parts[3]);
-                        if (length(mac_clean) == 12) { mac = substr(mac_clean,1,2) ":" substr(mac_clean,3,2) ":" substr(mac_clean,5,2) ":" substr(mac_clean,7,2) ":" substr(mac_clean,9,2) ":" substr(mac_clean,11,2); fw_dmz[mac] = 1; }
+                        name = fw_name_dmz[obj];
+                        split(name, parts, "_"); mac_clean = tolower(parts[3]);
+                        if (length(mac_clean) == 12) { mac = substr(mac_clean,1,2) ":" substr(mac_clean,3,2) ":" substr(mac_clean,5,2) ":" substr(mac_clean,7,2) ":" substr(mac_clean,9,2) ":" substr(mac_clean,11,2);
+                        fw_dmz[mac] = 1; }
                     }
 
                     for (obj in fw_name) {
-                        name = fw_name[obj]; split(name, parts, "_"); type = parts[2]; mac_clean = tolower(parts[3]);
+                        name = fw_name[obj];
+                        split(name, parts, "_"); type = parts[2]; mac_clean = tolower(parts[3]);
                         if (length(mac_clean) == 12) {
                             mac = substr(mac_clean,1,2) ":" substr(mac_clean,3,2) ":" substr(mac_clean,5,2) ":" substr(mac_clean,7,2) ":" substr(mac_clean,9,2) ":" substr(mac_clean,11,2);
                             if (type == "blk") fw_blk[mac] = 1; else if (type == "iso") fw_iso[mac] = 1;
+                            else if (type == "expose" || type == "v6expose") {
+                                fw_expose[mac] = 1;
+                                fw_expose_proto[mac] = (fw_family[obj] != "") ? fw_family[obj] : "ipv6";
+                            }
                         }
                     }
 
@@ -495,6 +552,8 @@ case "$1" in
                         f_blk = (fw_blk[mac]==1) ? "true" : "false";
                         f_iso = (fw_iso[mac]==1) ? "true" : "false";
                         f_dmz = (fw_dmz[mac]==1) ? "true" : "false";
+                        f_expose = (fw_expose[mac]==1) ? "true" : "false";
+                        p_expose = (fw_expose_proto[mac] != "") ? fw_expose_proto[mac] : "ipv6";
 
                         if(!first) printf ", ";
              
@@ -505,7 +564,7 @@ case "$1" in
                         }
              
                         in_config_flag = (in_config_map[mac] == 1) ? "true" : "false";
-                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\", \"conn_count\": %d, \"conn_web\": %d, \"conn_dns\": %d, \"conn_udp\": %d, \"conn_p2p\": %d, \"conn_oth\": %d, \"fw_block\": %s, \"fw_isolate\": %s, \"fw_dmz\": %s, \"ipv6\": \"%s\", \"is_pc_v6\": %s, \"is_new_unknown\": %s, \"in_config\": %s}", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time, c_total, c_web, c_dns, c_udp, c_p2p, c_oth, f_blk, f_iso, f_dmz, v6_val, is_pc_flag, is_new_unknown, in_config_flag;
+                        printf "{\"mac\": \"%s\", \"ip\": \"%s\", \"bound_ip\": \"%s\", \"dept\": \"%s\", \"name\": \"%s\", \"online\": %s, \"is_static\": %s, \"is_gw\": %s, \"is_local\": %s, \"is_visitor\": %s, \"lease\": \"%s\", \"conn_count\": %d, \"conn_web\": %d, \"conn_dns\": %d, \"conn_udp\": %d, \"conn_p2p\": %d, \"conn_oth\": %d, \"fw_block\": %s, \"fw_isolate\": %s, \"fw_dmz\": %s, \"fw_expose\": %s, \"fw_expose_proto\": \"%s\", \"ipv6\": \"%s\", \"is_pc_v6\": %s, \"is_new_unknown\": %s, \"in_config\": %s}", mac, ip, b_ip, b_dept, name, (is_online?"true":"false"), is_static, is_gw, is_local, is_visitor, l_time, c_total, c_web, c_dns, c_udp, c_p2p, c_oth, f_blk, f_iso, f_dmz, f_expose, p_expose, v6_val, is_pc_flag, is_new_unknown, in_config_flag;
                         first=0;
                     }
                     printf "]}";
@@ -556,6 +615,7 @@ case "$1" in
                             delete_fw_rule "nw_blk_${mac_lower}" "rule"
                             delete_fw_rule "nw_iso_${mac_lower}" "rule"
                             delete_fw_rule "nw_dmz_${mac_lower}" "redirect"
+                            delete_fw_rule "nw_expose_${mac_lower}" "rule"
 
                             # 删除过期记录
                             uci -q delete netwiz."$sec"
@@ -568,6 +628,7 @@ case "$1" in
                     if [ "$NEEDS_COMMIT" -eq 1 ]; then
                         uci commit firewall
                         uci commit netwiz
+                        evaluate_keepalive # 触发保活引擎
                         /etc/init.d/firewall reload >/dev/null 2>&1
                     fi
                 ) >/dev/null 2>&1 &
@@ -584,6 +645,9 @@ case "$1" in
                 blk_en=$(echo "$input" | jsonfilter -e '@.blk_en')
                 iso_en=$(echo "$input" | jsonfilter -e '@.iso_en')
                 dmz_en=$(echo "$input" | jsonfilter -e '@.dmz_en')
+                expose_en=$(echo "$input" | jsonfilter -e '@.expose_en')
+                expose_proto=$(echo "$input" | jsonfilter -e '@.expose_proto')
+                [ -z "$expose_proto" ] && expose_proto="ipv6"
 
                 [ -z "$mac" ] && exit 0
 
@@ -639,7 +703,23 @@ case "$1" in
                     delete_fw_rule "nw_dmz_${mac_clean}" "redirect"
                 fi
 
+                # --- 放行IPv6外网直连设备 ---
+                delete_fw_rule "nw_v6expose_${mac_clean}" "rule"
+                delete_fw_rule "nw_expose_${mac_clean}" "rule"
+                if [ "$expose_en" = "true" ] || [ "$expose_en" = "1" ]; then
+                    uci add firewall rule >/dev/null
+                    uci set firewall.@rule[-1].name="nw_expose_${mac_clean}"
+                    uci set firewall.@rule[-1].src="wan"
+                    uci set firewall.@rule[-1].dest="lan"
+                    uci set firewall.@rule[-1].family="$expose_proto"
+                    uci set firewall.@rule[-1].target="ACCEPT"
+                    uci set firewall.@rule[-1].dest_mac="$mac"
+                    uci set firewall.@rule[-1].enabled="1"
+                fi
+                # -----------------------------------
+
                 uci commit firewall
+                evaluate_keepalive
                 
                 # 清空连线
                 if command -v conntrack >/dev/null 2>&1; then
@@ -772,6 +852,7 @@ case "$1" in
                 if [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ]; then
                     uci commit dhcp
                     uci commit firewall
+                    evaluate_keepalive
                     
                     # 清理 odhcpd 租期
                     rm -f /tmp/hosts/odhcpd 2>/dev/null
@@ -819,6 +900,7 @@ case "$1" in
                 delete_fw_rule "nw_blk_${mac_clean}" "rule"
                 delete_fw_rule "nw_iso_${mac_clean}" "rule"
                 delete_fw_rule "nw_dmz_${mac_clean}" "redirect"
+                delete_fw_rule "nw_expose_${mac_clean}" "rule"
                 if [ "$no_reload" != "1" ] && [ "$no_reload" != "true" ]; then
                     uci commit dhcp
                     uci commit firewall
