@@ -218,11 +218,16 @@ var T = {
     'TXT_WAKING_UP': _('Waking up...'),
     'TIP_LOCAL_V6': _('Displaying self-assigned local IPv6 as IPv4 is unavailable'),
     'BDG_LOCAL_V6': _('Local IPv6'),
+    'LBL_FW_EXPOSE_TITLE': '🌍 ' + _('外网直连 (白名单)'),
+    'LBL_FW_EXPOSE_DESC': _('开放防火墙，允许外网直接访问该设备。'),
+    'OPT_PROTO_V6': _('仅 IPv6'),
+    'OPT_PROTO_V4': _('仅 IPv4'),
+    'OPT_PROTO_ALL': _('IPv4 + IPv6'),
 };
 
 var callDeviceList = rpc.declare({ object: 'netwiz_dev', method: 'get_list', params: ['show_conns', 'do_rescan'], expect: { '': {} } });
 var callWakeDevice = rpc.declare({ object: 'netwiz_dev', method: 'wake_device', params: ['mac'], expect: { result: 0 } });
-var callFwSet = rpc.declare({ object: 'netwiz_dev', method: 'fw_set', params: ['mac', 'ip', 'blk_en', 'iso_en', 'dmz_en'], expect: { result: 0 } });
+var callFwSet = rpc.declare({ object: 'netwiz_dev', method: 'fw_set', params: ['mac', 'ip', 'blk_en', 'iso_en', 'dmz_en', 'expose_en', 'expose_proto'], expect: { result: 0 } });
 var callDeviceBind = rpc.declare({ object: 'netwiz_dev', method: 'bind', params: ['mac', 'ip', 'name', 'dept', 'no_reload'], expect: { result: 0 } });
 var callDeviceUnbind = rpc.declare({ object: 'netwiz_dev', method: 'unbind', params: ['mac', 'no_reload'], expect: { result: 0 } });
 var callApplyDhcp = rpc.declare({ object: 'netwiz_dev', method: 'apply_dhcp', expect: { result: 0 } });
@@ -374,22 +379,40 @@ return view.extend({
             '               <div id="fw-reset-gear" title="{{TIT_RESET_ALL}}" style="cursor:pointer; font-size:18px; filter:grayscale(100%); opacity:0.4; transition:all 0.3s;" onmouseover="this.style.filter=\'none\'; this.style.opacity=1; this.style.transform=\'rotate(90deg)\'" onmouseout="this.style.filter=\'grayscale(100%)\'; this.style.opacity=0.4; this.style.transform=\'none\'">⚙️</div>',
             '           </div>',
             '           <div style="background:#f8fafc; margin:10px;  padding:15px; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:15px;">',
+            
+            '               <div class="nw-switch-row-padded" style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed #cbd5e1; padding-bottom:15px; margin-bottom:15px;">',
+            '                   <div style="flex:1; padding-right:5px;">',
+            '                       <div style="font-size:15.5px; font-weight:bold; color:#10b981; margin-bottom:5px;">{{LBL_FW_EXPOSE_TITLE}}</div>',
+            '                       <div style="font-size:13px; color:#64748b; line-height:1.4;">{{LBL_FW_EXPOSE_DESC}}</div>',
+            '                   </div>',
+            '                   <div style="display:flex; flex-direction:row; align-items:center; gap:12px;">',
+            '                       <select id="fw-expose-proto" class="nd-input" style="padding: 2px 0px !important; font-size:12px; height:26px; width:auto; min-width:80px; text-align:center; cursor:pointer; background-color:#f8fafc; margin:0;">',
+            '                           <option value="ipv6">{{OPT_PROTO_V6}}</option>',
+            '                           <option value="ipv4">{{OPT_PROTO_V4}}</option>',
+            '                           <option value="any">{{OPT_PROTO_ALL}}</option>',
+            '                       </select>',
+            '                       <label class="nw-switch" style="width:42px; height:22px; flex-shrink:0; cursor:pointer; margin:0; display:block;"><input type="checkbox" id="fw-expose-en"><span class="nw-slider"></span></label>',
+            '                   </div>',
+            '               </div>',
+            
             '               <label class="nw-switch-row-padded" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed #cbd5e1; padding-bottom:15px; margin-bottom:15px;">',
-            '                   <div style="flex:1; padding-right:15px;">',
+            '                   <div style="flex:1; padding-right:5px;">',
             '                       <div style="font-size:15.5px; font-weight:bold; color:#ef4444; margin-bottom:5px;">{{LBL_FW_BLK_TITLE}}</div>',
             '                       <div style="font-size:13px; color:#64748b; line-height:1.4;">{{LBL_FW_BLK_DESC}}</div>',
             '                   </div>',
             '                   <div class="nw-switch" style="width:42px; height:22px; flex-shrink:0;"><input type="checkbox" id="fw-blk-en"><span class="nw-slider"></span></div>',
             '               </label>',
+            
             '               <label class="nw-switch-row-padded" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed #cbd5e1; padding-bottom:15px; margin-bottom:15px;">',
-            '                   <div style="flex:1; padding-right:15px;">',
+            '                   <div style="flex:1; padding-right:5px;">',
             '                       <div style="font-size:15.5px; font-weight:bold; color:#d97706; margin-bottom:5px;">{{LBL_FW_ISO_TITLE}}</div>',
             '                       <div style="font-size:13px; color:#64748b; line-height:1.4;">{{LBL_FW_ISO_DESC}}</div>',
             '                   </div>',
             '                   <div class="nw-switch" style="width:42px; height:22px; flex-shrink:0;"><input type="checkbox" id="fw-iso-en"><span class="nw-slider"></span></div>',
             '               </label>',
+            
             '               <label class="nw-switch-row-padded" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; border:none; padding-bottom:0; margin-bottom:0;">',
-            '                   <div style="flex:1; padding-right:15px;">',
+            '                   <div style="flex:1; padding-right:5px;">',
             '                       <div style="font-size:15.5px; font-weight:bold; color:#8b5cf6; margin-bottom:5px;">{{LBL_FW_DMZ_TITLE}}</div>',
             '                       <div style="font-size:13px; color:#64748b; line-height:1.4;">{{LBL_FW_DMZ_DESC}}</div>',
             '                   </div>',
@@ -1027,12 +1050,17 @@ return view.extend({
                 var chkBlk = modalOverlay.querySelector('#fw-blk-en');
                 var chkIso = modalOverlay.querySelector('#fw-iso-en');
                 var chkDmz = modalOverlay.querySelector('#fw-dmz-en');
+                var chkExpose = modalOverlay.querySelector('#fw-expose-en');
+                var selExposeProto = modalOverlay.querySelector('#fw-expose-proto');
+                
                 if (chkBlk) chkBlk.checked = (d.fw_block === 'true' || d.fw_block === true);
                 if (chkIso) chkIso.checked = (d.fw_isolate === 'true' || d.fw_isolate === true);
                 if (chkDmz) {
                     chkDmz.checked = (d.fw_dmz === 'true' || d.fw_dmz === true);
                     chkDmz.dataset.orig = chkDmz.checked; // 记住初始状态
                 }
+                if (chkExpose) chkExpose.checked = (d.fw_expose === 'true' || d.fw_expose === true);
+                if (selExposeProto) selExposeProto.value = d.fw_expose_proto || 'ipv6';
             } else if (options.showForm) {
                 mForm.style.display = 'block'; 
                 populateTagSelects();
@@ -1079,6 +1107,8 @@ return view.extend({
                     var isoEn = modalOverlay.querySelector('#fw-iso-en') ? modalOverlay.querySelector('#fw-iso-en').checked : false;
                     var dmzEl = modalOverlay.querySelector('#fw-dmz-en');
                     var dmzEn = dmzEl ? dmzEl.checked : false;
+                    var exposeEn = modalOverlay.querySelector('#fw-expose-en') ? modalOverlay.querySelector('#fw-expose-en').checked : false;
+                    var exposeProto = modalOverlay.querySelector('#fw-expose-proto') ? modalOverlay.querySelector('#fw-expose-proto').value : 'ipv6';
                     
                     // DMZ校验
                     if (dmzEn && dmzEl.dataset.orig !== 'true') {
@@ -1092,7 +1122,7 @@ return view.extend({
                         }
                     }
 
-                    if (options.onOk) options.onOk({ mac: fwCurrentMac, ip: fwCurrentIp, blk_en: blkEn, iso_en: isoEn, dmz_en: dmzEn });
+                    if (options.onOk) options.onOk({ mac: fwCurrentMac, ip: fwCurrentIp, blk_en: blkEn, iso_en: isoEn, dmz_en: dmzEn, expose_en: exposeEn, expose_proto: exposeProto });
                     modalOverlay.style.display = 'none';
                     if (typeof floatBar !== 'undefined' && floatBar) floatBar.style.removeProperty('display');
                 } else if (options.showForm) {
@@ -1855,7 +1885,7 @@ return view.extend({
                     var mac = this.getAttribute('data-mac');
                     var ip = this.getAttribute('data-ip');
                     var dev = globalDevices.find(function(d){ return d.mac === mac; });
-                    if (dev.is_gw === 'true' || dev.is_gw === true || dev.is_local === 'true' || dev.is_local === true) return; // 系統設備不可點
+                    if (dev.is_gw === 'true' || dev.is_gw === true || dev.is_local === 'true' || dev.is_local === true) return; // 系统设备不可点
                     
                     var dName = dev.name === 'Unknown' ? mac.toUpperCase() : dev.name;
                     
@@ -1866,7 +1896,7 @@ return view.extend({
                         onOk: function(data) {
                             loadingEl.style.display = 'flex';
                             listEl.style.display = 'none'; catTabs.style.display = 'none';
-                            callFwSet(data.mac, data.ip, data.blk_en, data.iso_en, data.dmz_en)
+                            callFwSet(data.mac, data.ip, data.blk_en, data.iso_en, data.dmz_en, data.expose_en, data.expose_proto)
                             .then(function() { setTimeout(loadDevices, 2500); })
                             .catch(function(e) { 
                                 showCustomAlert(T['ERR_SAVE_FAIL_SHORT'].replace('{err}', e));
