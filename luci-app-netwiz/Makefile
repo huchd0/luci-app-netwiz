@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 # 明确声明包名与版本
 PKG_NAME:=luci-app-netwiz
-PKG_VERSION:=1.7.2
+PKG_VERSION:=1.7.3
 PKG_RELEASE:=1
 
 # LuCI 核心定义
