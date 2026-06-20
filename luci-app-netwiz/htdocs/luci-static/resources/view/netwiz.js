@@ -1054,19 +1054,47 @@ return view.extend({
         // 拖拽排序、显隐引擎与离线上传
         // ====================================================================
         var defaultAdvLayout = [
-            { id: 'link-cron-reboot',   icon: '⏱️', name: T['LBL_CRON_REBOOT_LINK'].replace('⏱️ ', '') || 'Scheduled Reboot', show: true },
-            { id: 'link-mac-clone',     icon: '🔗', name: T['LBL_MAC_CLONE_LINK'].replace('🔗 ', '') || 'MAC Clone', show: true },
-            { id: 'link-modify-hosts',  icon: '✏️', name: T['LBL_HOSTS_LINK'].replace('✏️ ', '') || 'Custom Hosts', show: true },
-            { id: 'link-repair-plugin', icon: '🚑', name: T['LBL_REPAIR_BTN'].replace('🚑 ', '') || 'Plugin Repair', show: true },
-            { id: 'link-offline-safe',  icon: '📦', name: T['ADV_SAFE_BTN'].replace('📦 ', '') || 'Plugin Installation', show: false }
+            { id: 'link-cron-reboot',   icon: '⏱️', name: (T['LBL_CRON_REBOOT_LINK'] || '⏱️ Scheduled Reboot').replace('⏱️ ', ''), show: true },
+            { id: 'link-mac-clone',     icon: '🔗', name: (T['LBL_MAC_CLONE_LINK'] || '🔗 MAC Clone').replace('🔗 ', ''), show: true },
+            { id: 'link-modify-hosts',  icon: '✏️', name: (T['LBL_HOSTS_LINK'] || '✏️ Custom Hosts').replace('✏️ ', ''), show: true },
+            { id: 'link-repair-plugin', icon: '🚑', name: (T['LBL_REPAIR_BTN'] || '🚑 Plugin Repair').replace('🚑 ', ''), show: true },
+            { id: 'link-offline-safe',  icon: '📦', name: (T['ADV_SAFE_BTN'] || '📦 Plugin Installation').replace('📦 ', ''), show: false }
         ];
+
+        // 动态合并语言包与用户设置
+        function mergeLayout(savedArr) {
+            var merged = [];
+            // 1. 根据存储的ID顺序与显示状态，加载当前系统语言的名称与图标。
+            savedArr.forEach(function(savedItem) {
+                for (var i = 0; i < defaultAdvLayout.length; i++) {
+                    if (defaultAdvLayout[i].id === savedItem.id) {
+                        merged.push({
+                            id: savedItem.id,
+                            icon: defaultAdvLayout[i].icon,
+                            name: defaultAdvLayout[i].name, // 从字典读取当前系统语言
+                            show: savedItem.show
+                        });
+                        break;
+                    }
+                }
+            });
+            // 2. 向上兼容防呆：如果以后固件升级加入了新模块，自动补齐到最后面
+            defaultAdvLayout.forEach(function(defItem) {
+                var found = false;
+                for (var i = 0; i < merged.length; i++) {
+                    if (merged[i].id === defItem.id) { found = true; break; }
+                }
+                if (!found) merged.push(defItem);
+            });
+            return merged;
+        }
 
         // 1. 初始化时向路由器获取最新排版
         callGetAdvLayout().then(function(res) {
             if (res && res.layout) {
                 try { 
                     var parsed = JSON.parse(res.layout); 
-                    window._nwAdvLayout = Array.isArray(parsed) ? parsed : defaultAdvLayout; 
+                    window._nwAdvLayout = Array.isArray(parsed) ? mergeLayout(parsed) : defaultAdvLayout; 
                 } catch(e) { window._nwAdvLayout = defaultAdvLayout; }
             } else {
                 window._nwAdvLayout = defaultAdvLayout;
@@ -1108,32 +1136,36 @@ return view.extend({
 
                 showAdvModal((T['LBL_MOD_LAYOUT'] || 'Advanced Panel Management'), html, function(box) {
                     var newList = [];
+                    var saveList = []; // 给后端闪存准备的纯净数组
+                    
                     var items = box.querySelectorAll('.nw-layout-item');
                     items.forEach(function(el) {
-                        newList.push({
-                            id: el.getAttribute('data-id'),
-                            icon: el.querySelector('.mod-icon').innerText,
-                            name: el.querySelector('.mod-name').innerText,
-                            show: el.querySelector('.nw-layout-chk').checked
-                        });
+                        var _id = el.getAttribute('data-id');
+                        var _show = el.querySelector('.nw-layout-chk').checked;
+                        var _icon = el.querySelector('.mod-icon').innerText;
+                        var _name = el.querySelector('.mod-name').innerText;
+                        
+                        // 前端实时渲染用的数组（包含文字图标）
+                        newList.push({ id: _id, icon: _icon, name: _name, show: _show });
+                        // 给路由器底层的数组
+                        saveList.push({ id: _id, show: _show }); 
                     });
 
                     var jsonStr = JSON.stringify(newList);
                     var oldJsonStr = JSON.stringify(window._nwAdvLayout || defaultAdvLayout);
                     
-                    // 防呆拦截：如果没有任何改动，直接关闭视窗
-                    if (jsonStr === oldJsonStr) {
-                        return; // 直接return，不执行下面的覆盖和保存逻辑
-                    }
+                    // 防呆拦截：没有任何改动，直接关闭视窗
+                    if (jsonStr === oldJsonStr) return;
 
-                    // 瞬间应用到网页，无需刷新
+                    // 应用到网页，无需刷新
                     window._nwAdvLayout = newList;
                     applyAdvancedLayout(newList);
                     
-                    // 点击确定后，才写入数据
+                    // 点击确定后，才写入数据 (发送纯净版 saveList 给后端)
+                    var backendStr = JSON.stringify(saveList);
                     openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️', msg: T['MSG_WRITING'] || 'Saving...', spin: true });
                     var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
-                    callSetAdvLayout(jsonStr).then(function(){
+                    callSetAdvLayout(backendStr).then(function(){
                         setTimeout(function(){ document.getElementById('nw-global-modal').style.display='none'; }, 500);
                     }).catch(function(e){ console.error((T['ADV_ERR_SAVE_LAYOUT'] || 'Save layout failed'), e); document.getElementById('nw-global-modal').style.display='none'; });
                 });
@@ -1452,7 +1484,7 @@ return view.extend({
                             return false; 
                         }
                         openModal({ title: (T['LBL_MAC_CLONE'] || 'MAC Clone'), msg: (T['MSG_WRITING'] || 'Saving...'), spin: true });
-                        var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000'; // 儲存動畫也要確保在頂層
+                        var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000'; // 存储动画时位于顶层
                         callSetAdvSettings(m || 'none', '', '').then(function() { setTimeout(function(){ window.location.reload(); }, 2500); });
                     });
                     document.getElementById('mdl-get-mac').onclick = function() {
