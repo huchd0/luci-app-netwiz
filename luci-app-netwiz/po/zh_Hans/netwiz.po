@@ -2103,3 +2103,9 @@ msgstr "正在彻底执行连根拔除..."
 
 msgid "has been completely uninstalled and cleaned."
 msgstr "已被彻底卸载并清理。"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Save layout failed"
+msgstr "保存排版失败"
