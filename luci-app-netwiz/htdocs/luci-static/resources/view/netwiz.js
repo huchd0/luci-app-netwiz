@@ -1425,7 +1425,7 @@ return view.extend({
                                 var pTit = T['M_REP_PROC_TIT'] || 'Processing';
                                 var pMsg1 = T['M_REP_PROC_MSG1'] || 'Repairing and restarting';
                                 var pMsg2 = T['M_REP_SCAN_TIT'] || 'please wait';
-                                openModal({ title: pTit, msg: pMsg1 + ' ' + pName + ' ' + pMsg2, hideCancel: true, hideOk: true });
+                                openModal({ title: pTit, msg: pMsg1 + ' ' + pName + ' ' + pMsg2, spin: true, hideCancel: true, hideOk: true });
                                 
                                 rpc.declare({ object: 'netwiz', method: 'repair_config', params: ['plugin'] })(pName).then(function(r) {
                                     var resCode = '-1';
