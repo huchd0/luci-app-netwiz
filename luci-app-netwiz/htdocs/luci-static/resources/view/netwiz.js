@@ -459,6 +459,7 @@ var T = {
     'M_REP_FAIL_MSG': _('Unable to repair this plugin'),
     'M_REP_ERR_TIT': _('System Error'),
     'M_REP_ERR_MSG': _('Request timeout or error'),
+    'M_HW_WAIT': _('Hardware execution takes longer, running in background...'),
     'M_REP_NOTICE_TIT': _('Notice'),
     'M_REP_EMPTY_MSG': _('No repairable plugins found'),
     'M_REP_GET_ERR': _('Failed to get plugin list'),
@@ -471,8 +472,8 @@ var T = {
     // --- 更新為精簡版重裝指南 ---
     'M_GUIDE_TITLE': '💡 ' + _('Offline Reinstall Guide'),
     'M_GUIDE_DESC': _('After uninstalling the ghost plugin, to reinstall it, you can upload the package via SSH to: <b>/etc/netwiz/custom_pkgs/</b> (auto-backed up).<br><b>If conflicts occur or the menu is missing</b>, you can use the <b>Force Install command</b>:'),
-    'M_GUIDE_CMD_APK': 'apk add --allow-untrusted --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/your_package_name.apk',
-    'M_GUIDE_CMD_OPKG': 'opkg install --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/your_package_name.ipk',
+    'M_GUIDE_CMD_APK': 'apk add --allow-untrusted --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/XXXXXXX_your_name.apk',
+    'M_GUIDE_CMD_OPKG': 'opkg install --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/XXXXXXX_your_name.ipk',
     // ---------------------------
     'M_PORT_RANGE': '⚠️ ' + _('Port number must be between 1 and 65535'),
     'M_PORT_ERR1': '⚠️ ' + _('For system security, do not use'),
@@ -1394,8 +1395,8 @@ return view.extend({
                         // 3. 动态判断当前系统的包管理器 (apk 或 opkg)
                         var curPkg = window.nwCurrentPkg || 'ipk';
                         var cmdCode = (curPkg === 'apk') 
-                            ? (T['M_GUIDE_CMD_APK'] || 'apk add --allow-untrusted --force-reinstall --force-overwrite /tmp/your_package_name.apk') 
-                            : (T['M_GUIDE_CMD_OPKG'] || 'opkg install --force-reinstall --force-overwrite /tmp/your_package_name.ipk');
+                            ? (T['M_GUIDE_CMD_APK'] || 'apk add --allow-untrusted --force-reinstall --force-overwrite /tmp/XXXXXXX_your_name.apk') 
+                            : (T['M_GUIDE_CMD_OPKG'] || 'opkg install --force-reinstall --force-overwrite /tmp/XXXXXXX_your_name.ipk');
 
                         // 4. 组装：深色终端指南代码框 (最下方显示)
                         var guideHtml = '<div style="margin-bottom:5px; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; text-align:left; font-size:14px; line-height:1.6;">' +
@@ -1502,8 +1503,20 @@ return view.extend({
                                                     } else {
                                                         openModal({ title: '❌ ' + (T['M_REP_FAIL_TIT'] || 'Failed'), msg: T['M_REP_FAIL_MSG'] || 'Unable to repair this plugin', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
                                                     }
-                                                }).catch(function() {
-                                                    openModal({ title: '❌ ' + (T['M_REP_ERR_TIT'] || 'System Error'), msg: T['M_REP_ERR_MSG'] || 'Request timeout or error', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                                }).catch(function(err) {
+                                                    var errStr = String(err).toLowerCase();
+                                                    // 智能拦截超时报错：后台其实还在干活，只是闪存写入慢
+                                                    if (errStr.indexOf('timed out') !== -1 || errStr.indexOf('timeout') !== -1) {
+                                                        openModal({ 
+                                                            title: T['M_REP_PROC_TIT'] || 'Processing', 
+                                                            msg: (T['MSG_WAIT'] || 'Please wait...') + '<br><br><span style="font-size:13px;color:#64748b;line-height:1.6;">' + (T['M_HW_WAIT'] || 'Hardware execution takes longer, running in background...') + '</span>', 
+                                                            spin: true, hideCancel: true, hideOk: true 
+                                                        });
+                                                        // 给底层硬件充足的 12 秒时间继续擦写数据，然后刷新
+                                                        setTimeout(function() { window.location.reload(); }, 12000);
+                                                    } else {
+                                                        openModal({ title: '❌ ' + (T['M_REP_ERR_TIT'] || 'System Error'), msg: (T['M_REP_ERR_MSG'] || 'Request timeout or error') + '<br><br>' + err, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                                    }
                                                 });
                                             }
                                         });
@@ -1515,9 +1528,19 @@ return view.extend({
                                         openModal({ title: fTit, msg: fMsg + '<br><br><span style="font-size:11px;color:#ef4444;word-break:break-all;">Debug: ' + dbgInfo + '</span>', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
                                     }
                                 }).catch(function(e) {
-                                    var eTit = T['M_REP_ERR_TIT'] || 'System Error';
-                                    var eMsg = T['M_REP_ERR_MSG'] || 'Request timeout or error';
-                                    openModal({ title: eTit, msg: eMsg + '<br><br><span style="font-size:11px;color:#ef4444;">' + e + '</span>', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                    var errStr = String(e).toLowerCase();
+                                    if (errStr.indexOf('timed out') !== -1 || errStr.indexOf('timeout') !== -1) {
+                                        openModal({ 
+                                            title: T['M_REP_PROC_TIT'] || 'Processing', 
+                                            msg: (T['MSG_WAIT'] || 'Please wait...') + '<br><br><span style="font-size:13px;color:#64748b;line-height:1.6;">' + (T['M_HW_WAIT'] || 'Hardware execution takes longer, running in background...') + '</span>', 
+                                            spin: true, hideCancel: true, hideOk: true 
+                                        });
+                                        setTimeout(function() { window.location.reload(); }, 12000);
+                                    } else {
+                                        var eTit = T['M_REP_ERR_TIT'] || 'System Error';
+                                        var eMsg = T['M_REP_ERR_MSG'] || 'Request timeout or error';
+                                        openModal({ title: eTit, msg: eMsg + '<br><br><span style="font-size:11px;color:#ef4444;">' + e + '</span>', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                    }
                                 });
                             }
                         });
