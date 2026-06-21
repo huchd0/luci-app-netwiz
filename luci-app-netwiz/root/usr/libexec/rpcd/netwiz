@@ -138,7 +138,7 @@ EOF
 
 case "$1" in
     list)
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" }, "check_internet": {}, "get_client_mac": {}, "get_adv_settings": {}, "set_adv_settings": { "mac": "string", "web": "string", "cron": "string", "hosts": "string" }, "get_repairable_configs": {}, "repair_config": { "plugin": "string" }, "eradicate_config": { "plugin": "string" }, "get_adv_layout": {}, "set_adv_layout": { "layout": "string" }, "store_offline_pkg": { "filename": "string" }, "batch_install_pkgs": {} }'
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" }, "check_internet": {}, "get_client_mac": {}, "get_adv_settings": {}, "set_adv_settings": { "mac": "string", "web": "string", "cron": "string", "hosts": "string" }, "get_repairable_configs": {}, "repair_config": { "plugin": "string" }, "eradicate_config": { "plugin": "string" }, "get_adv_layout": {}, "set_adv_layout": { "layout": "string" }, "store_offline_pkg": { "filename": "string", "backup": "string" }, "batch_install_pkgs": {} }'
         exit 0
         ;;
     call)
@@ -194,23 +194,27 @@ case "$1" in
                     ;;
 
                 store_offline_pkg)
-                    # 3. 离线保险箱：双轨分离（备份入库+进入安装队列）
+                    # 3. 离线保险箱：根据用户勾选，执行临时入队或同时永久备份
                     input=$(cat)
                     fname=$(echo "$input" | jsonfilter -e '@.filename')
                     fname=$(basename "$fname")
-                    
+                    backup=$(echo "$input" | jsonfilter -e '@.backup')
+
                     if [ -n "$fname" ] && [ -f "/tmp/$fname" ]; then
-                        mkdir -p /etc/netwiz/custom_pkgs
                         mkdir -p /tmp/nw_staging
-                        
-                        # 轨道一：复制到Flash当作永久离线备份
-                        cp -f "/tmp/$fname" "/etc/netwiz/custom_pkgs/$fname"
-                        chmod 644 "/etc/netwiz/custom_pkgs/$fname"
-                        
-                        # 轨道二：移动到內存的临时安装队列区
+
+                        # 轨道一：只有用户在前端勾选了备份 (backup="1")，才写入
+                        if [ "$backup" = "1" ]; then
+                            mkdir -p /etc/netwiz/custom_pkgs
+                            cp -f "/tmp/$fname" "/etc/netwiz/custom_pkgs/$fname"
+                            chmod 644 "/etc/netwiz/custom_pkgs/$fname"
+                            logger -t Netwiz "[OFFLINE_SAFE] 离线包已永久备份并加入安装队列: $fname"
+                        else
+                            logger -t Netwiz "[OFFLINE_SAFE] 离线包已加入临时安装队列 (不留存备份): $fname"
+                        fi
+
+                        # 轨道二：不论是否备份，当前文件都要移动到内存的临时安装队列中，供后续合并安装
                         mv -f "/tmp/$fname" "/tmp/nw_staging/$fname"
-                        
-                        logger -t Netwiz "[OFFLINE_SAFE] 離線包已備份，並加入本次安裝佇列: $fname"
                     fi
                     echo '{"result": 0}'
                     exit 0
@@ -219,11 +223,11 @@ case "$1" in
                 batch_install_pkgs)
                     # 4. 临时队列安装引擎
                     logger -t Netwiz "[OFFLINE_SAFE] 触发队列合并安装"
-                    
+
                     (
                         exec </dev/null >/dev/null 2>&1
                         sleep 1
-                        
+
                         # 只安装本次拖曳进入/tmp/nw_staging/的档案
                         # 避开保险箱里以前存放的所有其他旧外挂和netwiz自身
                         if command -v apk >/dev/null 2>&1; then
