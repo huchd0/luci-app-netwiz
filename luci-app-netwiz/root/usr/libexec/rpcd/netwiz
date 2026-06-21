@@ -241,15 +241,15 @@ case "$1" in
                                 opkg install --force-reinstall --force-overwrite --force-depends $local_pkgs
                             fi
                         fi
-                        
+
                         # 安装完毕，销毁本次的临时安装队列
                         rm -rf /tmp/nw_staging
-                        
+
                         # 清空LuCI界面缓存
                         rm -f /tmp/luci-indexcache*
                         rm -f /tmp/luci-modulecache*
                     ) &
-                    
+
                     echo '{"result": 0}'
                     exit 0
                     ;;
@@ -266,14 +266,14 @@ case "$1" in
                 uci set netwiz.main.wizard_enable='0'
                 uci commit netwiz
                 # --------------------------------------------------
-                
+
                 # 确保档案存在
                 if [ -n "$plugin" ] && [ -f "/etc/config/$plugin" ]; then
                     log "[REPAIR]" ">>> 正在启动急救包，修复 $plugin 的设定档..."
-                    
+
                     # 强制停止服务防止档案被占用
                     [ -f "/etc/init.d/$plugin" ] && /etc/init.d/$plugin stop 2>/dev/null
-                    
+
                     # 双引擎判断
                     if [ -f "/rom/etc/config/$plugin" ]; then
                         # 固件内置外挂提取纯净版覆盖
@@ -282,7 +282,7 @@ case "$1" in
                     else
                         # 后装外挂删除配置后重装
                         log "[REPAIR]" "检测为后装第三方外挂，正在执行深度重置 (Purge & Clean Install)..."
-                        
+
                         # === 1. 极其关键：必须在物理删除前，先从底层数据库查出所属套件名 ===
                         pkg_name=""
                         if command -v apk >/dev/null 2>&1; then
@@ -292,18 +292,18 @@ case "$1" in
                         fi
                         # 兜底：如果找不出套件名，直接用插件名去模糊匹配
                         [ -z "$pkg_name" ] && pkg_name="$plugin"
-                        
+
                         # === 2. 状态保护：备份当前坏掉的配置，防止修复失败后状态丢失 ===
                         mv "/etc/config/$plugin" "/tmp/${plugin}_netwiz_bak" 2>/dev/null
                         # 删除所有附加配置文件夹
                         rm -rf "/etc/config/${plugin}."* 2>/dev/null
                         rm -rf "/etc/${plugin}" 2>/dev/null
-                        
+
                         # === 3. 智能本地抢占与重装逻辑 (支持批量安装) ===
                         if command -v apk >/dev/null 2>&1; then
                             local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${pkg_name}*.apk 2>/dev/null)
                             [ -z "$local_pkgs" ] && local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${plugin}*.apk 2>/dev/null)
-                            
+
                             if [ -n "$local_pkgs" ]; then
                                 log "[REPAIR]" "💡 在本地发现离线安装包，开始强制重装..."
                                 apk add --no-network --allow-untrusted --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1
@@ -314,7 +314,7 @@ case "$1" in
                         elif command -v opkg >/dev/null 2>&1; then
                             local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${pkg_name}*.ipk 2>/dev/null)
                             [ -z "$local_pkgs" ] && local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${plugin}*.ipk 2>/dev/null)
-                            
+
                             if [ -n "$local_pkgs" ]; then
                                 log "[REPAIR]" "💡 在本地发现离线安装包，开始强制重装..."
                                 opkg install --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1
@@ -324,7 +324,7 @@ case "$1" in
                             fi
                         fi
                     fi
-                    
+
                     # === 4. 判定配置重置是否成功 ===
                     if [ ! -f "/etc/config/$plugin" ]; then
                         log "[REPAIR]" "🚨 源内无包且无本地备份，外挂已死亡。触发死件逻辑！"
@@ -333,10 +333,10 @@ case "$1" in
                         echo '{"result": 2, "error": "Ghost package"}'
                         exit 0
                     fi
-                    
+
                     # 修复成功，清理临时备份
                     rm -f "/tmp/${plugin}_netwiz_bak"
-                    
+
                     # 网络组件特殊重启加载新配置
                     if [ "$plugin" = "network" ] || [ "$plugin" = "dhcp" ] || [ "$plugin" = "wireless" ]; then
                         /etc/init.d/network restart >/dev/null 2>&1 &
@@ -348,7 +348,7 @@ case "$1" in
 
                     rm -f /tmp/luci-indexcache* >/dev/null 2>&1
                     rm -f /tmp/luci-modulecache* >/dev/null 2>&1
-                    
+
                     log "[REPAIR]" "✅ $plugin 深度重置完毕，已满血复活！"
                     echo '{"result": 0}'
                 else
@@ -371,16 +371,16 @@ case "$1" in
                 uci commit netwiz
                 sync  # <--- 刷入物理硬盘，防止向导意外弹出
                 # --------------------------------------------------
-                
+
                 if [ -n "$plugin" ]; then
                     log "[REPAIR]" "💀 触发终极系统净化，准备彻底拔除死件: $plugin"
-                    
+
                     # 1. 停止服务并取消开机自启
                     if [ -x "/etc/init.d/$plugin" ]; then
                         /etc/init.d/$plugin stop >/dev/null 2>&1
                         /etc/init.d/$plugin disable >/dev/null 2>&1
                     fi
-                    
+
                     # 2. 查找所属套件并暴力卸载
                     log "[REPAIR]" "正在扫描并卸载所有关联的依赖包..."
                     if command -v apk >/dev/null 2>&1; then
@@ -398,19 +398,19 @@ case "$1" in
                             opkg remove --autoremove --force-remove $pkgs >/dev/null 2>&1
                         fi
                     fi
-                    
+
                     # 3. 物理删除所有配置残留
                     log "[REPAIR]" "删除配置残留: /etc/config/$plugin 及其附加目录"
                     rm -f "/etc/config/$plugin" 2>/dev/null
                     rm -rf "/etc/config/${plugin}."* 2>/dev/null
                     rm -rf "/etc/${plugin}" 2>/dev/null
                     rm -f "/etc/init.d/$plugin"
-                    
+
                     # 4. 清理 LuCI 界面残留与系统状态缓存
                     rm -rf "/usr/lib/lua/luci/controller/$plugin.lua" >/dev/null 2>&1
                     rm -f /tmp/luci-indexcache* >/dev/null 2>&1
                     rm -f /tmp/luci-modulecache* >/dev/null 2>&1
-                    
+
                     log "[REPAIR]" "✅ $plugin 及其残留文件已彻底从系统中抹除！"
                     echo '{"result": 0}'
                 else
@@ -431,19 +431,35 @@ case "$1" in
                 ;;
             check_wifi)
                 has_wifi="false"
-                # 1. 检测物理网卡底层接口
-                if [ -n "$(ls -A /sys/class/net/wlan* 2>/dev/null)" ] || \
-                   [ -n "$(ls -A /sys/class/net/ra* 2>/dev/null)" ] || \
-                   [ -n "$(ls -A /sys/class/net/wl* 2>/dev/null)" ] || \
-                   [ -n "$(ls -A /sys/class/net/ath* 2>/dev/null)" ]; then
-                    has_wifi="true"
-                # 2. 备用检测：iwinfo 射频状态
-                elif iwinfo 2>/dev/null | grep -q -E "ESSID|Access Point|Mode"; then
-                    has_wifi="true"
-                fi
-                
+                retry_cnt=0
+
+                # 增加最多3秒的等待回圈，解决路由器刚重启时内核Wi-Fi驱动加载慢的问题
+                while [ "$retry_cnt" -lt 3 ]; do
+                    # 1. 检测物理网卡底层接口
+                    if [ -n "$(ls -A /sys/class/net/wlan* 2>/dev/null)" ] || \
+                       [ -n "$(ls -A /sys/class/net/ra* 2>/dev/null)" ] || \
+                       [ -n "$(ls -A /sys/class/net/wl* 2>/dev/null)" ] || \
+                       [ -n "$(ls -A /sys/class/net/ath* 2>/dev/null)" ]; then
+                        has_wifi="true"
+                        break
+                    # 2. 备用检测：iwinfo 射频状态
+                    elif iwinfo 2>/dev/null | grep -q -E "ESSID|Access Point|Mode"; then
+                        has_wifi="true"
+                        break
+                    # 3. 终极硬件探针：直接嗅探 Linux 内核模块 (比网卡接口生成早得多，瞬间抓取)
+                    elif ls /sys/module/ 2>/dev/null | grep -q -E "mac80211|cfg80211|mt76|ath10|ath11|ath12"; then
+                        has_wifi="true"
+                        break
+                    fi
+
+                    sleep 1
+                    retry_cnt=$((retry_cnt + 1))
+                done
+
                 # 只有真正检测到硬件，但配置文件丢失时，才生成配置
                 if [ "$has_wifi" = "true" ] && [ ! -f /etc/config/wireless ]; then
+                    # 如果是靠底层模块探测到的，稍微等1秒让网卡接口注册完毕，否则 wifi config 可能会抓空
+                    sleep 1
                     wifi config > /etc/config/wireless 2>/dev/null
                 fi
 
@@ -467,7 +483,7 @@ case "$1" in
                 echo "{\"has_wifi\":$has_wifi, \"lan_nat_conflict\":$lan_nat_conflict, \"pkg_type\":\"$pkg_type\", \"sys_arch\":\"$sys_arch\"}"
                 exit 0
                 ;;
-            
+
             check_internet)
                 if ping -c 1 -W 2 223.5.5.5 >/dev/null 2>&1 || ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then echo '{"status":"ok"}'; else echo '{"status":"fail"}'; fi
                 exit 0
@@ -475,26 +491,26 @@ case "$1" in
             get_client_mac)
                 # 找出当前正在连接路由器网页后台(80/443端口)的设备 IP，匹配 MAC
                 client_ip=$(netstat -nt 2>/dev/null | awk '$4 ~ /:(80|443)$/ && $6 == "ESTABLISHED" {split($5, a, ":"); print a[1]}' | head -n 1)
-                
+
                 if [ -n "$client_ip" ]; then
                     mac=$(cat /proc/net/arp 2>/dev/null | awk -v ip="$client_ip" '$1 == ip {print $4}')
                 fi
-                
+
                 # 兜底：降级抓取第一个活动的有效设备
                 if [ -z "$mac" ] || [ "$mac" = "00:00:00:00:00:00" ]; then
                     mac=$(cat /proc/net/arp 2>/dev/null | grep -E "0x2" | grep -iv "00:00:00:00:00:00" | head -n 1 | awk '{print $4}')
                 fi
-                
+
                 echo "{\"mac\":\"$mac\"}"
                 exit 0
                 ;;
             get_adv_settings)
                 mac=$(uci -q get network.wan.macaddr)
-                
+
                 web="0"
                 _src=$(uci -q get firewall.netwiz_web.src_dport 2>/dev/null)
                 _dest=$(uci -q get firewall.netwiz_web.dest_port 2>/dev/null)
-                
+
                 if [ -n "$_src" ]; then
                     web="$_src"
                 elif [ -n "$_dest" ]; then
