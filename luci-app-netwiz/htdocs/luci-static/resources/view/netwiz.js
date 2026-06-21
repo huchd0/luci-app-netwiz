@@ -3001,7 +3001,8 @@ return view.extend({
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
                     if (isConfigured !== '1' && (wProto === 'pppoe' || wProto === 'static')) {
                         isConfigured = '1';
-                        // 静默向后端发送完成指令，永久解除 CGI 劫持
+                        isWizEnabled = '0'; // 在內存中同步关闭向导，防止下方else if误判弹出
+                        // 静默向后端发送完成指令，永久解除CGI劫持
                         silentSaveWizardState('1');
                     }
 
