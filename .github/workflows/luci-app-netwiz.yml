@@ -118,6 +118,7 @@ jobs:
           chmod +x luci-app-netwiz/root/usr/libexec/netwiz-monitor-loop.sh
           chmod +x luci-app-netwiz/root/etc/init.d/netwiz-monitor
           chmod +x luci-app-netwiz/root/etc/init.d/netwiz-recovery
+          chmod +x luci-app-netwiz/root/etc/init.d/netwiz-watchdog
           chmod +x luci-app-netwiz/root/etc/hotplug.d/dhcp/99-netwiz-guard
           
           # 自动提取版本号并注入前端 js (循环处理多个文件)
