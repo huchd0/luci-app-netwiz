@@ -17,13 +17,13 @@ msgid "Upstream network dials up, this device acts as a secondary router."
 msgstr "上級網路負責撥號，本設備作為二級路由使用。"
 
 msgid "PPPoE Dial-up"
-msgstr "PPPoE 撥號"
+msgstr "PPPoE 撥號 (WAN)"
 
 msgid "Dial up directly using account and password on this device."
 msgstr "在本設備上直接使用寬頻帳號和密碼進行撥號。"
 
 msgid "LAN Settings"
-msgstr "區域網路設定"
+msgstr "區域網路設定 (LAN)"
 
 msgid "Change device LAN IP, switch to AP Wired Relay mode, or one-click IPv6 distribution."
 msgstr "修改設備區域網 IP，或切換至旁路由（AP有線中繼）模式，一鍵下發IPv6。"
