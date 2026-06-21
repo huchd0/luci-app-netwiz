@@ -2991,23 +2991,31 @@ return view.extend({
 
             // ================== 弹出向导 ==================
             if (typeof uci !== 'undefined') {
-                uci.load('netwiz').then(function() {
+                // 连同 network 一起加载，用于探测底层真实拨号状态
+                Promise.all([uci.load('netwiz'), uci.load('network')]).then(function() {
                     var isConfigured = safeUciGet('netwiz', 'global', 'configured', '0');
                     var isWizEnabled = safeUciGet('netwiz', 'main', 'wizard_enable', '1');
-                    window._realIsConfigured = String(isConfigured);
-
-                    // 读取本地浏览器是否勾选过“不再提示”
                     var neverShow = safeGetLocal('nw_wizard_never_show');
+
+                    // 发现已经是 pppoe 或 static 拨号
+                    var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
+                    if (isConfigured !== '1' && (wProto === 'pppoe' || wProto === 'static')) {
+                        isConfigured = '1';
+                        // 静默向后端发送完成指令，永久解除 CGI 劫持
+                        silentSaveWizardState('1');
+                    }
+
+                    window._realIsConfigured = String(isConfigured);
 
                     // 核心判断逻辑：
                     if (window._realIsConfigured !== '1') {
-                        // 1. 第一次开机，显示向导
+                        // 1. 第一次开机 (且无历史拨号)，强制显示向导
                         if (wizModal) wizModal.style.display = 'flex';
                     } else if (String(isWizEnabled) === '1' && neverShow !== '1') {
                         // 2.平常，没有勾选“不再提示”
                         if (wizModal) wizModal.style.display = 'flex';
                     } else {
-                        // 3. 平常勾选“不再提示”
+                        // 3. 平常勾选“不再提示” 或 静默解除劫持成功
                         if (wizModal) wizModal.style.display = 'none';
                     }
                 }).catch(function() {
@@ -3019,7 +3027,7 @@ return view.extend({
                 if (wizModal) wizModal.style.display = 'flex';
             }
             // ==========================================================
-            
+
             if (btnReopenWiz) {
                 btnReopenWiz.style.display = '';
             }
