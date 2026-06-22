@@ -2113,11 +2113,14 @@ msgstr "移除"
 msgid "Save layout failed"
 msgstr "保存排版失败"
 
-msgid "IPv6 Heartbeat Probe"
-msgstr "IPv6 保活探针"
+msgid "IPv6 Watchdog"
+msgstr "IPv6 保活"
 
-msgid "Enable Advanced Watchdog"
-msgstr "启用高级网络探针"
+msgid "IPv6 Heartbeat Probe"
+msgstr "IPv6 存活监测"
+
+msgid "Enable Advanced IPv6 Link Monitoring & Auto Recovery"
+msgstr "启用 IPv6 链路存活监测与自愈"
 
 msgid "Probe Target URL"
 msgstr "探测源目标网址"
