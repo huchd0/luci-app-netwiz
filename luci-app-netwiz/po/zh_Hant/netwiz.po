@@ -2117,7 +2117,7 @@ msgid "IPv6 Watchdog"
 msgstr "IPv6 進階保活"
 
 msgid "IPv6 Heartbeat Probe"
-msgstr "IPv6 進階存活自癒"
+msgstr "IPv6 鏈路進階保活"
 
 msgid "Enable Advanced IPv6 Link Monitoring & Auto Recovery"
 msgstr "啟用 IPv6 鏈路存活監測與自癒"
