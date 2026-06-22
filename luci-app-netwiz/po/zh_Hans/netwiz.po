@@ -2113,3 +2113,35 @@ msgstr "移除"
 msgid "Save layout failed"
 msgstr "保存排版失败"
 
+msgid "IPv6 Heartbeat Probe"
+msgstr "IPv6 保活探针"
+
+msgid "Enable Advanced Watchdog"
+msgstr "启用高级网络探针"
+
+msgid "Probe Target URL"
+msgstr "探测源目标网址"
+
+msgid "e.g., XXXXX-XXXXX.workers.dev"
+msgstr "例如：XXXXX-XXXXX.workers.dev"
+
+msgid "Note:"
+msgstr "说明："
+
+msgid "Supports any API compatible with the specification. You can deploy it on Cloudflare, Cloud Servers, or even a VPS."
+msgstr "支持填写兼容规范的接口。您可将其部署在 Cloudflare、云服务器，甚至 VPS 上。"
+
+msgid "The server must parse this address and perform a live test:"
+msgstr "服务端需解析该地址并进行测活："
+
+msgid "Your_URL/[IPv6_Address]:Port"
+msgstr "您的链接/[IPv6地址]:端口"
+
+msgid "If the network is accessible, it must return the plain text"
+msgstr "若网络畅通，请务必返回纯文本"
+
+msgid "Examples:"
+msgstr "填写示例："
+
+msgid "Click to view Cloudflare tutorial & source code"
+msgstr "点击查看 Cloudflare 示例教程与源码"
