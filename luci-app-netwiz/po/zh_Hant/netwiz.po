@@ -2120,7 +2120,7 @@ msgid "IPv6 Heartbeat Probe"
 msgstr "IPv6 存活監測"
 
 msgid "Enable Advanced IPv6 Link Monitoring & Auto Recovery"
-msgstr "IPv6 通道存活監測與自愈"
+msgstr "啟用 IPv6 鏈路存活監測與自癒"
 
 msgid "Probe Target URL"
 msgstr "探測來源目標網址"
