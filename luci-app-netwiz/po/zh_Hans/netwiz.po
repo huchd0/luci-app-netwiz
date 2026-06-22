@@ -2157,3 +2157,15 @@ msgstr "IPv6 总开关"
 
 msgid "Allow WAN Access to Web UI"
 msgstr "允许外网访问面板"
+
+msgid "Security Notice"
+msgstr "安全提示"
+
+msgid "You have disabled WAN access. To ensure the firewall is completely closed, the IPv6 Watchdog has been automatically disabled."
+msgstr "您关闭了外网访问。为确保防火墙完全封闭，系统已同步为您关闭 IPv6 深度保活功能。"
+
+msgid "Dependency Notice"
+msgstr "依赖提示"
+
+msgid "You have disabled IPv6. The IPv6 Watchdog, which depends on it, has been automatically disabled."
+msgstr "您关闭了 IPv6 功能。系统已同步为您关闭依赖此功能的 IPv6 深度保活功能。"
