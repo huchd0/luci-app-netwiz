@@ -26,7 +26,7 @@
 3. 点击 **`创建应用程序 (Create application)`**，然后点击 **`创建 Worker (Create Worker)`**。
 4. 为您的探针起一个名字（例如：`netwiz-probe`），点击 **`部署 (Deploy)`**。
 5. 部署成功后，点击 **`编辑代码 (Edit code)`**。
-6. 将原来输入框里默认的代码全部删除，**粘贴**您在第一步复制的探针源码。
+6. 将原来输入框里默认的代码全部删除，**全选并复制当前文件全部内容**粘贴进去。
 7. 点击右上角的 **`保存并部署 (Save and deploy)`**。
 8. 记录下 Cloudflare 为您分配的专属探针域名（例如：`netwiz-probe.您的用户名.workers.dev`）。
 
