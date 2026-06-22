@@ -2148,3 +2148,12 @@ msgstr "填写示例："
 
 msgid "Click to view Cloudflare tutorial & source code"
 msgstr "点击查看 Cloudflare 示例教程与源码"
+
+msgid "To ensure the probe works correctly, the following dependent features have been automatically enabled:\n"
+msgstr "为了确保探针正常工作，系统已同步为您开启以下依赖功能：\n"
+
+msgid "IPv6 Master Switch"
+msgstr "IPv6 总开关"
+
+msgid "Allow WAN Access to Web UI"
+msgstr "允许外网访问面板"
