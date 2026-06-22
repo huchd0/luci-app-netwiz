@@ -1987,7 +1987,6 @@ EOF
     daemon)
         heal_fail_cnt=0
         loop_cnt=0
-        while true; do
         PING_TARGET="2400:3200::1"
         logger -t Netwiz "[保活守护]引擎启动成功！进入后台常驻监控模式..."
 
@@ -1995,7 +1994,7 @@ EOF
             # --- [ 动作A：每20秒执行（高频轻量保活）] ---
             ping -6 -c 1 -W 2 "$PING_TARGET" >/dev/null 2>&1
             ping_res=$?
-
+            
             # --- [ 动作 B：每 120 秒执行 (深度探测与高级自愈) ] ---
             if [ $((loop_cnt % 6)) -eq 0 ]; then
                 ENABLE=$(uci -q get netwiz.main.watchdog_enable)
