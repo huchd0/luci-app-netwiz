@@ -1497,25 +1497,39 @@ return view.extend({
                         // 联动判定：当开关打向 ON 时触发
                         if (this.checked) {
                             var needsPrompt = false;
-                            var promptMsg = T['MSG_WOG_LINKAGE'] || "为了确保探针正常工作，系统已同步为您开启以下依赖功能：\n";
+                            
+                            // 改用 HTML 拼接，适配插件的原生 UI，排版更精美
+                            var promptHtml = '<div style="font-size:14px; line-height:1.6; color:#334155; text-align:left; padding: 5px;">' +
+                                             '<div style="margin-bottom: 12px; font-weight: bold; color: #0284c7;">' + 
+                                             (T['MSG_WOG_LINKAGE'] || "To ensure the probe works correctly, the following dependent features have been automatically enabled:") + '</div>';
 
                             // 联动 1：IPv6 总开关
                             if (ipv6Checkbox && !ipv6Checkbox.checked) {
                                 ipv6Checkbox.checked = true; // 在主界面勾上
                                 needsPrompt = true;
-                                promptMsg += "\n✅ " + (T['MSG_WOG_LINK_V6'] || "IPv6 (DHCPv6) 总开关");
+                                promptHtml += '<div style="padding:6px 0; border-bottom: 1px dashed #e2e8f0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_V6'] || "IPv6 Master Switch") + '</div>';
                             }
-
+                            
                             // 联动 2：外网访问面板开关
                             if (wanCheckbox && !wanCheckbox.checked) {
                                 wanCheckbox.checked = true; // 在主界面勾上
                                 needsPrompt = true;
-                                promptMsg += "\n✅ " + (T['MSG_WOG_LINK_WAN'] || "允许外网访问面板 (防火墙放行)");
+                                promptHtml += '<div style="padding:6px 0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_WAN'] || "Allow WAN Access to Web UI") + '</div>';
                             }
 
-                            // 如果确实有被强行开启的开关，弹窗告知用户
+                            promptHtml += '</div>';
+
+                            // 调用插件的原生 UI 弹窗
                             if (needsPrompt) {
-                                alert(promptMsg);
+                                openModal({
+                                    title: '💡 ' + (T['WOG_TITLE'] || 'IPv6 Watchdog'),
+                                    msg: promptHtml,
+                                    okText: T['BTN_OK'] || 'OK' // 复用全局的确定按钮字典
+                                });
+                                
+                                // 确保提示弹窗位于最高层级，不被背后的设置弹窗遮挡
+                                var gm = document.getElementById('nw-global-modal');
+                                if (gm) gm.style.zIndex = '100000';
                             }
                         }
                     });
