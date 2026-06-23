@@ -2169,3 +2169,6 @@ msgstr "依賴提示"
 
 msgid "You have disabled IPv6. To ensure security, the dependent IPv6 Watchdog and WAN Access will be automatically disabled."
 msgstr "您關閉了 IPv6 功能。為確保系統安全，依賴此功能的「IPv6 深度保活」與「外網直聯後台」將同步關閉。"
+
+msgid "Probe URL cannot be empty, please fill it in before saving!"
+msgstr "探測網址不能為空，請填寫後再保存！"
