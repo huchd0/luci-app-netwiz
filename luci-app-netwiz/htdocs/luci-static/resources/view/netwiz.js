@@ -530,7 +530,8 @@ var T = {
     'MSG_SEC_NOTICE': _('Security Notice'),
     'MSG_WOG_OFF_WAN': _('You have disabled WAN access. To ensure the firewall is completely closed, the IPv6 Watchdog has been automatically disabled.'),
     'MSG_DEP_NOTICE': _('Dependency Notice'),
-    'MSG_WOG_OFF_V6_ALL': _('You have disabled IPv6. To ensure security, the dependent IPv6 Watchdog and WAN Access will be automatically disabled.')
+    'MSG_WOG_OFF_V6_ALL': _('You have disabled IPv6. To ensure security, the dependent IPv6 Watchdog and WAN Access will be automatically disabled.'),
+    'ERR_EMPTY_URL': _('Probe URL cannot be empty, please fill it in before saving!'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1445,7 +1446,7 @@ return view.extend({
                     }
 
                     if (nEn === '1' && nUrl === '') {
-                        alert('❌ 探测网址不能为空，请填写后再保存！');
+                        alert('❌ ' + T['ERR_EMPTY_URL']);
                         return false;
                     }
 
@@ -3329,7 +3330,7 @@ return view.extend({
                             }
                             // 如果成功抓到了真实的公网 IP，在前端替换显示，并打上标识
                             if (window._pubIpCache) {
-                                liveWanIp = window._pubIpCache + ' (真实公网)';
+                                liveWanIp = window._pubIpCache + '(WAN)';
                             }
                         }
                     }
