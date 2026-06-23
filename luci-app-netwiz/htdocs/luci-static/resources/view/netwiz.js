@@ -3315,22 +3315,37 @@ return view.extend({
 
                     // 二级路由的内网 IP，利用浏览器在后台静默请求真正的外网 IP
                     if (isPrivateWan && liveWanIp) {
-                        // 加入缓存机制，每 60 秒最多请求一次外部 API，防止轮询被封锁
+                        // 加入缓存机制，每 60 秒最多请求一次外部 API
                         if (typeof fetch !== 'undefined') {
                             if (!window._pubIpCache || (Date.now() - window._pubIpLastCheck > 60000)) {
                                 window._pubIpLastCheck = Date.now();
-                                fetch('https://api.ipify.org?format=text')
-                                    .then(function(res) { return res.text(); })
-                                    .then(function(ip) {
-                                        // 严格校验返回的是否为合法的数字 IP
-                                        if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
-                                            window._pubIpCache = ip;
-                                        }
-                                    }).catch(function(e) {}); // 失败则静默忽略
+                                
+                                // 多重 API 获取公网IP (防止手机浏览器拦截单一 API)
+                                var getRealIp = function() {
+                                    // 线路 1: ipify
+                                    return fetch('https://api.ipify.org?format=text').then(function(r) { return r.text(); })
+                                    .catch(function() {
+                                        // 线路 2: 备用节点 ip.sb
+                                        return fetch('https://api.ip.sb/ip').then(function(r) { return r.text(); });
+                                    })
+                                    .catch(function() {
+                                        // 线路 3: 终极兜底节点 ipv6-test
+                                        return fetch('https://v4.ipv6-test.com/api/myip.php').then(function(r) { return r.text(); });
+                                    });
+                                };
+
+                                getRealIp().then(function(ip) {
+                                    ip = ip.replace(/[\r\n\s]+/g, ''); // 清理可能带有的空格与换行
+                                    // 严格校验是否为标准 IPv4
+                                    if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+                                        window._pubIpCache = ip;
+                                    }
+                                }).catch(function(e) {}); // 全部失败则静默忽略
                             }
-                            // 如果成功抓到了真实的公网 IP，在前端替换显示，并打上标识
+                            
+                            // 替换显示
                             if (window._pubIpCache) {
-                                liveWanIp = window._pubIpCache + '(WAN)';
+                                liveWanIp = window._pubIpCache + ' (wan)';
                             }
                         }
                     }
