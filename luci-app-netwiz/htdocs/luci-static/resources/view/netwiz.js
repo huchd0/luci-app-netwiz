@@ -3238,7 +3238,7 @@ return view.extend({
 
         function updateStatusDisplay(isSilent) {
             try {
-                // --- 互联网状态全域快取与防闪烁逻辑 (增强版定位) ---
+                // --- 互联网状态全域快取与防闪烁逻辑 ---
                 if (typeof window.nwInetStatus === 'undefined') window.nwInetStatus = 'wait';
                 if (typeof window.nwInetLast === 'undefined') window.nwInetLast = 0;
                 
@@ -3247,7 +3247,7 @@ return view.extend({
                     window.nwInetLast = now;
                     callCheckInternet().then(function(res) { 
                         window.nwInetStatus = (res.status === 'ok') ? 'ok' : 'fail'; 
-                        // 探测完成后，直接精准更新那个图标，而不是重绘整个界面
+                        // 探测完成后，更新图标
                         var badgeEl = document.getElementById('nw-inet-badge');
                         if (badgeEl) {
                             badgeEl.innerHTML = window.nwInetStatus === 'ok' ? '🌐' : '❌';
@@ -3280,7 +3280,7 @@ return view.extend({
                         activeWan = virWwan;
                         isWispActive = true;
                     } else {
-                        // --- 核心防呆 1：动态寻找真正拥有 0.0.0.0 默认路由的网卡（穿透光猫内网） ---
+                        // --- 防呆 1：动态寻找真正拥有 0.0.0.0 默认路由的网卡（穿透光猫内网） ---
                         var realRouteWan = ifaces.find(function(i) {
                             return i.up && Array.isArray(i.route) && i.route.some(function(r) { return r.target === '0.0.0.0' && (r.mask === 0 || !r.mask); });
                         });
@@ -3293,7 +3293,7 @@ return view.extend({
                         }
                     }
 
-                    // --- 核心防呆 2：强制优先公网 IP + 智能穿透探测真实公网 IP ---
+                    // --- 防呆 2：优先公网 IP + 智能穿透探测真实公网 IP ---
                     var liveWanIp = '';
                     var isPrivateWan = false;
                     
@@ -3345,7 +3345,7 @@ return view.extend({
                             
                             // 替换显示
                             if (window._pubIpCache) {
-                                liveWanIp = window._pubIpCache + ' (wan)';
+                                liveWanIp = window._pubIpCache + '(wan)';
                             }
                         }
                     }
