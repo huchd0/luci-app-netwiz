@@ -3278,13 +3278,34 @@ return view.extend({
                         // 有线没通，无线通了 -> 切換到无线中继视角
                         activeWan = virWwan;
                         isWispActive = true;
-                    } else if (!phyWan.up && !virWwan.up) {
-                        // 兜底：找一個带 wan 名字的
-                        activeWan = ifaces.find(function(i) { return i && (i.interface === 'wan' || i.interface === 'wwan' || (i.interface && i.interface.indexOf('wan') !== -1 && i.interface.indexOf('lan') === -1)); }) || {};
+                    } else {
+                        // --- 核心防呆 1：动态寻找真正拥有 0.0.0.0 默认路由的网卡（穿透光猫内网） ---
+                        var realRouteWan = ifaces.find(function(i) {
+                            return i.up && Array.isArray(i.route) && i.route.some(function(r) { return r.target === '0.0.0.0' && (r.mask === 0 || !r.mask); });
+                        });
+                        
+                        if (realRouteWan) {
+                            activeWan = realRouteWan;
+                        } else if (!phyWan.up && !virWwan.up) {
+                            // 兜底：找一個带 wan 名字的
+                            activeWan = ifaces.find(function(i) { return i && (i.interface === 'wan' || i.interface === 'wwan' || (i.interface && i.interface.indexOf('wan') !== -1 && i.interface.indexOf('lan') === -1)); }) || {};
+                        }
                     }
 
-                    var liveWanIp = ((activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) ? activeWan['ipv4-address'][0].address : '').split('/')[0];
+                    // --- 核心防呆 2：从网卡中提取 IP 时，强制优先选择【非内网】的真实公网 IP ---
+                    var liveWanIp = '';
+                    if (activeWan['ipv4-address'] && activeWan['ipv4-address'].length > 0) {
+                        var pubIpObj = activeWan['ipv4-address'].find(function(ipObj) {
+                            var ip = ipObj.address || '';
+                            // 过滤掉所有 192.168.x.x, 10.x.x.x, 172.16.x.x 等局域网或 CGNAT 大内网 IP
+                            return !/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|100\.(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\.)/.test(ip);
+                        });
+                        // 如果找到了公网 IP 就用它，如果全是内网 IP（比如真的只是二级路由），才拿第一个
+                        liveWanIp = pubIpObj ? pubIpObj.address : activeWan['ipv4-address'][0].address;
+                    }
+                    liveWanIp = liveWanIp.split('/')[0];
                     window._liveWanIp = liveWanIp;
+                    
                     var liveGw = activeWan.nexthop || '';
                     if (!liveGw && Array.isArray(activeWan.route)) { var defaultRoute = activeWan.route.find(function(r) { return r.target === '0.0.0.0'; }); if (defaultRoute) liveGw = defaultRoute.nexthop; }
                     if (!liveGw && activeWan['ipv4-address'] && activeWan['ipv4-address'][0]) liveGw = activeWan['ipv4-address'][0].ptpaddress || '';
