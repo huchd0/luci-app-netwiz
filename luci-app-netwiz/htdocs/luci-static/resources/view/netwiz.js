@@ -1415,130 +1415,122 @@ return view.extend({
             var btn = e.target.closest('#link-ipv6-watchdog');
             if (!btn) return;
 
-            // 从底层动态读取当前状态
-            var isEn = safeUciGet('netwiz', 'main', 'watchdog_enable', '0');
-            var url = safeUciGet('netwiz', 'main', 'watchdog_url', '');
+            uci.load('netwiz').then(function() {
+                var isEn = safeUciGet('netwiz', 'main', 'watchdog_enable', '0');
+                var url = safeUciGet('netwiz', 'main', 'watchdog_url', '');
 
-            // 渲染极客级设置面板
-            var html = '<div style="text-align:left; font-size:14px; line-height:1.6; color:#334155;">' +
-                '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; padding-bottom:12px; border-bottom:1px solid #e2e8f0;">' +
-                    '<span style="font-weight:bold; color:#0f172a; font-size:14.5px;">' + (T['WOG_ENABLE'] || 'Enable Advanced IPv6 Link Monitoring & Auto Recovery') + '</span>' +
-                    '<label class="nw-switch" style="margin:0;"><input type="checkbox" id="nw-wog-en" '+(isEn==='1'?'checked':'')+'><span class="nw-slider"></span></label>' +
-                '</div>' +
-                '<div id="nw-wog-url-box" style="margin-bottom:15px; '+(isEn==='1'?'':'display:none;')+'">' +
-                    '<div style="margin-bottom:6px; font-weight:bold; color:#0f172a;">' + (T['WOG_URL_LBL'] || 'Probe Target URL') + '</div>' +
-                    '<input type="text" id="nw-wog-url" class="cbi-input-text" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; outline:none; transition:border-color 0.2s; color: #000;" value="'+url+'" placeholder="'+(T['WOG_URL_PH'] || 'e.g., http://ipv6.baidu.com')+'">' +
-                '</div>' +
-                '<div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">' +
-                    (T['WOG_HELP'] || 'Help Text') +
-                '</div>' +
-            '</div>';
+                // 渲染极客级设置面板
+                var html = '<div style="text-align:left; font-size:14px; line-height:1.6; color:#334155;">' +
+                    '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; padding-bottom:12px; border-bottom:1px solid #e2e8f0;">' +
+                        '<span style="font-weight:bold; color:#0f172a; font-size:14.5px;">' + (T['WOG_ENABLE'] || 'Enable Advanced IPv6 Link Monitoring & Auto Recovery') + '</span>' +
+                        '<label class="nw-switch" style="margin:0;"><input type="checkbox" id="nw-wog-en" '+(isEn==='1'?'checked':'')+'><span class="nw-slider"></span></label>' +
+                    '</div>' +
+                    '<div id="nw-wog-url-box" style="margin-bottom:15px; '+(isEn==='1'?'':'display:none;')+'">' +
+                        '<div style="margin-bottom:6px; font-weight:bold; color:#0f172a;">' + (T['WOG_URL_LBL'] || 'Probe Target URL') + '</div>' +
+                        '<input type="text" id="nw-wog-url" class="cbi-input-text" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; outline:none; transition:border-color 0.2s; color: #000;" value="'+url+'" placeholder="'+(T['WOG_URL_PH'] || 'e.g., http://ipv6.baidu.com')+'">' +
+                    '</div>' +
+                    '<div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">' +
+                        (T['WOG_HELP'] || 'Help Text') +
+                    '</div>' +
+                '</div>';
 
-            // 调出保存弹窗
-            showAdvModal((T['WOG_TITLE'] || 'IPv6 Heartbeat Probe'), html, function(box) {
-                var nEn = box.querySelector('#nw-wog-en').checked ? '1' : '0';
-                var nUrl = box.querySelector('#nw-wog-url').value.trim();
+                // 调出保存弹窗
+                showAdvModal((T['WOG_TITLE'] || 'IPv6 Heartbeat Probe'), html, function(box) {
+                    var nEn = box.querySelector('#nw-wog-en').checked ? '1' : '0';
+                    var nUrl = box.querySelector('#nw-wog-url').value.trim();
 
-                // 防呆 1：完全没有修改，直接退出
-                // isEn 和 url 是弹窗打开前从底层读出的初始变量
-                if (nEn === isEn && nUrl === url) {
-                    return; // 假装保存成功，直接退出函数，不再往下走
-                }
-
-                // 防呆 2：开启状态下，必须填写目标网址，否则拦截
-                if (nEn === '1' && nUrl === '') {
-                    alert('❌ 探测网址不能为空，请填写后再保存！');
-                    return; // 弹出提示并终止保存动作
-                }
-
-                // 校验通过，才开始转圈动画和底层写入
-                openModal({ title: '⚙️ ' + (T['WOG_TITLE'] || 'IPv6 Heartbeat Probe'), msg: T['MSG_WRITING'] || 'Saving...', spin: true });
-
-                // 直接调用前端 uci 接口写入底层配置文件
-                uci.set('netwiz', 'main', 'watchdog_enable', nEn);
-                uci.set('netwiz', 'main', 'watchdog_url', nUrl);
-
-                // 前端联动防呆保存逻辑：如果探针被开启，顺便把前端强制勾选的 IPv6 和 外网访问参数 也保存进去
-                if (nEn === '1') {
-                    var ipv6Checkbox = document.getElementById('lan-ipv6-toggle');
-                    if (ipv6Checkbox && ipv6Checkbox.checked) {
-                        uci.set('dhcp', 'lan', 'dhcpv6', 'server');
-                        uci.set('dhcp', 'lan', 'ra', 'server');
-                        uci.set('dhcp', 'lan', 'ndp', 'server');
-                        uci.set('dhcp', 'lan', 'ra_flags', ['managed-config', 'other-config']);
+                    // 防呆：完全没有修改，直接退出
+                    if (nEn === isEn && nUrl === url) {
+                        return; 
                     }
-                    var wanCheckbox = document.getElementById('adv-web-toggle');
-                    if (wanCheckbox && wanCheckbox.checked) {
-                        var pVal = document.getElementById('adv-web-port') ? (document.getElementById('adv-web-port').value || '80') : '80';
-                        // 使用原有的 RPC 接口确保防火墙放行规则被正确写入
-                        callSetAdvSettings('', pVal, '', '').catch(function(){});
+
+                    if (nEn === '1' && nUrl === '') {
+                        alert('❌ 探测网址不能为空，请填写后再保存！');
+                        return false;
                     }
-                }
 
-                uci.save().then(function() {
-                    // 发起 apply
-                    uci.apply().catch(function(e) { console.log("预计之内的断流 (可无视):", e); });
-                    // 1.5 秒后强行刷新当前页面
-                    setTimeout(function() { window.location.reload(); }, 1500);
-                }).catch(function(err) {
-                    setTimeout(function() { window.location.reload(); }, 1500);
-                });
-            });
+                    openModal({ title: '⚙️ ' + (T['WOG_TITLE'] || 'IPv6 Heartbeat Probe'), msg: T['MSG_WRITING'] || 'Saving...', spin: true });
 
-            // 弹窗内的开关联动动画与 UI 提示
-            setTimeout(function() {
-                var mChk = document.getElementById('nw-wog-en');
-                var mBox = document.getElementById('nw-wog-url-box');
+                    uci.set('netwiz', 'main', 'watchdog_enable', nEn);
+                    uci.set('netwiz', 'main', 'watchdog_url', nUrl);
 
-                // 获取主界面的两个依赖开关
-                var ipv6Checkbox = document.getElementById('lan-ipv6-toggle');
-                var wanCheckbox = document.getElementById('adv-web-toggle');
+                    var p = Promise.resolve();
 
-                if(mChk && mBox) {
-                    mChk.addEventListener('change', function() {
-                        mBox.style.display = this.checked ? 'block' : 'none';
-
-                        // 联动判定：当开关打向 ON 时触发
-                        if (this.checked) {
-                            var needsPrompt = false;
-                            
-                            // HTML 拼接
-                            var promptHtml = '<div style="font-size:14px; line-height:1.6; color:#334155; text-align:left; padding: 5px;">' +
-                                             '<div style="margin-bottom: 12px; font-weight: bold; color: #0284c7;">' + 
-                                             (T['MSG_WOG_LINKAGE'] || "To ensure the probe works correctly, the following dependent features have been automatically enabled") + '：</div>';
-
-                            // 联动 1：IPv6 总开关
-                            if (ipv6Checkbox && !ipv6Checkbox.checked) {
-                                ipv6Checkbox.checked = true; // 在主界面勾上
-                                needsPrompt = true;
-                                promptHtml += '<div style="padding:6px 0; border-bottom: 1px dashed #e2e8f0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_V6'] || "IPv6 Master Switch") + '</div>';
-                            }
-                            
-                            // 联动 2：外网访问面板开关
-                            if (wanCheckbox && !wanCheckbox.checked) {
-                                wanCheckbox.checked = true; // 在主界面勾上
-                                needsPrompt = true;
-                                promptHtml += '<div style="padding:6px 0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_WAN'] || "Allow WAN Access to Web UI") + '</div>';
-                            }
-
-                            promptHtml += '</div>';
-
-                            // 调用插件的原生 UI 弹窗
-                            if (needsPrompt) {
-                                openModal({
-                                    title: '💡 ' + (T['WOG_TITLE'] || 'IPv6 Watchdog'),
-                                    msg: promptHtml,
-                                    okText: T['BTN_OK'] || 'OK' // 复用全局的确定按钮字典
-                                });
-                                
-                                // 确保提示弹窗位于最高层级，不被背后的设置弹窗遮挡
-                                var gm = document.getElementById('nw-global-modal');
-                                if (gm) gm.style.zIndex = '100000';
-                            }
+                    if (nEn === '1') {
+                        var ipv6Checkbox = document.getElementById('lan-ipv6-toggle');
+                        if (ipv6Checkbox && ipv6Checkbox.checked) {
+                            uci.set('dhcp', 'lan', 'dhcpv6', 'server');
+                            uci.set('dhcp', 'lan', 'ra', 'server');
+                            uci.set('dhcp', 'lan', 'ndp', 'server');
+                            uci.set('dhcp', 'lan', 'ra_flags', ['managed-config', 'other-config']);
                         }
+                        var wanCheckbox = document.getElementById('adv-web-toggle');
+                        if (wanCheckbox && wanCheckbox.checked) {
+                            var pVal = document.getElementById('adv-web-port') ? (document.getElementById('adv-web-port').value || '80') : '80';
+                            p = callSetAdvSettings('', pVal, '', ''); // 第一步：排队让 RPC 接口先写入
+                        }
+                    }
+
+                    p.then(function() {
+                        return uci.save(); // 第二步：将 UCI 数据存入暂存
+                    }).then(function() {
+                        return uci.apply(); // 第三步：系统级应用与重启服务
+                    }).then(function() {
+                        // 仅静默隐藏转圈弹窗，让用户可以继续他原本的设定流
+                        var gm = document.getElementById('nw-global-modal');
+                        if (gm) gm.style.display = 'none';
+                    }).catch(function(err) {
+                        // 只有发生严重异常时才兜底重载页面
+                        window.location.reload();
                     });
-                }
-            }, 50);
+                });
+
+                // 弹窗内的开关联动动画与 UI 提示
+                setTimeout(function() {
+                    var mChk = document.getElementById('nw-wog-en');
+                    var mBox = document.getElementById('nw-wog-url-box');
+
+                    var ipv6Checkbox = document.getElementById('lan-ipv6-toggle');
+                    var wanCheckbox = document.getElementById('adv-web-toggle');
+
+                    if(mChk && mBox) {
+                        mChk.addEventListener('change', function() {
+                            mBox.style.display = this.checked ? 'block' : 'none';
+
+                            if (this.checked) {
+                                var needsPrompt = false;
+                                var promptHtml = '<div style="font-size:14px; line-height:1.6; color:#334155; text-align:left; padding: 5px;">' +
+                                                 '<div style="margin-bottom: 12px; font-weight: bold; color: #0284c7;">' +
+                                                 (T['MSG_WOG_LINKAGE'] || "To ensure the probe works correctly, the following dependent features have been automatically enabled") + '：</div>';
+
+                                if (ipv6Checkbox && !ipv6Checkbox.checked) {
+                                    ipv6Checkbox.checked = true;
+                                    needsPrompt = true;
+                                    promptHtml += '<div style="padding:6px 0; border-bottom: 1px dashed #e2e8f0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_V6'] || "IPv6 Master Switch") + '</div>';
+                                }
+
+                                if (wanCheckbox && !wanCheckbox.checked) {
+                                    wanCheckbox.checked = true;
+                                    needsPrompt = true;
+                                    promptHtml += '<div style="padding:6px 0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_WAN'] || "Allow WAN Access to Web UI") + '</div>';
+                                }
+
+                                promptHtml += '</div>';
+
+                                if (needsPrompt) {
+                                    openModal({
+                                        title: '💡 ' + (T['WOG_TITLE'] || 'IPv6 Watchdog'),
+                                        msg: promptHtml,
+                                        okText: T['BTN_OK'] || 'OK'
+                                    });
+                                    var gm = document.getElementById('nw-global-modal');
+                                    if (gm) gm.style.zIndex = '100000';
+                                }
+                            }
+                        });
+                    }
+                }, 50);
+            });
         });
 
         // ================= 高级与实验室：动态包裹与折叠逻辑 =================
