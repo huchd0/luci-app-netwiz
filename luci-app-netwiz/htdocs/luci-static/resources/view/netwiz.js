@@ -3288,23 +3288,17 @@ return view.extend({
                     var virWwan = ifaces.find(function(i) { return i && i.interface === 'wwan'; }) || {};
 
                     // ==========================================
-                    // 1. 放在所有逻辑的最前面
+                    // 1. 终极防抖锁：杜绝面板乱跳
                     // ==========================================
                     if (typeof window._stablePhyWan === 'undefined') {
                         window._stablePhyWan = phyWan;
                     }
-                    // 当前成功抓到了正常的 WAN IP，就更新缓存
                     if (phyWan && phyWan.up && phyWan['ipv4-address'] && phyWan['ipv4-address'].length > 0) {
-                        window._stablePhyWan = phyWan;
-                    }
-                    // 当前没抓到 (遭遇底层轮询抖动为空)，强制沿用上一秒的有效缓存，救活 phyWan
-                    else if (window._stablePhyWan && window._stablePhyWan.up) {
-                        phyWan = window._stablePhyWan;
+                        window._stablePhyWan = phyWan; 
+                    } else if (window._stablePhyWan && window._stablePhyWan.up) {
+                        phyWan = window._stablePhyWan; 
                     }
 
-                    // ==========================================
-                    // 2. 网卡状态判定 (官方基础逻辑)
-                    // ==========================================
                     var activeWan = phyWan; 
                     var isWispActive = false;
                     var hasWispConfigured = !!uci.sections('wireless', 'wifi-iface').find(function(i) { return i.network === 'wwan' && i.mode === 'sta'; });
@@ -3320,42 +3314,42 @@ return view.extend({
                     }
 
                     // ==========================================
-                    // 3. 极致精简：直接完全同步官方接口页面的数据
+                    // 2. 强制识别协议名称 (完美同步官方)
+                    // ==========================================
+                    var rawProto = (safeUciGet('network', activeWan.interface || 'wan', 'proto', '') || '').toLowerCase();
+                    var protoName = '';
+                    if (rawProto === 'pppoe') protoName = 'PPPoE 拨号';
+                    else if (rawProto === 'dhcp') protoName = '自动获取 (DHCP)';
+                    else if (rawProto === 'static') protoName = '静态 IP';
+                    else protoName = '自动获取 (DHCP)'; // 终极兜底，强杀“局域网模式”字眼
+
+                    // ==========================================
+                    // 3. 提取本地物理 WAN IP (智能剔除光猫管理 IP)
                     // ==========================================
                     var liveWanIp = '';
-                    var protoName = '';
-
-                    // 获取真实的接口 IP (优先提取网卡上自带的公网 IP，杜绝双 IP 轮询乱跳)
                     if (activeWan['ipv4-address'] && activeWan['ipv4-address'].length > 0) {
-                        var foundPubIp = null;
-                        var foundPrivIp = null;
-                        
-                        // 遍历网卡上的所有 IP
+                        var foundMainIp = null;
+                        var foundModemIp = null;
+
+                        // 遍历网卡上的所有 IP，解决多个 IP 导致乱跳的问题
                         activeWan['ipv4-address'].forEach(function(ipObj) {
                             var ip = ipObj.address || '';
-                            // 匹配所有局域网和运营商大内网 (CGNAT) IP
-                            var isPrivate = /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|100\.(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-7])\.)/.test(ip);
-                            
-                            if (isPrivate) {
-                                if (!foundPrivIp) foundPrivIp = ip; // 记录找到的第一个私有 IP
+                            // 如果是 192.168.x.x，通常是光猫桥接/管理 IP，做个标记
+                            if (ip.indexOf('192.168.') === 0) {
+                                if (!foundModemIp) foundModemIp = ip;
                             } else {
-                                if (!foundPubIp) foundPubIp = ip;   // 记录找到的第一个公网 IP
+                                // 只要不是 192.168，不管是 100.64 大内网，还是 114.x 真公网，统统视为“主力 IP”
+                                if (!foundMainIp) foundMainIp = ip;
                             }
                         });
 
-                        // 终极优先级：有公网选公网，没公网才选私有 IP 兜底
-                        liveWanIp = foundPubIp ? foundPubIp : (foundPrivIp ? foundPrivIp : activeWan['ipv4-address'][0].address);
+                        // 优先级逻辑：有主力 IP 就显示主力，只有光猫 IP 才显示光猫，否则兜底
+                        liveWanIp = foundMainIp ? foundMainIp : (foundModemIp ? foundModemIp : activeWan['ipv4-address'][0].address);
                     }
 
-                    // 获取协议类型 (加入 || '' 防止读取失败时报错卡死)
-                    var rawProto = (safeUciGet('network', activeWan.interface || 'wan', 'proto', '') || '').toLowerCase();
-                    
-                    if (rawProto === 'pppoe') protoName = 'PPPoE 拨号';
-                    else if (rawProto === 'dhcp') protoName = 'DHCP 客户端';
-                    else if (rawProto === 'static') protoName = '静态 IP';
-                    else protoName = rawProto.toUpperCase(); // 未知协议直接转大写
-
-                    // 组合显示，例如：192.168.100.243  (DHCP 客户端)
+                    // ==========================================
+                    // 4. 纯净渲染：只显示本地真实状态
+                    // ==========================================
                     if (liveWanIp) {
                         window._liveWanIp = liveWanIp + '  (' + protoName + ')';
                     } else {
