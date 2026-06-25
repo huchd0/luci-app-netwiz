@@ -290,7 +290,7 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nw-wisp-target-input { background: #e2e8f0 !important; color: #475569 !important; }
 .nw-wifi-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
 .nw-tab-btn { padding: 10px 0; flex: 1; border: none; border-radius: 6px; font-size: 17px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-.nw-hl { color: #facc15; font-weight: bold; margin-left: 6px; }
+.nw-hl { color: #facc15; font-weight: bold; margin-left: 0; }
 .nw-flex-1 { flex: 1; padding-right: 12px; min-width: 0; }
 .nw-flex-shrink-0 { flex-shrink: 0; }
 .nw-scale-switch { transform: scale(0.9); transform-origin: left; }
