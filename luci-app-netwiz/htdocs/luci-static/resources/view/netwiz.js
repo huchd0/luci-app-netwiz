@@ -3281,23 +3281,23 @@ return view.extend({
                 Promise.all([ safePromise(uci.load('network'), null), safePromise(uci.load('dhcp'), null), safePromise(uci.load('wireless'), null), safePromise(getWanStatus(), {}), safePromise(callNetCheckWifi(), {}) ]).then(function(results) {
                     var wifiRes = results[4] || {};
                     var rawIfaces = results[3] || {}, ifaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
+                    
+                    // 保留 wProto
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
 
                     // ==========================================
-                    // 1. 全局防抖：锁定网卡列表 (容错 15 秒)
+                    // 1. 全局终极防抖：容错 15 秒
                     // ==========================================
-                    // 判断本次轮询是否抓到了健康的 IP 数据
                     var isHealthyPoll = ifaces.some(function(i) { return i && i.up && i['ipv4-address'] && i['ipv4-address'].length > 0; });
                     
                     if (isHealthyPoll) {
                         window._stableIfaces = ifaces;
                         window._stableIfacesTime = Date.now();
                     } else if (window._stableIfaces && window._stableIfacesTime && (Date.now() - window._stableIfacesTime < 15000)) {
-                        // 遭遇闪断或底层空数据，15 秒内的健康缓存，彻底稳住整个 UI 不乱跳
                         ifaces = window._stableIfaces;
                     }
 
-                    // 在防抖锁之后重新提取 phyWan 和 virWwan，确保它们吃到的都是健康数据
+                    // 重新提取
                     var phyWan = ifaces.find(function(i) { return i && i.interface === 'wan'; }) || {};
                     var virWwan = ifaces.find(function(i) { return i && i.interface === 'wwan'; }) || {};
 
@@ -3309,7 +3309,6 @@ return view.extend({
                     });
                     
                     if (!routeWan) {
-                        // 兜底：按名字找
                         routeWan = ifaces.find(function(i) { return i && (i.interface === 'wan' || i.interface === 'wwan' || (i.interface && i.interface.indexOf('wan') !== -1 && i.interface.indexOf('lan') === -1)); }) || {};
                     }
 
@@ -3325,18 +3324,22 @@ return view.extend({
                         isWispActive = true;
                     }
 
+                    // 只要它是 WAN 口，强行把状态设为 true。
+                    if (activeWan) activeWan.up = true;
+                    if (phyWan) phyWan.up = true;
+
                     // ==========================================
-                    // 3. 识别协议名称
+                    // 4. 强制识别协议名称
                     // ==========================================
                     var rawProto = (safeUciGet('network', activeWan.interface || 'wan', 'proto', '') || '').toLowerCase();
                     var protoName = '';
                     if (rawProto === 'pppoe') protoName = 'PPPoE 拨号';
                     else if (rawProto === 'dhcp') protoName = '自动获取 (DHCP)';
                     else if (rawProto === 'static') protoName = '静态 IP';
-                    else protoName = '自动获取 (DHCP)'; // 终极兜底，强杀局域网误判
+                    else protoName = '自动获取 (DHCP)';
 
                     // ==========================================
-                    // 4. 提取主力 IP
+                    // 5. 提取主力 IP
                     // ==========================================
                     var liveWanIp = '';
                     if (activeWan['ipv4-address'] && activeWan['ipv4-address'].length > 0) {
@@ -3356,12 +3359,13 @@ return view.extend({
                     }
 
                     // ==========================================
-                    // 5. 纯净渲染
+                    // 6. 纯净渲染 (加入正在获取提示)
                     // ==========================================
                     if (liveWanIp) {
                         window._liveWanIp = liveWanIp + '  (' + protoName + ')';
                     } else {
-                        window._liveWanIp = '';
+                        // 没拿到 IP 时，不再显示空白，而是友好提示正在获取中！
+                        window._liveWanIp = '正在连接/获取 IP...  (' + protoName + ')';
                     }
                     // ==========================================
                     
