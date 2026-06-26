@@ -3280,24 +3280,27 @@ return view.extend({
 
                 Promise.all([ safePromise(uci.load('network'), null), safePromise(uci.load('dhcp'), null), safePromise(uci.load('wireless'), null), safePromise(getWanStatus(), {}), safePromise(callNetCheckWifi(), {}) ]).then(function(results) {
                     var wifiRes = results[4] || {};
-                    var rawIfaces = results[3] || {}, ifaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
+                    var rawIfaces = results[3] || {};
+                    var realIfaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
                     
-                    // 保留 wProto
+                    // wProto 保留
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
 
                     // ==========================================
-                    // 1. 全局终极防抖：容错 15 秒
+                    // 1. 防抖缓存：只冻结 UI 画面，不干扰底层获取
                     // ==========================================
-                    var isHealthyPoll = ifaces.some(function(i) { return i && i.up && i['ipv4-address'] && i['ipv4-address'].length > 0; });
+                    var isHealthyPoll = realIfaces.some(function(i) { return i && i.up && i['ipv4-address'] && i['ipv4-address'].length > 0; });
                     
                     if (isHealthyPoll) {
-                        window._stableIfaces = ifaces;
-                        window._stableIfacesTime = Date.now();
-                    } else if (window._stableIfaces && window._stableIfacesTime && (Date.now() - window._stableIfacesTime < 15000)) {
-                        ifaces = window._stableIfaces;
+                        // 抓到健康数据，使用深拷贝保存
+                        window._stableIfaces = JSON.parse(JSON.stringify(realIfaces));
                     }
+                    
+                    // 底层处于获取中（不健康），且有缓存，就一直用缓存
+                    // 这样 UI 永远不会看到断网，也就绝对不会跳回局域网模式
+                    var ifaces = (!isHealthyPoll && window._stableIfaces) ? window._stableIfaces : realIfaces;
 
-                    // 重新提取
+                    // 重新提取 (基于冻结的 ifaces)
                     var phyWan = ifaces.find(function(i) { return i && i.interface === 'wan'; }) || {};
                     var virWwan = ifaces.find(function(i) { return i && i.interface === 'wwan'; }) || {};
 
@@ -3307,7 +3310,7 @@ return view.extend({
                     var routeWan = ifaces.find(function(i) {
                         return i.up && Array.isArray(i.route) && i.route.some(function(r) { return r.target === '0.0.0.0' && (r.mask === 0 || !r.mask); });
                     });
-                    
+
                     if (!routeWan) {
                         routeWan = ifaces.find(function(i) { return i && (i.interface === 'wan' || i.interface === 'wwan' || (i.interface && i.interface.indexOf('wan') !== -1 && i.interface.indexOf('lan') === -1)); }) || {};
                     }
@@ -3324,12 +3327,8 @@ return view.extend({
                         isWispActive = true;
                     }
 
-                    // 只要它是 WAN 口，强行把状态设为 true。
-                    if (activeWan) activeWan.up = true;
-                    if (phyWan) phyWan.up = true;
-
                     // ==========================================
-                    // 4. 强制识别协议名称
+                    // 3. 强制识别协议名称
                     // ==========================================
                     var rawProto = (safeUciGet('network', activeWan.interface || 'wan', 'proto', '') || '').toLowerCase();
                     var protoName = '';
@@ -3339,7 +3338,7 @@ return view.extend({
                     else protoName = '自动获取 (DHCP)';
 
                     // ==========================================
-                    // 5. 提取主力 IP
+                    // 4. 提取主力 IP
                     // ==========================================
                     var liveWanIp = '';
                     if (activeWan['ipv4-address'] && activeWan['ipv4-address'].length > 0) {
@@ -3359,13 +3358,17 @@ return view.extend({
                     }
 
                     // ==========================================
-                    // 6. 纯净渲染 (加入正在获取提示)
+                    // 5. 纯净渲染
                     // ==========================================
                     if (liveWanIp) {
-                        window._liveWanIp = liveWanIp + '  (' + protoName + ')';
+                        // 当前底层在断网重连，文字提示
+                        if (!isHealthyPoll) {
+                            window._liveWanIp = liveWanIp + '  (正在更新 IP...)';
+                        } else {
+                            window._liveWanIp = liveWanIp + '  (' + protoName + ')';
+                        }
                     } else {
-                        // 没拿到 IP 时，不再显示空白，而是友好提示正在获取中！
-                        window._liveWanIp = '正在连接/获取 IP...  (' + protoName + ')';
+                        window._liveWanIp = '';
                     }
                     // ==========================================
                     
