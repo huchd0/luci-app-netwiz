@@ -3284,12 +3284,11 @@ return view.extend({
                     var ifaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
 
                     // ==========================================
-                    // 1. 从 UCI 配置抓取真实意图
+                    // 1. 直接从 UCI 配置抓取真实状态
                     // ==========================================
                     var realWanName = 'wan';
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
 
-                    // 标准的 'wan' 找不到，则遍历配置文件找出真正的主力外网卡
                     if (!wProto) {
                         var netSecs = (typeof uci !== 'undefined' && typeof uci.sections === 'function') ? uci.sections('network', 'interface') : [];
                         for (var i = 0; i < netSecs.length; i++) {
@@ -3309,26 +3308,32 @@ return view.extend({
                     // ==========================================
                     var activeWan = ifaces.find(function(i) { return i && i.interface === realWanName; });
                     
-                    // 网络正在重启导致 ubus 找不到网卡
-                    // 绝对不让它变成 undefined 导致前端脚本崩溃跳页
                     if (!activeWan) {
-                        activeWan = { interface: realWanName, 'ipv4-address': [], up: false, route: [] };
+                        activeWan = { 
+                            interface: realWanName, 
+                            'ipv4-address': [], 
+                            up: false, 
+                            available: true, // 补齐！防止误判网线被拔
+                            route: [] 
+                        };
                     }
 
                     // ==========================================
-                    // 防切换锁
+                    // 3. 防跳锁 + 防“网线未连接”警告
                     // ==========================================
                     if (isWanMode) {
-                        // 只要配置是外网模式，无视物理网线是否断开，锁定页面
-                        activeWan.up = true;
+                        activeWan.up = true; 
+                        activeWan.available = true; // 禁止“网线未连接或插错网口”的弹窗
                     }
 
-                    // 同步给外部依赖的变量
-                    var phyWan = activeWan;
+                    var phyWan = activeWan; 
                     var virWwan = ifaces.find(function(i) { return i && i.interface === 'wwan'; }) || {};
 
                     var isWispActive = false;
-                    var hasWispConfigured = !!(typeof uci !== 'undefined' && uci.sections) && !!uci.sections('wireless', 'wifi-iface').find(function(i) { return i.network === 'wwan' && i.mode === 'sta'; });
+                    var hasWispConfigured = false;
+                    if (typeof uci !== 'undefined' && typeof uci.sections === 'function') {
+                        hasWispConfigured = !!uci.sections('wireless', 'wifi-iface').find(function(i) { return i.network === 'wwan' && i.mode === 'sta'; });
+                    }
 
                     var activeWanHasIp = activeWan['ipv4-address'] && activeWan['ipv4-address'].length > 0;
                     var virWwanHasIp = virWwan.up && virWwan['ipv4-address'] && virWwan['ipv4-address'].length > 0;
@@ -3340,7 +3345,7 @@ return view.extend({
                     }
 
                     // ==========================================
-                    // 4. 强制识别协议名称
+                    // 4. 识别协议名称
                     // ==========================================
                     var protoName = '';
                     if (wProto === 'pppoe') protoName = 'PPPoE 拨号';
@@ -3349,7 +3354,7 @@ return view.extend({
                     else protoName = '自动获取 (DHCP)';
 
                     // ==========================================
-                    // 5. 提取主力 IP (智能剔除光猫冲突 IP)
+                    // 5. 提取主力 IP
                     // ==========================================
                     var liveWanIp = '';
                     if (activeWan['ipv4-address'] && activeWan['ipv4-address'].length > 0) {
@@ -3366,13 +3371,12 @@ return view.extend({
                     }
 
                     // ==========================================
-                    // 6. 纯净渲染 (即使网络彻底重启，面板也纹丝不动)
+                    // 6. 纯净渲染
                     // ==========================================
                     if (liveWanIp) {
                         window._liveWanIp = liveWanIp + '  (' + protoName + ')';
                     } else if (isWanMode || isWispActive) {
-                        // 网络重启期间，优雅地显示配置中
-                        window._liveWanIp = '网络配置中/等待分配...  (' + protoName + ')';
+                        window._liveWanIp = '网络连接中/等待分配...  (' + protoName + ')';
                     } else {
                         window._liveWanIp = '';
                     }
