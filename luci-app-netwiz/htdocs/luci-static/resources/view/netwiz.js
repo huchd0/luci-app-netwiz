@@ -3284,7 +3284,7 @@ return view.extend({
                     var ifaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
 
                     // ==========================================
-                    // 1. 直接从 UCI 配置抓取真实状态
+                    // 1. 从 UCI 配置抓取真实状态
                     // ==========================================
                     var realWanName = 'wan';
                     var wProto = safeUciGet('network', 'wan', 'proto', '').toLowerCase();
@@ -3304,7 +3304,7 @@ return view.extend({
                     var isWanMode = (wProto === 'dhcp' || wProto === 'pppoe' || wProto === 'static');
 
                     // ==========================================
-                    // 2. 将 ubus 实时状态与 UCI 配置强行对齐
+                    // 2. 网卡并塞入全局数组
                     // ==========================================
                     var activeWan = ifaces.find(function(i) { return i && i.interface === realWanName; });
                     
@@ -3313,18 +3313,28 @@ return view.extend({
                             interface: realWanName, 
                             'ipv4-address': [], 
                             up: false, 
-                            available: true, // 补齐！防止误判网线被拔
+                            available: true, 
                             route: [] 
                         };
+                        // 防止浏览器休眠唤醒时外层脚本遍历不到网卡
+                        ifaces.push(activeWan); 
                     }
 
                     // ==========================================
-                    // 3. 防跳锁 + 防“网线未连接”警告
+                    // 3. 霸道防跳锁 + 彻底封杀网线未连接
                     // ==========================================
                     if (isWanMode) {
                         activeWan.up = true; 
-                        activeWan.available = true; // 禁止“网线未连接或插错网口”的弹窗
+                        activeWan.available = true; 
                     }
+
+                    // 数组里还有其他叫 wan 的影子网卡
+                    ifaces.forEach(function(i) {
+                        if (isWanMode && i && (i.interface === 'wan' || i.interface === realWanName)) {
+                            i.up = true;
+                            i.available = true;
+                        }
+                    });
 
                     var phyWan = activeWan; 
                     var virWwan = ifaces.find(function(i) { return i && i.interface === 'wwan'; }) || {};
