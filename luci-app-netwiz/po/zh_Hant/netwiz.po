@@ -2172,3 +2172,21 @@ msgstr "您關閉了 IPv6 功能。為確保系統安全，依賴此功能的「
 
 msgid "Probe URL cannot be empty, please fill it in before saving!"
 msgstr "探測網址不能為空，請填寫後再保存！"
+
+msgid "New Version Found"
+msgstr "發現新版本"
+
+msgid "Ready to install the update?"
+msgstr "準備好安裝更新了嗎？"
+
+msgid "Update Now"
+msgstr "立即更新"
+
+msgid "Later"
+msgstr "稍後再說"
+
+msgid "System Upgrading"
+msgstr "系統升級中"
+
+msgid "Downloading and replacing core files, please do not power off..."
+msgstr "正在下載並替換核心文件，請勿斷電..."
