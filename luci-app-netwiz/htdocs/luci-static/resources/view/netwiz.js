@@ -12,7 +12,7 @@ var T = {
     'Network_Wizard': _('Network Wizard'),
     'TITLE': _('Netwiz NETWORK SETUP'),
     'SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
-    'APP_VERSION': 'v1.4.0',
+    'APP_VERSION': 'v1.0.0',
     'MODE_ROUTER_TITLE': _('DHCP / Static IP (WAN)'),
     'MODE_ROUTER_DESC': _('Automatically obtain IP from the upstream network, or manually set a static IP.'),
     'MODE_PPPOE_TITLE': _('PPPoE Dial-up'),
@@ -532,6 +532,12 @@ var T = {
     'MSG_DEP_NOTICE': _('Dependency Notice'),
     'MSG_WOG_OFF_V6_ALL': _('You have disabled IPv6. To ensure security, the dependent IPv6 Watchdog and WAN Access will be automatically disabled.'),
     'ERR_EMPTY_URL': _('Probe URL cannot be empty, please fill it in before saving!'),
+    'U_NEW_TITLE': '✨ ' + _('New Version Found'),
+    'U_READY_MSG': _('Ready to install the update?'),
+    'U_BTN_NOW': _('Update Now'),
+    'U_BTN_LATER': _('Later'),
+    'U_UPGRADING_TITLE': '🔄 ' + _('System Upgrading'),
+    'U_UPGRADING_MSG': _('Downloading and replacing core files, please do not power off...'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -611,8 +617,7 @@ return view.extend({
             '   </div>',
             '   <div class="nw-header">',
             '    <div class="nw-title-wrap">',
-            '      <div class="nw-main-title">{{TITLE}}</div>',
-            '      <div class="nw-version-tag">{{APP_VERSION}} <div class="nw-version-dot" style="display: none;"></div></div>',
+            '    <div class="nw-main-title"><span class="nw-title-wrap">{{TITLE}}<span class="nw-version-tag" title="">{{APP_VERSION}}<span class="nw-version-dot"></span></span></span></div>',
             '    </div>',
             '    <p>{{SUBTITLE}}</p>',
             '    <div id="btn-reopen-wizard" class="nw-reopen-btn">{{WIZ_REOPEN}}</div>',
@@ -1057,6 +1062,140 @@ return view.extend({
     },
 
     bindEvents: function (container) {
+
+        /*
+        // ==========================================
+        // 版本更新与右上角小红点逻辑
+        // ==========================================
+        function doUpdateCheck() {
+            var now = Date.now(), cacheKey = 'nw_last_update_check';
+            var cached = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+            var cooldown = parseInt(localStorage.getItem('nw_update_cooldown') || '0', 10);
+
+            if (now - cooldown < 3 * 60 * 1000) return;
+
+            var currentVer = T['APP_VERSION'] || 'v1.0.0';
+
+            // RPC 通道，不限制返回值
+            var checkOTA = rpc.declare({
+                object: 'netwiz',
+                method: 'set_network',
+                params: ['mode', 'arg1']
+            });
+
+            var showReadyBadge = function(latestVer, rawText) {
+                console.log('✅ [UI] 准备点亮红点...');
+                var cleanText = rawText.split('---')[0].replace(/### ✨ 最新版发布/g, '').trim();
+                var verTag = container.querySelector('.nw-version-tag');
+                var redDot = container.querySelector('.nw-version-dot');
+
+                if (!verTag || !redDot) {
+                    console.error('❌ [UI 错误] 找不到版本号元素！请确认 HTML 里有 class="nw-version-tag" 和 class="nw-version-dot"');
+                    return;
+                }
+
+                redDot.style.display = 'block';
+                verTag.classList.add('has-update');
+                verTag.title = '发现新版本: ' + latestVer + ' (点击更新)';
+
+                var newVerTag = verTag.cloneNode(true);
+                verTag.parentNode.replaceChild(newVerTag, verTag);
+                verTag = newVerTag;
+
+                verTag.addEventListener('click', function() {
+                    openModal({
+                        title: T['U_NEW_TITLE'] + ' (' + latestVer + ')',
+                        msg: '<b>' + T['U_READY_MSG'] + '</b><br><br><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin-top:10px; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>',
+                        okText: T['U_BTN_NOW'], cancelText: T['U_BTN_LATER'],
+                        onOk: function() {
+                            localStorage.setItem('nw_update_cooldown', Date.now());
+                            localStorage.removeItem(cacheKey);
+                            redDot.style.display = 'none';
+                            verTag.classList.remove('has-update');
+                            var gm = document.getElementById('nw-global-modal'); if (gm) gm.style.display = 'none';
+                            openModal({ title: T['U_UPGRADING_TITLE'], msg: T['U_UPGRADING_MSG'], hideCancel: true, hideOk: true, spin: true });
+                            callNetSetup('do_install').then(function(){
+                                setTimeout(function(){ window.location.reload(); }, 6000);
+                            }).catch(function(){});
+                        }
+                    });
+                });
+                console.log('🎉 [UI 成功] 红点已成功显示在界面上！');
+            };
+
+            var triggerDownload = function(latestVer, rawText) {
+                console.log('🔍 [1] 触发版本比对: 线上=' + latestVer + ' | 本地=' + currentVer);
+
+                // 内置无敌的版本号比对引擎，彻底摆脱外部依赖
+                var compareVer = function(v1, v2) {
+                    var a = (v1 || '').replace(/[^0-9.]/g, '').split('.');
+                    var b = (v2 || '').replace(/[^0-9.]/g, '').split('.');
+                    for (var i = 0; i < Math.max(a.length, b.length); i++) {
+                        var numA = parseInt(a[i], 10) || 0;
+                        var numB = parseInt(b[i], 10) || 0;
+                        if (numA > numB) return 1;
+                        if (numA < numB) return -1;
+                    }
+                    return 0;
+                };
+
+                if (latestVer) {
+                    if (compareVer(latestVer, currentVer) > 0) {
+                        console.log('🚀 [2] 需要更新！正在呼叫后台检查状态...');
+                        checkOTA('check_update', latestVer).then(function(res) {
+                            console.log('📦 [3] 后台初次检查返回:', res);
+                            var rCode = (res !== null && typeof res === 'object' && res.result !== undefined) ? res.result : res;
+
+                            if (String(rCode) === '1') {
+                                console.log('✅ [4] 后台已有 .ready，直接显示红点！');
+                                showReadyBadge(latestVer, rawText);
+                            } else {
+                                console.log('⏳ [4] 后台未就绪，下发 prepare_update 开始下载...');
+                                callNetSetup('prepare_update', latestVer);
+
+                                var pollCount = 0, pollStatus = setInterval(function() {
+                                    pollCount++;
+                                    if (pollCount > 15) {
+                                        console.log('❌ [5] 轮询 60 秒超时！后台未能生成 .ready 文件！请去 SSH 检查下载是否失败。');
+                                        clearInterval(pollStatus); return;
+                                    }
+                                    checkOTA('check_update', latestVer).then(function(r) {
+                                        var rC = (r !== null && typeof r === 'object' && r.result !== undefined) ? r.result : r;
+                                        console.log('🔄 [轮询 ' + pollCount + '/15] 后台返回:', r);
+                                        if (String(rC) === '1') {
+                                            console.log('🎉 [6] 监测到下载完成！准备点亮红点！');
+                                            clearInterval(pollStatus);
+                                            showReadyBadge(latestVer, rawText);
+                                        }
+                                    }).catch(function(e){ console.error('❌ 轮询 RPC 报错:', e); });
+                                }, 4000);
+                            }
+                        }).catch(function(e) {
+                            console.error('❌ [3] RPC 呼叫 checkOTA 失败:', e);
+                        });
+                    } else {
+                        console.log('✅ [1] 当前已是最新版本，无需更新。');
+                    }
+                }
+            };
+
+            if (cached.time && (now - cached.time < 5 * 60 * 1000) && cached.version) {
+                console.log('🌐 [0] 使用本地缓存的 GitHub 版本信息');
+                triggerDownload(cached.version, cached.body || ''); return;
+            }
+
+            console.log('🌐 [0] 正在向 GitHub 请求最新版本信息...');
+            fetch('https://api.github.com/repos/huchd0/luci-app-netwiz/releases?t=' + now, { cache: 'no-store' }).then(function(res) { return res.json(); }).then(function(data) {
+                if (data && data.length > 0) {
+                    console.log('🌐 [0] 请求成功，线上最新版本:', data[0].tag_name);
+                    localStorage.setItem(cacheKey, JSON.stringify({ time: now, version: data[0].tag_name, body: data[0].body || '' }));
+                    triggerDownload(data[0].tag_name, data[0].body || '');
+                }
+            }).catch(function(e) { console.error('❌ GitHub API 报错:', e); });
+        }
+        setTimeout(doUpdateCheck, 1500);
+        */
+
         // =================高级设置弹窗与逻辑=================
         function showAdvModal(title, html, onOk) {
             var bg = document.createElement('div');
