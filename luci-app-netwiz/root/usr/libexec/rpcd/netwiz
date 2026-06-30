@@ -889,7 +889,7 @@ case "$1" in
                     uci set netwiz.global.configured='1'
                     uci set netwiz.main.wizard_enable='0'
                     uci commit netwiz
-                    sync  # 将RAM缓存瞬间刷入物理闪存，防止重启网络时丢失
+                    sync  # 将RAM缓存刷入物理闪存
                     
                     log "接收到前端下发的新配置，删除所有历史备份记录"
 
@@ -904,6 +904,101 @@ case "$1" in
                 arg4=$(echo "$input" | jsonfilter -e '@.arg4')
                 arg5=$(echo "$input" | jsonfilter -e '@.arg5')
                 arg6=$(echo "$input" | jsonfilter -e '@.arg6')
+
+                # ==========================================
+                # 拦截执行热更新 (OTA)
+                # ==========================================
+                if [ "$mode" = "prepare_update" ]; then
+                    echo '{"result":0}'
+                    rm -f /tmp/netwiz_update.* /tmp/nw_ota_*.pkg
+                    echo "$arg1" > /tmp/netwiz_update.version
+
+                    cat << 'EOF' > /tmp/nw_dl.sh
+#!/bin/sh
+TARGET_VER=$(cat /tmp/netwiz_update.version)
+
+if command -v apk >/dev/null 2>&1; then
+    PREFIX="apk_"
+    EXT=".apk"
+else
+    PREFIX="ipk_"
+    EXT=".ipk"
+fi
+
+F_MAIN="${PREFIX}luci-app-netwiz${EXT}"
+F_CN="${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
+F_TW="${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
+
+URL_BASE="https://github.com/huchd0/luci-app-netwiz/releases/download/${TARGET_VER}"
+PROXY_BASE="https://mirror.ghproxy.com/${URL_BASE}"
+
+# 定义支持 3 次重试 + 忽略证书 + 文件大小校验的下载函数
+dl_file() {
+    local fname=$1
+    local out=$2
+    for i in 1 2 3; do
+        wget -qO "$out" --no-check-certificate --timeout=15 "$URL_BASE/$fname"
+        if [ "$?" -ne 0 ] || [ ! -s "$out" ]; then
+            wget -qO "$out" --no-check-certificate --timeout=15 "$PROXY_BASE/$fname"
+        fi
+        if [ -s "$out" ]; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
+# 只要主程序下载成功，亮红点
+if dl_file "$F_MAIN" "/tmp/nw_ota_main.pkg"; then
+    dl_file "$F_CN" "/tmp/nw_ota_cn.pkg"
+    dl_file "$F_TW" "/tmp/nw_ota_tw.pkg"
+    touch /tmp/netwiz_update.ready
+fi
+EOF
+                    chmod +x /tmp/nw_dl.sh
+                    /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
+                    exit 0
+
+                # 检查更新就绪
+                elif [ "$mode" = "check_update" ]; then
+                    if [ -f /tmp/netwiz_update.ready ] && [ "$(cat /tmp/netwiz_update.version 2>/dev/null)" = "$arg1" ]; then
+                        echo '{"result":1}'
+                    else
+                        echo '{"result":0}'
+                    fi
+                    exit 0
+
+                # 无感热重载
+                elif [ "$mode" = "do_install" ]; then
+                    echo '{"result":0}'
+                    cat << 'EOF' > /tmp/nw_install.sh
+#!/bin/sh
+sleep 2
+
+# 删除旧文件，防止保护机制触发
+rm -f /www/luci-static/resources/view/netwiz.js
+rm -f /usr/libexec/rpcd/netwiz
+
+if command -v apk >/dev/null 2>&1; then
+    apk del luci-app-netwiz >/dev/null 2>&1
+    apk add --allow-untrusted --force-overwrite /tmp/nw_ota_main.pkg /tmp/nw_ota_cn.pkg /tmp/nw_ota_tw.pkg >/dev/null 2>&1
+else
+    opkg install /tmp/nw_ota_main.pkg /tmp/nw_ota_cn.pkg /tmp/nw_ota_tw.pkg --force-reinstall --force-overwrite --force-maintainer >/dev/null 2>&1
+fi
+
+# 清理旧缓存
+rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
+rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.* /tmp/nw_ota_*.pkg /tmp/nw_install.sh
+
+# 重新生成JS版本号，且不会踢登录
+ubus call luci reload >/dev/null 2>&1
+EOF
+                    chmod +x /tmp/nw_install.sh
+                    /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
+                    exit 0
+                fi
+                # ==========================================
 
                 validate_strict_ip() {
                     if [ -n "$1" ] && ! echo "$1" | awk -F. 'NF==4 && $1>=0 && $1<=255 && $2>=0 && $2<=255 && $3>=0 && $3<=255 && $4>=0 && $4<=255 {print "ok"}' | grep -q "ok"; then
@@ -1838,7 +1933,7 @@ mkdir -p /tmp/nw_ghost_tmp
 # ----------------------------------------------------
 echo "$(date '+%F %T') [RESTORE] 正在进行安全性预检：核对架构与安装包格式..." >> "$LOG_FILE"
 
-# 只单独解压这一个配置文件，不触碰系统其他文件
+# 解压这一个配置文件
 # 从最外层瞬间抽离出指纹文件
 tar -xzf "$TARGET" -C /tmp/nw_ghost_tmp nw_backup_meta.env >/dev/null 2>&1
 
@@ -1921,7 +2016,7 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
     rm -f /etc/netwiz/custom_pkgs/*[nN]et[wW]iz*.[ia]pk 2>/dev/null
     
     # ==========================================
-    # 防呆检测：跨架构 (ipk <-> apk) 拦截机制
+    # 防呆跨架构 (ipk <-> apk) 拦截机制
     # ==========================================
     
     if command -v apk >/dev/null 2>&1; then
