@@ -3,6 +3,10 @@ name: Build and Release luci-app-netwiz
 on:
   workflow_dispatch:
     inputs:
+      release_notes:
+        description: '【更新说明】 填写版本更新的具体内容、修复的 Bug 或备注（支持换行，将显示在右上角手动升级的弹窗中）'
+        required: false
+        type: string
       new_version:
         description: '【版本控制】 留空: 当前版本发布；输入0: 递增 0.01 修重大Bug版；输入1: 递增 0.1 加新功能版（如1.4.2->1.5.0）；填完整版本号（1.5.3）: 仅改版本不发布。'
         required: false
@@ -184,6 +188,12 @@ jobs:
           tag_name: v${{ needs.prepare.outputs.pkg_version }}
           name: "Netwiz 网络设置向导 v${{ needs.prepare.outputs.pkg_version }} 发布"
           body: |
+         
+            ### ✨ 最新版发布
+            ${{ inputs.release_notes }}
+            
+            ---
+            
             ### 🚀 全平台一键极速安装
             请使用 SSH 登录路由器终端，直接复制并运行下方代码：
             
