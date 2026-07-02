@@ -1099,7 +1099,7 @@ return view.extend({
                         msg: '<b>' + T['U_READY_MSG'] + '</b><br><br><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin:5px 0 20px 0; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>',
                         okText: T['U_BTN_NOW'], cancelText: T['U_BTN_LATER'],
                         onOk: function() {
-                            // 点击升级后，立刻撕毁防刷锁与更新缓存
+                            // 点击升级，删除防刷锁与更新缓存
                             localStorage.removeItem('nw_update_cooldown');
                             localStorage.removeItem(cacheKey);
                             
@@ -1111,37 +1111,36 @@ return view.extend({
                             
                             callNetSetup('do_install').then(function(){
                                 var waitSec = 0;
+                                // 底层包管理器 25 秒时间进行覆盖和清理
+                                var totalWait = 25; 
                                 var pollTimer = setInterval(function() {
-                                    waitSec += 2;
+                                    waitSec++;
                                     var pMsg = document.querySelector('#nw-global-msg');
-                                    if (pMsg) pMsg.innerHTML = '<div style="color:#3b82f6; font-size:15px; font-weight:bold;">' + T['U_UPGRADING_MSG'] + '<br><br>⏳ 正在安装并重建底层缓存... (' + waitSec + 's)</div>';
-                                    
-                                    // 安装通常需要 10~20 秒，第 12 秒后才开始安全探活
-                                    if (waitSec >= 12) {
-                                        fetch(window.location.href.split('?')[0] + '?_t=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
-                                        .then(function(res) {
-                                            if (res.ok) {
-                                                clearInterval(pollTimer);
-                                                // 彻底摧毁 LuCI 的会话视图缓存
-                                                sessionStorage.clear();
-                                                for (var i = localStorage.length - 1; i >= 0; i--) {
-                                                    var k = localStorage.key(i);
-                                                    if (k && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
-                                                        localStorage.removeItem(k);
-                                                    }
-                                                }
-                                                window.location.replace(window.location.href.split('?')[0] + '?_t=' + Date.now());
-                                            }
-                                        }).catch(function(){});
+                                    if (pMsg) {
+                                        pMsg.innerHTML = '<div style="color:#3b82f6; font-size:15px; font-weight:bold;">' + T['U_UPGRADING_MSG'] + '<br><br>⏳ 正在强制覆盖底层文件... (预计还需 ' + (totalWait - waitSec) + ' 秒)</div>';
                                     }
                                     
-                                    // 兜底时间延长到 40 秒，防止因网络波动卡死
-                                    if (waitSec >= 40) {
+                                    // 25 秒倒计时结束，发起终极重载
+                                    if (waitSec >= totalWait) {
                                         clearInterval(pollTimer);
+                                        
+                                        // 清理前端
                                         sessionStorage.clear();
-                                        window.location.replace(window.location.href.split('?')[0] + '?_t=' + Date.now());
+                                        for (var i = localStorage.length - 1; i >= 0; i--) {
+                                            var k = localStorage.key(i);
+                                            if (k && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
+                                                localStorage.removeItem(k);
+                                            }
+                                        }
+                                        
+                                        // 带时间戳跳转，删除浏览器缓存 (Reload)
+                                        var cleanUrl = window.location.href.split('?')[0];
+                                        window.location.replace(cleanUrl + '?_t=' + Date.now());
+                                        setTimeout(function() {
+                                            window.location.reload(true);
+                                        }, 100);
                                     }
-                                }, 2000);
+                                }, 1000);
                             }).catch(function(){});
                         }
                     });
