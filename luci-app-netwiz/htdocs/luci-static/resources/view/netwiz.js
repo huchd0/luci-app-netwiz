@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
+ * Copyright (C) 2026 sdxmhs <https://github.com/sdxmhs/luci-app-netwiz>
  * Licensed under the GNU General Public License v3.0
  */
 'use strict';
@@ -12,7 +12,7 @@ var T = {
     'Network_Wizard': _('Network Wizard'),
     'TITLE': _('Netwiz NETWORK SETUP'),
     'SUBTITLE': _('Pure · Secure · Non-destructive Minimalist Config'),
-    'APP_VERSION': 'v1.0.0',
+    'APP_VERSION': 'v0.1.0',
     'MODE_ROUTER_TITLE': _('DHCP / Static IP (WAN)'),
     'MODE_ROUTER_DESC': _('Automatically obtain IP from the upstream network, or manually set a static IP.'),
     'MODE_PPPOE_TITLE': _('PPPoE Dial-up'),
@@ -522,7 +522,7 @@ var T = {
                 '✍️ <b>' + _('Examples:') + '</b><br>' +
                 '<code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; color:#0f172a; margin-top:2px; margin-bottom:4px; display:inline-block; word-break:break-all;">netwiz-probe.xxxx.workers.dev</code> ' + '<br>' +
                 '<code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; color:#0f172a; margin-bottom:8px; display:inline-block; word-break:break-all;">http://your-vps-ip:8080/probe</code> ' + _('(VPS)') + '<br>' +
-                '🔗 <a href="https://raw.githubusercontent.com/huchd0/luci-app-netwiz/refs/heads/master/worker.js" target="_blank" style="color:#0284c7; text-decoration:underline; font-weight: bold;">' + _('Click to view Cloudflare tutorial & source code') + '</a>' +
+                '🔗 <a href="https://raw.githubusercontent.com/sdxmhs/luci-app-netwiz/refs/heads/master/worker.js" target="_blank" style="color:#0284c7; text-decoration:underline; font-weight: bold;">' + _('Click to view Cloudflare tutorial & source code') + '</a>' +
                 '</div>',
     'MSG_WOG_LINKAGE': _('To ensure the probe works correctly, the following dependent features have been automatically enabled:'),
     'MSG_WOG_LINK_V6': _('IPv6 Master Switch'),
@@ -802,8 +802,8 @@ return view.extend({
             '                <div style="font-size: 16.5px; font-weight: bold; color: #0f172a;">{{TXT_FULL_BACKUP_TIT}}</div>',
             '                <div style="font-size: 13px; color: #64748b; line-height: 1.6; text-align: left;">',
             '                    {{TXT_FULL_BACKUP_DESC}}',
-            '                    <div onclick="var t=this.querySelector(\'#nw-copy-tip\'); var el=document.createElement(\'textarea\'); el.value=\'if wget -qO /tmp/nw_inst.sh https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh; then sh /tmp/nw_inst.sh; else sh /etc/netwiz/custom_pkgs/install.sh; fi\'; el.style.position=\'absolute\'; el.style.left=\'-9999px\'; document.body.appendChild(el); el.select(); var ok=false; try{ ok=document.execCommand(\'copy\'); }catch(e){} document.body.removeChild(el); if(ok){ t.innerHTML=\'{{TXT_COPIED}}\'; t.style.color=\'#10b981\'; setTimeout(function(){ t.innerHTML=\'{{TXT_COPY_TIP}}\'; t.style.color=\'#64748b\'; }, 2000); }else{ t.innerHTML=\'{{TXT_COPY_FAIL}}\'; setTimeout(function(){ t.innerHTML=\'{{TXT_COPY_TIP}}\'; }, 2000); }" style="margin-top: 10px; padding: 12px 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease;" onmouseover="this.style.background=\'#f1f5f9\'; this.style.borderColor=\'#5E72E4\';" onmouseout="this.style.background=\'#f8fafc\'; this.style.borderColor=\'#cbd5e1\';">',
-            '                       <code style="font-family: monospace; color: #334155; font-size: 13.5px; word-break: break-all; font-weight: bold; background: #e9ecef;">if wget -qO /tmp/nw_inst.sh https://raw.githubusercontent.com/huchd0/luci-app-netwiz/master/install.sh; then sh /tmp/nw_inst.sh; else sh /etc/netwiz/custom_pkgs/install.sh; fi</code>',
+            '                    <div onclick="var t=this.querySelector(\'#nw-copy-tip\'); var el=document.createElement(\'textarea\'); el.value=\'if wget -qO /tmp/nw_inst.sh https://raw.githubusercontent.com/sdxmhs/luci-app-netwiz/master/install.sh; then sh /tmp/nw_inst.sh; else sh /etc/netwiz/custom_pkgs/install.sh; fi\'; el.style.position=\'absolute\'; el.style.left=\'-9999px\'; document.body.appendChild(el); el.select(); var ok=false; try{ ok=document.execCommand(\'copy\'); }catch(e){} document.body.removeChild(el); if(ok){ t.innerHTML=\'{{TXT_COPIED}}\'; t.style.color=\'#10b981\'; setTimeout(function(){ t.innerHTML=\'{{TXT_COPY_TIP}}\'; t.style.color=\'#64748b\'; }, 2000); }else{ t.innerHTML=\'{{TXT_COPY_FAIL}}\'; setTimeout(function(){ t.innerHTML=\'{{TXT_COPY_TIP}}\'; }, 2000); }" style="margin-top: 10px; padding: 12px 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease;" onmouseover="this.style.background=\'#f1f5f9\'; this.style.borderColor=\'#5E72E4\';" onmouseout="this.style.background=\'#f8fafc\'; this.style.borderColor=\'#cbd5e1\';">',
+            '                       <code style="font-family: monospace; color: #334155; font-size: 13.5px; word-break: break-all; font-weight: bold; background: #e9ecef;">if wget -qO /tmp/nw_inst.sh https://raw.githubusercontent.com/sdxmhs/luci-app-netwiz/master/install.sh; then sh /tmp/nw_inst.sh; else sh /etc/netwiz/custom_pkgs/install.sh; fi</code>',
             '                       <span id="nw-copy-tip" style="flex-shrink: 0; margin-left: 15px; font-size: 12px; font-weight: bold; color: #64748b; transition: color 0.2s;">{{TXT_COPY_TIP}}</span>',
             '                    </div>',
             '                </div>',
@@ -1063,20 +1063,14 @@ return view.extend({
 
     bindEvents: function (container) {
 
-        /*
         // ==========================================
         // 版本更新与右上角小红点逻辑
         // ==========================================
         function doUpdateCheck() {
             var now = Date.now(), cacheKey = 'nw_last_update_check';
             var cached = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-            var cooldown = parseInt(localStorage.getItem('nw_update_cooldown') || '0', 10);
-
-            if (now - cooldown < 3 * 60 * 1000) return;
-
             var currentVer = T['APP_VERSION'] || 'v1.0.0';
 
-            // RPC 通道，不限制返回值
             var checkOTA = rpc.declare({
                 object: 'netwiz',
                 method: 'set_network',
@@ -1089,10 +1083,7 @@ return view.extend({
                 var verTag = container.querySelector('.nw-version-tag');
                 var redDot = container.querySelector('.nw-version-dot');
 
-                if (!verTag || !redDot) {
-                    console.error('❌ [UI 错误] 找不到版本号元素！请确认 HTML 里有 class="nw-version-tag" 和 class="nw-version-dot"');
-                    return;
-                }
+                if (!verTag || !redDot) return;
 
                 redDot.style.display = 'block';
                 verTag.classList.add('has-update');
@@ -1105,17 +1096,52 @@ return view.extend({
                 verTag.addEventListener('click', function() {
                     openModal({
                         title: T['U_NEW_TITLE'] + ' (' + latestVer + ')',
-                        msg: '<b>' + T['U_READY_MSG'] + '</b><br><br><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin-top:10px; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>',
+                        msg: '<b>' + T['U_READY_MSG'] + '</b><br><br><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin:5px 0 20px 0; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>',
                         okText: T['U_BTN_NOW'], cancelText: T['U_BTN_LATER'],
                         onOk: function() {
-                            localStorage.setItem('nw_update_cooldown', Date.now());
+                            // 点击升级后，立刻撕毁防刷锁与更新缓存
+                            localStorage.removeItem('nw_update_cooldown');
                             localStorage.removeItem(cacheKey);
+                            
                             redDot.style.display = 'none';
                             verTag.classList.remove('has-update');
                             var gm = document.getElementById('nw-global-modal'); if (gm) gm.style.display = 'none';
+                            
                             openModal({ title: T['U_UPGRADING_TITLE'], msg: T['U_UPGRADING_MSG'], hideCancel: true, hideOk: true, spin: true });
+                            
                             callNetSetup('do_install').then(function(){
-                                setTimeout(function(){ window.location.reload(); }, 6000);
+                                var waitSec = 0;
+                                var pollTimer = setInterval(function() {
+                                    waitSec += 2;
+                                    var pMsg = document.querySelector('#nw-global-msg');
+                                    if (pMsg) pMsg.innerHTML = '<div style="color:#3b82f6; font-size:15px; font-weight:bold;">' + T['U_UPGRADING_MSG'] + '<br><br>⏳ 正在安装并重建底层缓存... (' + waitSec + 's)</div>';
+                                    
+                                    // 安装通常需要 10~20 秒，第 12 秒后才开始安全探活
+                                    if (waitSec >= 12) {
+                                        fetch(window.location.href.split('?')[0] + '?_t=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+                                        .then(function(res) {
+                                            if (res.ok) {
+                                                clearInterval(pollTimer);
+                                                // 彻底摧毁 LuCI 的会话视图缓存
+                                                sessionStorage.clear();
+                                                for (var i = localStorage.length - 1; i >= 0; i--) {
+                                                    var k = localStorage.key(i);
+                                                    if (k && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
+                                                        localStorage.removeItem(k);
+                                                    }
+                                                }
+                                                window.location.replace(window.location.href.split('?')[0] + '?_t=' + Date.now());
+                                            }
+                                        }).catch(function(){});
+                                    }
+                                    
+                                    // 兜底时间延长到 40 秒，防止因网络波动卡死
+                                    if (waitSec >= 40) {
+                                        clearInterval(pollTimer);
+                                        sessionStorage.clear();
+                                        window.location.replace(window.location.href.split('?')[0] + '?_t=' + Date.now());
+                                    }
+                                }, 2000);
                             }).catch(function(){});
                         }
                     });
@@ -1124,9 +1150,6 @@ return view.extend({
             };
 
             var triggerDownload = function(latestVer, rawText) {
-                console.log('🔍 [1] 触发版本比对: 线上=' + latestVer + ' | 本地=' + currentVer);
-
-                // 内置无敌的版本号比对引擎，彻底摆脱外部依赖
                 var compareVer = function(v1, v2) {
                     var a = (v1 || '').replace(/[^0-9.]/g, '').split('.');
                     var b = (v2 || '').replace(/[^0-9.]/g, '').split('.');
@@ -1141,60 +1164,73 @@ return view.extend({
 
                 if (latestVer) {
                     if (compareVer(latestVer, currentVer) > 0) {
-                        console.log('🚀 [2] 需要更新！正在呼叫后台检查状态...');
+                        console.log('🔍 [1] 触发版本比对: 线上=' + latestVer + ' | 本地=' + currentVer);
+                        console.log('🚀 [2] 发现新版本！正在后台检查状态...');
                         checkOTA('check_update', latestVer).then(function(res) {
-                            console.log('📦 [3] 后台初次检查返回:', res);
                             var rCode = (res !== null && typeof res === 'object' && res.result !== undefined) ? res.result : res;
-
                             if (String(rCode) === '1') {
-                                console.log('✅ [4] 后台已有 .ready，直接显示红点！');
+                                console.log('✅ [3] 后台已有 .ready，直接显示红点！');
                                 showReadyBadge(latestVer, rawText);
                             } else {
-                                console.log('⏳ [4] 后台未就绪，下发 prepare_update 开始下载...');
+                                console.log('⏳ [3] 后台未就绪，下发 prepare_update 开始下载...');
                                 callNetSetup('prepare_update', latestVer);
 
                                 var pollCount = 0, pollStatus = setInterval(function() {
                                     pollCount++;
                                     if (pollCount > 15) {
-                                        console.log('❌ [5] 轮询 60 秒超时！后台未能生成 .ready 文件！请去 SSH 检查下载是否失败。');
+                                        console.log('❌ [4] 轮询后端超时！可能遭遇网络问题或下载了问题文件而被阻断。');
                                         clearInterval(pollStatus); return;
                                     }
                                     checkOTA('check_update', latestVer).then(function(r) {
                                         var rC = (r !== null && typeof r === 'object' && r.result !== undefined) ? r.result : r;
-                                        console.log('🔄 [轮询 ' + pollCount + '/15] 后台返回:', r);
                                         if (String(rC) === '1') {
-                                            console.log('🎉 [6] 监测到下载完成！准备点亮红点！');
+                                            console.log('🎉 [4] 监测到下载完成！准备点亮红点！');
                                             clearInterval(pollStatus);
                                             showReadyBadge(latestVer, rawText);
                                         }
-                                    }).catch(function(e){ console.error('❌ 轮询 RPC 报错:', e); });
+                                    }).catch(function(){});
                                 }, 4000);
                             }
-                        }).catch(function(e) {
-                            console.error('❌ [3] RPC 呼叫 checkOTA 失败:', e);
-                        });
+                        }).catch(function(e) { console.error('❌ [3] RPC 呼叫 checkOTA 失败:', e); });
                     } else {
-                        console.log('✅ [1] 当前已是最新版本，无需更新。');
+                        console.log('✅ [1] 比对完毕：当前固件已是最新版本，或处于防刷保护中。');
                     }
                 }
             };
 
+            // ========== 缓存读取日志 ==========
             if (cached.time && (now - cached.time < 5 * 60 * 1000) && cached.version) {
-                console.log('🌐 [0] 使用本地缓存的 GitHub 版本信息');
-                triggerDownload(cached.version, cached.body || ''); return;
+                var remainSec = Math.ceil((5 * 60 * 1000 - (now - cached.time)) / 1000);
+                if (cached.isFallback) {
+                    console.warn('🛡️ [0] API 曾受限，当前处于【静默冷却期】 (剩 ' + remainSec + ' 秒)。');
+                } else {
+                    console.log('🌐 [0] 命中缓存 (距下次联网获取还剩 ' + remainSec + ' 秒)。');
+                }
+                triggerDownload(cached.version, cached.body || '');
+                return;
             }
 
-            console.log('🌐 [0] 正在向 GitHub 请求最新版本信息...');
-            fetch('https://api.github.com/repos/huchd0/luci-app-netwiz/releases?t=' + now, { cache: 'no-store' }).then(function(res) { return res.json(); }).then(function(data) {
-                if (data && data.length > 0) {
-                    console.log('🌐 [0] 请求成功，线上最新版本:', data[0].tag_name);
+            console.log('🌐 [0] 缓存已过期或无缓存，发起真实网络请求...');
+            fetch('https://api.github.com/repos/sdxmhs/luci-app-netwiz/releases?t=' + now, { cache: 'no-store' }).then(function(res) { 
+                return res.json(); 
+            }).then(function(data) {
+                if (data && data.length > 0 && data[0].tag_name) {
+                    console.log('🌐 [0] 请求成功！获取到线上版本:', data[0].tag_name);
                     localStorage.setItem(cacheKey, JSON.stringify({ time: now, version: data[0].tag_name, body: data[0].body || '' }));
                     triggerDownload(data[0].tag_name, data[0].body || '');
+                } else {
+                    console.warn('⚠️ [0] API 受限或无有效数据！生成【伪缓存】静默 5 分钟！');
+                    localStorage.setItem(cacheKey, JSON.stringify({ time: now, version: currentVer, body: '', isFallback: true }));
                 }
-            }).catch(function(e) { console.error('❌ GitHub API 报错:', e); });
+            }).catch(function(e) { 
+                console.error('❌ [0] API 网络阻断:', e);
+                console.warn('🛡️ [0] 生成【伪缓存】静默 5 分钟，防止请求风暴...');
+                localStorage.setItem(cacheKey, JSON.stringify({ time: now, version: currentVer, body: '', isFallback: true }));
+            });
         }
         setTimeout(doUpdateCheck, 1500);
-        */
+
+        // =================
 
         // =================高级设置弹窗与逻辑=================
         function showAdvModal(title, html, onOk) {
@@ -1356,7 +1392,8 @@ return view.extend({
                             list.insertBefore(draggingEl, next ? target.nextSibling : target);
                         }
                     });
-                }, 100);
+                    window.location.reload(true); // 强制忽略浏览器缓存刷新当前页面
+                }, 3000);
             });
         }
 
@@ -3571,12 +3608,22 @@ return view.extend({
                     var isWanDown = false;
                     if (isWispActive) {
                         isWanDown = false; // 如果中继生效，不弹网线未插警告
+                    } else if (wProto === 'pppoe') {
+                        // PPPoE 模式下，虚拟接口在拨号成功前 l1up 永远是 false
+                        isWanDown = false;
                     } else {
                         if (typeof activeWan.l1up !== 'undefined') {
                             isWanDown = (activeWan.l1up === false);
                         } else {
                             isWanDown = (activeWan.up === false && (!liveWanIp || liveWanIp === T['TXT_GETTING'] || liveWanIp === T['TXT_NOT_GOT']));
                         }
+                    }
+
+                    // 网卡驱动 Bug 和软路由虚拟网卡
+                    // 只要探针检测到网络畅通 (ok)，或者底层网卡明确 UP 且已经拿到了合法 IP
+                    // 无论底层驱动报不报物理断开 (l1up: false)，都判定网线已连接
+                    if (window.nwInetStatus === 'ok' || (activeWan.up === true && liveWanIp && liveWanIp !== T['TXT_GETTING'] && liveWanIp !== T['TXT_NOT_GOT'])) {
+                        isWanDown = false;
                     }
 
                     // 初始化防抖计数器
