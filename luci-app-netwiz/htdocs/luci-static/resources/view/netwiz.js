@@ -1129,7 +1129,8 @@ return view.extend({
                                         sessionStorage.clear();
                                         for (var i = localStorage.length - 1; i >= 0; i--) {
                                             var k = localStorage.key(i);
-                                            if (k && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
+                                            // 不删掉向导的隐藏记忆
+                                            if (k && k !== 'nw_wizard_never_show' && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
                                                 localStorage.removeItem(k);
                                             }
                                         }
