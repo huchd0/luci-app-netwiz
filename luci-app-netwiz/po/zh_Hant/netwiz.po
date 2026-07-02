@@ -2190,3 +2190,6 @@ msgstr "系統升級中"
 
 msgid "Downloading and replacing core files, please do not power off..."
 msgstr "正在下載並替換核心文件，請勿斷電..."
+
+msgid "Forcing system file overwrite... (Est. {sec}s remaining)"
+msgstr "正在強制覆蓋底層檔案... (預計還需 {sec} 秒)"
