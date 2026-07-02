@@ -131,13 +131,12 @@ jobs:
           for JS_FILE in "luci-app-netwiz/htdocs/luci-static/resources/view/netwiz.js" "luci-app-netwiz/htdocs/luci-static/resources/view/netwiz_dev.js"; do
             if [ -f "$JS_FILE" ]; then
               echo "✅ 找到目标文件: $JS_FILE"
-              grep "{{APP_VERSION}}" "$JS_FILE" || echo "⚠️ 警告：该文件中没有找到 {{APP_VERSION}} 占位符！"
               
-              # 执行替换
-              sed -i "s/{{APP_VERSION}}/v${{ needs.prepare.outputs.pkg_version }}/g" "$JS_FILE"
+              # 使用正则表达式强制替换 APP_VERSION 键值对
+              sed -i "s/'APP_VERSION':[ \t]*'.*'/'APP_VERSION': 'v${{ needs.prepare.outputs.pkg_version }}'/g" "$JS_FILE"
               
               echo "✅ 注入后状态："
-              grep "nw-version-tag" "$JS_FILE" || true
+              grep "'APP_VERSION'" "$JS_FILE" || true
             else
               echo "❌ 找不到目标 JS 文件: $JS_FILE ！请检查路径。"
               exit 1
