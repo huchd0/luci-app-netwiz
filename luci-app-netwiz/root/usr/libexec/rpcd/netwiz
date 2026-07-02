@@ -879,6 +879,142 @@ case "$1" in
                     ;;
 
             set_network)
+                    input=$(cat)
+                    mode=$(echo "$input" | jsonfilter -e '@.mode')
+                    arg1=$(echo "$input" | jsonfilter -e '@.arg1')
+
+                    # ==========================================
+                    # 拦截热更新 (OTA) - 放在最顶层，拦截无意义的磁盘 I/O
+                    # ==========================================
+                    if [ "$mode" = "prepare_update" ]; then
+                        echo '{"result":0}'
+                        rm -f /tmp/netwiz_update.* /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/nw_dl.sh
+                        echo "$arg1" > /tmp/netwiz_update.version
+                        
+                        cat << 'EOF' > /tmp/nw_dl.sh
+#!/bin/sh
+TARGET_VER=$(cat /tmp/netwiz_update.version | tr -d '\r\n ')
+
+if command -v apk >/dev/null 2>&1; then 
+    PREFIX="apk_"
+    EXT=".apk"
+else 
+    PREFIX="ipk_"
+    EXT=".ipk"
+fi
+
+F_MAIN="${PREFIX}luci-app-netwiz${EXT}"
+F_CN="${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
+F_TW="${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
+
+dl_file() {
+    local fname=$1
+    local out="/tmp/$fname"
+    local url1="https://github.com/sdxmhs/luci-app-netwiz/releases/download/${TARGET_VER}/${fname}"
+    local url2="https://mirror.ghproxy.com/${url1}"
+    
+    for i in 1 2 3; do
+        rm -f "$out"
+        wget -qO "$out" --no-check-certificate --timeout=15 "$url1" || \
+        wget -qO "$out" --no-check-certificate --timeout=15 "$url2"
+        
+        if [ -f "$out" ]; then
+            local fsize=$(wc -c < "$out" | awk '{print $1}')
+            # 智能安检：体积大于 2KB 且 内部不包含 HTML 标签
+            if [ "$fsize" -gt 2048 ]; then
+                if ! grep -qi "<html" "$out"; then
+                    return 0
+                fi
+            fi
+        fi
+        sleep 2
+    done
+    rm -f "$out"
+    return 1
+}
+
+# 保持官方原名下载到 /tmp
+if dl_file "$F_MAIN"; then
+    dl_file "$F_CN"
+    dl_file "$F_TW"
+    touch /tmp/netwiz_update.ready
+fi
+EOF
+                        chmod +x /tmp/nw_dl.sh
+                        /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
+                        exit 0
+                        
+                    # 检查更新就绪
+                    elif [ "$mode" = "check_update" ]; then
+                        if [ -f /tmp/netwiz_update.ready ]; then
+                            echo '{"result": 1}'
+                        else
+                            echo '{"result": 0}'
+                        fi
+                        exit 0
+                        
+                    # 无感热重载
+                elif [ "$mode" = "do_install" ]; then
+                    echo '{"result":0}'
+                    cat << 'EOF' > /tmp/nw_install.sh
+#!/bin/sh
+sleep 2
+
+if command -v apk >/dev/null 2>&1; then
+    PREFIX="apk_"
+    EXT=".apk"
+else
+    PREFIX="ipk_"
+    EXT=".ipk"
+fi
+
+F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
+F_CN="/tmp/${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
+F_TW="/tmp/${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
+
+INSTALL_LIST=""
+[ -f "$F_MAIN" ] && INSTALL_LIST="$INSTALL_LIST $F_MAIN"
+[ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
+[ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
+
+if [ "$EXT" = ".apk" ]; then
+    # 先卸载旧包解除依赖锁
+    apk del luci-i18n-netwiz-zh-cn luci-i18n-netwiz-zh-tw >/dev/null 2>&1
+    apk del luci-app-netwiz >/dev/null 2>&1
+    apk add --allow-untrusted --force-overwrite $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
+    INSTALL_STATUS=$?
+else
+    opkg install $INSTALL_LIST --force-reinstall --force-overwrite --force-maintainer > /tmp/netwiz_install.log 2>&1
+    INSTALL_STATUS=$?
+fi
+
+# ================= 清理 =================
+# 彻底粉碎下载的包和临时标志
+rm -f "$F_MAIN" "$F_CN" "$F_TW" /tmp/apk_luci-* /tmp/ipk_luci-*
+rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.version /tmp/nw_install.sh /tmp/nw_dl.sh
+
+if [ "$INSTALL_STATUS" -eq 0 ]; then
+    rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
+    ubus call luci reload >/dev/null 2>&1
+else
+    echo "❌ Error: Installation failed with exit code $INSTALL_STATUS. Check /tmp/netwiz_install.log" >> /tmp/netwiz_install.log
+fi
+EOF
+                    chmod +x /tmp/nw_install.sh
+                    /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
+                    exit 0
+                fi
+                    # ==========================================
+
+                    # ==========================================
+                    # 以下为您原本的网络配置、向导等逻辑 (安全区域)
+                    # ==========================================
+                    arg2=$(echo "$input" | jsonfilter -e '@.arg2')
+                    arg3=$(echo "$input" | jsonfilter -e '@.arg3')
+                    arg4=$(echo "$input" | jsonfilter -e '@.arg4')
+                    arg5=$(echo "$input" | jsonfilter -e '@.arg5')
+                    arg6=$(echo "$input" | jsonfilter -e '@.arg6')
+
                     set +e
                     
                     # 应用网络配置，死锁向导
@@ -892,112 +1028,8 @@ case "$1" in
                     sync  # 将RAM缓存刷入物理闪存
                     
                     log "接收到前端下发的新配置，删除所有历史备份记录"
-
-                rm -f /etc/config/network.netwiz_wan_bak /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
-                # ====================================================================
-
-                input=$(cat)
-                mode=$(echo "$input" | jsonfilter -e '@.mode')
-                arg1=$(echo "$input" | jsonfilter -e '@.arg1')
-                arg2=$(echo "$input" | jsonfilter -e '@.arg2')
-                arg3=$(echo "$input" | jsonfilter -e '@.arg3')
-                arg4=$(echo "$input" | jsonfilter -e '@.arg4')
-                arg5=$(echo "$input" | jsonfilter -e '@.arg5')
-                arg6=$(echo "$input" | jsonfilter -e '@.arg6')
-
+                    rm -f /etc/config/network.netwiz_wan_bak /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
                 # ==========================================
-                # 拦截执行热更新 (OTA)
-                # ==========================================
-                if [ "$mode" = "prepare_update" ]; then
-                    echo '{"result":0}'
-                    rm -f /tmp/netwiz_update.* /tmp/nw_ota_*.pkg
-                    echo "$arg1" > /tmp/netwiz_update.version
-
-                    cat << 'EOF' > /tmp/nw_dl.sh
-#!/bin/sh
-TARGET_VER=$(cat /tmp/netwiz_update.version)
-
-if command -v apk >/dev/null 2>&1; then
-    PREFIX="apk_"
-    EXT=".apk"
-else
-    PREFIX="ipk_"
-    EXT=".ipk"
-fi
-
-F_MAIN="${PREFIX}luci-app-netwiz${EXT}"
-F_CN="${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
-F_TW="${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
-
-URL_BASE="https://github.com/huchd0/luci-app-netwiz/releases/download/${TARGET_VER}"
-PROXY_BASE="https://mirror.ghproxy.com/${URL_BASE}"
-
-# 定义支持 3 次重试 + 忽略证书 + 文件大小校验的下载函数
-dl_file() {
-    local fname=$1
-    local out=$2
-    for i in 1 2 3; do
-        wget -qO "$out" --no-check-certificate --timeout=15 "$URL_BASE/$fname"
-        if [ "$?" -ne 0 ] || [ ! -s "$out" ]; then
-            wget -qO "$out" --no-check-certificate --timeout=15 "$PROXY_BASE/$fname"
-        fi
-        if [ -s "$out" ]; then
-            return 0
-        fi
-        sleep 2
-    done
-    return 1
-}
-
-# 只要主程序下载成功，亮红点
-if dl_file "$F_MAIN" "/tmp/nw_ota_main.pkg"; then
-    dl_file "$F_CN" "/tmp/nw_ota_cn.pkg"
-    dl_file "$F_TW" "/tmp/nw_ota_tw.pkg"
-    touch /tmp/netwiz_update.ready
-fi
-EOF
-                    chmod +x /tmp/nw_dl.sh
-                    /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
-                    exit 0
-
-                # 检查更新就绪
-                elif [ "$mode" = "check_update" ]; then
-                    if [ -f /tmp/netwiz_update.ready ] && [ "$(cat /tmp/netwiz_update.version 2>/dev/null)" = "$arg1" ]; then
-                        echo '{"result":1}'
-                    else
-                        echo '{"result":0}'
-                    fi
-                    exit 0
-
-                # 无感热重载
-                elif [ "$mode" = "do_install" ]; then
-                    echo '{"result":0}'
-                    cat << 'EOF' > /tmp/nw_install.sh
-#!/bin/sh
-sleep 2
-
-# 删除旧文件，防止保护机制触发
-rm -f /www/luci-static/resources/view/netwiz.js
-rm -f /usr/libexec/rpcd/netwiz
-
-if command -v apk >/dev/null 2>&1; then
-    apk del luci-app-netwiz >/dev/null 2>&1
-    apk add --allow-untrusted --force-overwrite /tmp/nw_ota_main.pkg /tmp/nw_ota_cn.pkg /tmp/nw_ota_tw.pkg >/dev/null 2>&1
-else
-    opkg install /tmp/nw_ota_main.pkg /tmp/nw_ota_cn.pkg /tmp/nw_ota_tw.pkg --force-reinstall --force-overwrite --force-maintainer >/dev/null 2>&1
-fi
-
-# 清理旧缓存
-rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
-rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.* /tmp/nw_ota_*.pkg /tmp/nw_install.sh
-
-# 重新生成JS版本号，且不会踢登录
-ubus call luci reload >/dev/null 2>&1
-EOF
-                    chmod +x /tmp/nw_install.sh
-                    /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
-                    exit 0
-                fi
                 # ==========================================
 
                 validate_strict_ip() {
@@ -1933,7 +1965,7 @@ mkdir -p /tmp/nw_ghost_tmp
 # ----------------------------------------------------
 echo "$(date '+%F %T') [RESTORE] 正在进行安全性预检：核对架构与安装包格式..." >> "$LOG_FILE"
 
-# 解压这一个配置文件
+# 只单独解压这一个配置文件，不触碰系统其他文件
 # 从最外层瞬间抽离出指纹文件
 tar -xzf "$TARGET" -C /tmp/nw_ghost_tmp nw_backup_meta.env >/dev/null 2>&1
 
@@ -2016,7 +2048,7 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
     rm -f /etc/netwiz/custom_pkgs/*[nN]et[wW]iz*.[ia]pk 2>/dev/null
     
     # ==========================================
-    # 防呆跨架构 (ipk <-> apk) 拦截机制
+    # 防呆检测：跨架构 (ipk <-> apk) 拦截机制
     # ==========================================
     
     if command -v apk >/dev/null 2>&1; then
