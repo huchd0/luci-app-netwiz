@@ -538,6 +538,7 @@ var T = {
     'U_BTN_LATER': _('Later'),
     'U_UPGRADING_TITLE': '🔄 ' + _('System Upgrading'),
     'U_UPGRADING_MSG': _('Downloading and replacing core files, please do not power off...'),
+    'U_UPGRADING_WAIT': '⏳ ' + _('Forcing system file overwrite... (Est. {sec}s remaining)'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1117,7 +1118,7 @@ return view.extend({
                                     waitSec++;
                                     var pMsg = document.querySelector('#nw-global-msg');
                                     if (pMsg) {
-                                        pMsg.innerHTML = '<div style="color:#3b82f6; font-size:15px; font-weight:bold;">' + T['U_UPGRADING_MSG'] + '<br><br>⏳ 正在强制覆盖底层文件... (预计还需 ' + (totalWait - waitSec) + ' 秒)</div>';
+                                        pMsg.innerHTML = '<div style="color:#3b82f6; font-size:15px; font-weight:bold;">' + T['U_UPGRADING_MSG'] + '<br><br>' + waitText + '</div>';
                                     }
                                     
                                     // 25 秒倒计时结束，发起终极重载
