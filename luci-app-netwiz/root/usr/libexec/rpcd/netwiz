@@ -927,7 +927,7 @@ F_TW="${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
 dl_file() {
     local fname=$1
     local out="/tmp/$fname"
-    local url1="https://github.com/sdxmhs/luci-app-netwiz/releases/download/${TARGET_VER}/${fname}"
+    local url1="https://github.com/huchd0/luci-app-netwiz/releases/download/${TARGET_VER}/${fname}"
     local url2="https://mirror.ghproxy.com/${url1}"
     
     for i in 1 2 3; do
