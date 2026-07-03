@@ -884,33 +884,26 @@ case "$1" in
                     arg1=$(echo "$input" | jsonfilter -e '@.arg1')
 
                     # ==========================================
-                    # 拦截热更新 (OTA) - 拦截无意义的磁盘 I/O
+                    # 拦截热更新 (OTA) - 放在最顶层，拦截无意义的磁盘 I/O
                     # ==========================================
                     if [ "$mode" = "prepare_update" ]; then
-                        
-                        # 检查底层真实版本，防止浏览器缓存导致的重复下载
-                        # 提取前端请求的目标版本号 (去掉可能包含的 v 前缀)
+                        # --- 抗默拦截 (防缓存重复下载) ---
                         TARGET_VER=$(echo "$arg1" | tr -d '\r\n ' | sed 's/^v//')
-                        
-                        # 获取路由器底层真实安装的主程序版本
                         CUR_VER=""
                         if command -v apk >/dev/null 2>&1; then
                             CUR_VER=$(apk info -e luci-app-netwiz 2>/dev/null | sed 's/luci-app-netwiz-//')
                         elif command -v opkg >/dev/null 2>&1; then
                             CUR_VER=$(opkg status luci-app-netwiz 2>/dev/null | grep Version | awk '{print $2}')
                         fi
-                        
-                        # 底层真实版本已经包含了目标版本号
                         if [ -n "$CUR_VER" ] && [ -n "$TARGET_VER" ]; then
                             if echo "$CUR_VER" | grep -q "$TARGET_VER"; then
-                                # 检测最新版，拒绝重复下载请求
                                 rm -f /tmp/netwiz_update.* /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/nw_dl.sh
                                 echo '{"result":0, "status":"ignored_by_cache"}'
                                 exit 0
                             fi
                         fi
+                        # ------------------------------------
 
-                        # 正常走下载逻辑
                         echo '{"result":0}'
                         rm -f /tmp/netwiz_update.* /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/nw_dl.sh
                         echo "$arg1" > /tmp/netwiz_update.version
@@ -966,6 +959,75 @@ EOF
                         chmod +x /tmp/nw_dl.sh
                         /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
                         exit 0
+                        
+                    # --- 检查更新就绪 (带物理实体核验) ---
+                    elif [ "$mode" = "check_update" ]; then
+                        if [ -f /tmp/netwiz_update.ready ]; then
+                            PREFIX="ipk_"
+                            EXT=".ipk"
+                            command -v apk >/dev/null 2>&1 && { PREFIX="apk_"; EXT=".apk"; }
+                            F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
+                            F_SIZE=$(wc -c < "$F_MAIN" 2>/dev/null || echo 0)
+                            if [ "$F_SIZE" -gt 10240 ]; then
+                                echo '{"result": 1}'
+                            else
+                                rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.version "$F_MAIN"
+                                echo '{"result": 0}'
+                            fi
+                        else
+                            echo '{"result": 0}'
+                        fi
+                        exit 0
+                        
+                    # --- 无感热重载 ---
+                    elif [ "$mode" = "do_install" ]; then
+                        echo '{"result":0}'
+                        cat << 'EOF' > /tmp/nw_install.sh
+#!/bin/sh
+sleep 1
+
+# cron 定时删除 (1分钟后执行)
+touch /etc/crontabs/root
+grep -v "netwiz_ota_gc" /etc/crontabs/root > /tmp/cron_gc.tmp || true
+echo "* * * * * sleep 20; rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null; sed -i '/netwiz_ota_gc/d' /etc/crontabs/root; /etc/init.d/cron restart #netwiz_ota_gc" >> /tmp/cron_gc.tmp
+mv /tmp/cron_gc.tmp /etc/crontabs/root
+/etc/init.d/cron restart
+
+sleep 2
+
+if command -v apk >/dev/null 2>&1; then
+    PREFIX="apk_"
+    EXT=".apk"
+else
+    PREFIX="ipk_"
+    EXT=".ipk"
+fi
+
+F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
+F_CN="/tmp/${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
+F_TW="/tmp/${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
+
+INSTALL_LIST="$F_MAIN"
+[ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
+[ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
+
+if [ "$EXT" = ".apk" ]; then
+    apk add --allow-untrusted --force-overwrite --force-reinstall $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
+    INSTALL_STATUS=$?
+else
+    opkg install $INSTALL_LIST --force-reinstall --force-overwrite --force-maintainer > /tmp/netwiz_install.log 2>&1
+    INSTALL_STATUS=$?
+fi
+
+if [ "$INSTALL_STATUS" -eq 0 ]; then
+    rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
+    ubus call luci reload >/dev/null 2>&1
+fi
+EOF
+                        chmod +x /tmp/nw_install.sh
+                        /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
+                        exit 0
+                    fi
                     # ==========================================
 
                     # ==========================================
