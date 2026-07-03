@@ -828,15 +828,11 @@ case "$1" in
                 fi
                 ;;
 
-            # 获取向导状态与智能探针
+               # 获取向导状态与智能探针
                 get_wizard_status)
-                    if ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
-                        rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh 2>/dev/null
-                    fi
-
                     configured=$(uci -q get netwiz.global.configured)
                     [ -z "$configured" ] && configured=0
-
+                    
                     wizard_enable=$(uci -q get netwiz.main.wizard_enable)
                     [ -z "$wizard_enable" ] && wizard_enable=1
 
@@ -891,6 +887,30 @@ case "$1" in
                     # 拦截热更新 (OTA) - 拦截无意义的磁盘 I/O
                     # ==========================================
                     if [ "$mode" = "prepare_update" ]; then
+                        
+                        # 检查底层真实版本，防止浏览器缓存导致的重复下载
+                        # 提取前端请求的目标版本号 (去掉可能包含的 v 前缀)
+                        TARGET_VER=$(echo "$arg1" | tr -d '\r\n ' | sed 's/^v//')
+                        
+                        # 获取路由器底层真实安装的主程序版本
+                        CUR_VER=""
+                        if command -v apk >/dev/null 2>&1; then
+                            CUR_VER=$(apk info -e luci-app-netwiz 2>/dev/null | sed 's/luci-app-netwiz-//')
+                        elif command -v opkg >/dev/null 2>&1; then
+                            CUR_VER=$(opkg status luci-app-netwiz 2>/dev/null | grep Version | awk '{print $2}')
+                        fi
+                        
+                        # 底层真实版本已经包含了目标版本号
+                        if [ -n "$CUR_VER" ] && [ -n "$TARGET_VER" ]; then
+                            if echo "$CUR_VER" | grep -q "$TARGET_VER"; then
+                                # 检测最新版，拒绝重复下载请求
+                                rm -f /tmp/netwiz_update.* /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/nw_dl.sh
+                                echo '{"result":0, "status":"ignored_by_cache"}'
+                                exit 0
+                            fi
+                        fi
+
+                        # 正常走下载逻辑
                         echo '{"result":0}'
                         rm -f /tmp/netwiz_update.* /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/nw_dl.sh
                         echo "$arg1" > /tmp/netwiz_update.version
@@ -914,7 +934,7 @@ F_TW="${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
 dl_file() {
     local fname=$1
     local out="/tmp/$fname"
-    local url1="https://github.com/huchd0/luci-app-netwiz/releases/download/${TARGET_VER}/${fname}"
+    local url1="https://github.com/sdxmhs/luci-app-netwiz/releases/download/${TARGET_VER}/${fname}"
     local url2="https://mirror.ghproxy.com/${url1}"
     
     for i in 1 2 3; do
@@ -924,7 +944,6 @@ dl_file() {
             
             if [ -f "$out" ]; then
                 local fsize=$(wc -c < "$out" 2>/dev/null | awk '{print $1}')
-                # 严苛体积校验
                 if [ -n "$fsize" ] && [ "$fsize" -gt 10240 ]; then
                     if ! grep -qi "<html" "$out"; then
                         return 0
@@ -938,7 +957,6 @@ dl_file() {
     return 1
 }
 
-# 只有主程序下载并校验绝对成功，才去下语言包并打上 ready 标记
 if dl_file "$F_MAIN"; then
     dl_file "$F_CN"
     dl_file "$F_TW"
@@ -948,95 +966,6 @@ EOF
                         chmod +x /tmp/nw_dl.sh
                         /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
                         exit 0
-                        
-                    # 检查更新就绪 (带物理实体核验)
-                    elif [ "$mode" = "check_update" ]; then
-                        # 1. 首先检查是否有就绪的“信号”
-                        if [ -f /tmp/netwiz_update.ready ]; then
-                            
-                            # 2. 动态判断当前系统的包管理器，定位主程序实体文件
-                            PREFIX="ipk_"
-                            EXT=".ipk"
-                            command -v apk >/dev/null 2>&1 && { PREFIX="apk_"; EXT=".apk"; }
-                            F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
-                            
-                            # 3. 对物理文件进行体积核验
-                            F_SIZE=$(wc -c < "$F_MAIN" 2>/dev/null || echo 0)
-                            
-                            if [ "$F_SIZE" -gt 10240 ]; then
-                                # 实体包不仅存在，而且体积合规 (>10KB)，正式放行点亮红点
-                                echo '{"result": 1}'
-                            else
-                                # 信号存在，但物理包丢失或被破坏，重新走下载流程
-                                rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.version "$F_MAIN"
-                                echo '{"result": 0}'
-                            fi
-                        else
-                            echo '{"result": 0}'
-                        fi
-                        exit 0
-                        
-                    # 无感热重载
-                    elif [ "$mode" = "do_install" ]; then
-                        echo '{"result":0}'
-                        cat << 'EOF' > /tmp/nw_install.sh
-#!/bin/sh
-# 忽略来自父进程 (rpcd) 的挂断和终止信号
-trap "" HUP INT TERM QUIT
-
-sleep 2
-
-if command -v apk >/dev/null 2>&1; then
-    PREFIX="apk_"
-    EXT=".apk"
-else
-    PREFIX="ipk_"
-    EXT=".ipk"
-fi
-
-F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
-F_CN="/tmp/${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
-F_TW="/tmp/${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
-
-# 再次确认主包存在且体积合法，防止被清理
-F_SIZE=$(wc -c < "$F_MAIN" 2>/dev/null || echo 0)
-if [ "$F_SIZE" -lt 10240 ]; then
-    echo "❌ 致命错误：主程序包缺失或体积异常 (仅 ${F_SIZE} 字节)，升级已强制终止！" > /tmp/netwiz_install.log
-    rm -f "$F_MAIN" "$F_CN" "$F_TW" /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh
-    exit 1
-fi
-
-INSTALL_LIST="$F_MAIN"
-[ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
-[ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
-
-if [ "$EXT" = ".apk" ]; then
-    apk add --allow-untrusted --force-overwrite --force-reinstall $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
-    INSTALL_STATUS=$?
-else
-    opkg install $INSTALL_LIST --force-reinstall --force-overwrite --force-maintainer > /tmp/netwiz_install.log 2>&1
-    INSTALL_STATUS=$?
-fi
-
-# ================= 清理 =================
-# 清理文件
-rm -f "$F_MAIN" "$F_CN" "$F_TW" /tmp/apk_luci-* /tmp/ipk_luci-*
-rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.version /tmp/nw_dl.sh
-
-if [ "$INSTALL_STATUS" -eq 0 ]; then
-    rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
-    ubus call luci reload >/dev/null 2>&1
-else
-    echo "❌ Error: Installation failed with exit code $INSTALL_STATUS. Check /tmp/netwiz_install.log" >> /tmp/netwiz_install.log
-fi
-
-# 删除自己 sh
-rm -f /tmp/nw_install.sh
-EOF
-                        chmod +x /tmp/nw_install.sh
-                        /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
-                        exit 0
-                    fi
                     # ==========================================
 
                     # ==========================================
@@ -1062,7 +991,6 @@ EOF
                     
                     log "接收到前端下发的新配置，删除所有历史备份记录"
                     rm -f /etc/config/network.netwiz_wan_bak /etc/config/network.netwiz_bak /etc/config/dhcp.netwiz_bak
-                # ==========================================
                 # ==========================================
 
                 validate_strict_ip() {
