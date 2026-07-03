@@ -960,7 +960,7 @@ EOF
                         /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
                         exit 0
                         
-                    # --- 检查更新就绪 (带物理实体核验) ---
+                    # --- 检查更新就绪 (实体核验) ---
                     elif [ "$mode" = "check_update" ]; then
                         if [ -f /tmp/netwiz_update.ready ]; then
                             PREFIX="ipk_"
@@ -1002,25 +1002,22 @@ INSTALL_LIST="$F_MAIN"
 [ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
 [ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
 
+# ================= 提前删除缓存与标记 =================
+rm -f /tmp/netwiz_update.* /tmp/nw_dl.sh
+rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
+
+# ================= 释放“进程”打扫战场 =================
+# 倒计时 15 秒后，将安装包和日志静默销毁
+sh -c "sleep 15; rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_install.log /tmp/nw_install.sh 2>/dev/null" </dev/null >/dev/null 2>&1 &
+
+# ================= 执行安装 =================
 if [ "$EXT" = ".apk" ]; then
     apk add --allow-untrusted --force-overwrite --force-reinstall $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
-    INSTALL_STATUS=$?
 else
     opkg install $INSTALL_LIST --force-reinstall --force-overwrite --force-maintainer > /tmp/netwiz_install.log 2>&1
-    INSTALL_STATUS=$?
 fi
 
-# ================= 清理 =================
-# 安装结束，清理所有临时文件
-rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/netwiz_install.log 2>/dev/null
-
-if [ "$INSTALL_STATUS" -eq 0 ]; then
-    rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
-    ubus call luci reload >/dev/null 2>&1
-fi
-
-# 最后销毁安装脚本自身
-rm -f /tmp/nw_install.sh
+ubus call luci reload >/dev/null 2>&1
 EOF
                         chmod +x /tmp/nw_install.sh
                         /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
