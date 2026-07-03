@@ -539,6 +539,9 @@ var T = {
     'U_UPGRADING_TITLE': '🔄 ' + _('System Upgrading'),
     'U_UPGRADING_MSG': _('Downloading and replacing core files, please do not power off...'),
     'U_UPGRADING_WAIT': '⏳ ' + _('Forcing system file overwrite... (Est. {sec}s remaining)'),
+    'U_INST_SUCC_TIT': '🎉 ' + _('Upgrade Successful!'),
+    'U_INST_SUCC_MSG': _('The new version core has been deployed in the background!'),
+    'U_INST_SUCC_DESC': '⚠️ ' + _('<b>Notice: Aggressive browser caching detected.</b><br>To ensure new menus and features display correctly, please press <kbd style="background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;">Ctrl + F5</kbd> or <kbd style="background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;">Shift + F5</kbd> to force refresh this page!<br><span style="font-size:13px; color:#64748b; font-weight:normal;">(Mobile users: please manually clear browser cache and refresh)</span>'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1113,7 +1116,8 @@ return view.extend({
                             // 独立封装倒计时逻辑
                             var startCountdown = function() {
                                 var waitSec = 0;
-                                var totalWait = 25; 
+                                // 等待 10 秒
+                                var totalWait = 10;
                                 var pollTimer = setInterval(function() {
                                     waitSec++;
                                     var pMsg = document.querySelector('#nw-global-msg');
@@ -1122,23 +1126,33 @@ return view.extend({
                                         pMsg.innerHTML = '<div style="color:#3b82f6; font-size:15px; font-weight:bold;">' + T['U_UPGRADING_MSG'] + '<br><br>' + waitText + '</div>';
                                     }
                                     
+                                    // 10 秒倒计时结束
                                     if (waitSec >= totalWait) {
                                         clearInterval(pollTimer);
+                                        
                                         sessionStorage.clear();
                                         for (var i = localStorage.length - 1; i >= 0; i--) {
                                             var k = localStorage.key(i);
-                                            // 绝对不要删掉向导的隐藏记忆
                                             if (k && k !== 'nw_wizard_never_show' && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
                                                 localStorage.removeItem(k);
                                             }
                                         }
-                                        var cleanUrl = window.location.href.split('?')[0];
-                                        window.location.replace(cleanUrl + '?_t=' + Date.now());
-                                        setTimeout(function() { window.location.reload(true); }, 100);
+
+                                        openModal({
+                                            title: T['U_INST_SUCC_TIT'],
+                                            msg: '<div style="color:#059669; font-size:16px; font-weight:bold; margin-bottom:12px;">' + T['U_INST_SUCC_MSG'] + '</div>' +
+                                                 '<div style="font-size:14.5px; color:#ef4444; font-weight:bold; padding:12px; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; line-height:1.6; text-align:left;">' +
+                                                 T['U_INST_SUCC_DESC'] + '</div>',
+                                            okText: T['BTN_OK'],
+                                            hideCancel: true,
+                                            onOk: function() {
+                                                var cleanUrl = window.location.href.split('?')[0];
+                                                window.location.replace(cleanUrl + '?_t=' + Date.now());
+                                                setTimeout(function() { window.location.reload(true); }, 100);
+                                            }
+                                        });
                                     }
                                 }, 1000);
-                            };
-
                             // 断开对 API 的等待，发完指令瞬间启动倒计时！
                             callNetSetup('do_install').catch(function(){}); // 无论成败，默默执行
                             startCountdown(); // 立刻开始倒计时
