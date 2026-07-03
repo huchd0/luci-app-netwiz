@@ -945,10 +945,28 @@ EOF
                         /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
                         exit 0
                         
-                    # 检查更新就绪
+                    # 检查更新就绪 (带物理实体核验)
                     elif [ "$mode" = "check_update" ]; then
+                        # 1. 首先检查是否有就绪的“信号”
                         if [ -f /tmp/netwiz_update.ready ]; then
-                            echo '{"result": 1}'
+                            
+                            # 2. 动态判断当前系统的包管理器，定位主程序实体文件
+                            PREFIX="ipk_"
+                            EXT=".ipk"
+                            command -v apk >/dev/null 2>&1 && { PREFIX="apk_"; EXT=".apk"; }
+                            F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
+                            
+                            # 3. 对物理文件进行体积核验
+                            F_SIZE=$(wc -c < "$F_MAIN" 2>/dev/null || echo 0)
+                            
+                            if [ "$F_SIZE" -gt 10240 ]; then
+                                # 实体包不仅存在，而且体积合规 (>10KB)，正式放行点亮红点
+                                echo '{"result": 1}'
+                            else
+                                # 信号存在，但物理包丢失或被破坏，重新走下载流程
+                                rm -f /tmp/netwiz_update.ready /tmp/netwiz_update.version "$F_MAIN"
+                                echo '{"result": 0}'
+                            fi
                         else
                             echo '{"result": 0}'
                         fi
