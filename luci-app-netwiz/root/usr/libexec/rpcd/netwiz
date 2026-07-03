@@ -960,7 +960,7 @@ EOF
                         /tmp/nw_dl.sh </dev/null >/dev/null 2>&1 &
                         exit 0
                         
-                    # --- 检查更新就绪 (实体核验) ---
+                    # --- 检查更新就绪 (带物理实体核验) ---
                     elif [ "$mode" = "check_update" ]; then
                         if [ -f /tmp/netwiz_update.ready ]; then
                             PREFIX="ipk_"
@@ -979,11 +979,20 @@ EOF
                         fi
                         exit 0
                         
-                    # --- 无感热重载  ---
+                    # --- 无感热重载 ---
                     elif [ "$mode" = "do_install" ]; then
                         echo '{"result":0}'
                         cat << 'EOF' > /tmp/nw_install.sh
 #!/bin/sh
+sleep 1
+
+# cron 定时删除 (1分钟后执行)
+touch /etc/crontabs/root
+grep -v "netwiz_ota_gc" /etc/crontabs/root > /tmp/cron_gc.tmp || true
+echo "* * * * * sleep 20; rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null; sed -i '/netwiz_ota_gc/d' /etc/crontabs/root; /etc/init.d/cron restart #netwiz_ota_gc" >> /tmp/cron_gc.tmp
+mv /tmp/cron_gc.tmp /etc/crontabs/root
+/etc/init.d/cron restart
+
 sleep 2
 
 if command -v apk >/dev/null 2>&1; then
@@ -1002,22 +1011,18 @@ INSTALL_LIST="$F_MAIN"
 [ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
 [ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
 
-# ================= 提前删除缓存与标记 =================
-rm -f /tmp/netwiz_update.* /tmp/nw_dl.sh
-rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
-
-# ================= 释放“进程”打扫战场 =================
-# 倒计时 15 秒后，将安装包和日志静默销毁
-sh -c "sleep 15; rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_install.log /tmp/nw_install.sh 2>/dev/null" </dev/null >/dev/null 2>&1 &
-
-# ================= 执行安装 =================
 if [ "$EXT" = ".apk" ]; then
     apk add --allow-untrusted --force-overwrite --force-reinstall $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
+    INSTALL_STATUS=$?
 else
     opkg install $INSTALL_LIST --force-reinstall --force-overwrite --force-maintainer > /tmp/netwiz_install.log 2>&1
+    INSTALL_STATUS=$?
 fi
 
-ubus call luci reload >/dev/null 2>&1
+if [ "$INSTALL_STATUS" -eq 0 ]; then
+    rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
+    ubus call luci reload >/dev/null 2>&1
+fi
 EOF
                         chmod +x /tmp/nw_install.sh
                         /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
