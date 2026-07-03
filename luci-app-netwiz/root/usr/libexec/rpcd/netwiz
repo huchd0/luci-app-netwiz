@@ -979,20 +979,11 @@ EOF
                         fi
                         exit 0
                         
-                    # --- 无感热重载 ---
+                    # --- 无感热重载  ---
                     elif [ "$mode" = "do_install" ]; then
                         echo '{"result":0}'
                         cat << 'EOF' > /tmp/nw_install.sh
 #!/bin/sh
-sleep 1
-
-# cron 定时删除 (1分钟后执行)
-touch /etc/crontabs/root
-grep -v "netwiz_ota_gc" /etc/crontabs/root > /tmp/cron_gc.tmp || true
-echo "* * * * * sleep 20; rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null; sed -i '/netwiz_ota_gc/d' /etc/crontabs/root; /etc/init.d/cron restart #netwiz_ota_gc" >> /tmp/cron_gc.tmp
-mv /tmp/cron_gc.tmp /etc/crontabs/root
-/etc/init.d/cron restart
-
 sleep 2
 
 if command -v apk >/dev/null 2>&1; then
@@ -1019,10 +1010,17 @@ else
     INSTALL_STATUS=$?
 fi
 
+# ================= 清理 =================
+# 安装结束，清理所有临时文件
+rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/netwiz_install.log 2>/dev/null
+
 if [ "$INSTALL_STATUS" -eq 0 ]; then
     rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
     ubus call luci reload >/dev/null 2>&1
 fi
+
+# 最后销毁安装脚本自身
+rm -f /tmp/nw_install.sh
 EOF
                         chmod +x /tmp/nw_install.sh
                         /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
