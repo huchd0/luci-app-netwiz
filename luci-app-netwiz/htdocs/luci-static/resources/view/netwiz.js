@@ -1161,6 +1161,7 @@ return view.extend({
 
                                                 // 4. 执行替换跳转 (使用 replace 防止破坏用户的返回键历史)
                                                 window.location.replace(forceRefreshUrl);
+                                            }
                                         });
                                     }
                                 }, 1000);
