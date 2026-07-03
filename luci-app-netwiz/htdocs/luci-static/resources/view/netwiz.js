@@ -1146,10 +1146,21 @@ return view.extend({
                                             okText: T['BTN_OK'],
                                             hideCancel: true,
                                             onOk: function() {
-                                                var cleanUrl = window.location.href.split('?')[0];
-                                                window.location.replace(cleanUrl + '?_t=' + Date.now());
-                                                setTimeout(function() { window.location.reload(true); }, 100);
-                                            }
+                                                // 1. 尝试静默清理浏览器的 Cache Storage 高级缓存
+                                                if (window.caches && window.caches.keys) {
+                                                    caches.keys().then(function(keys) {
+                                                        keys.forEach(function(key) { caches.delete(key); });
+                                                    });
+                                                }
+
+                                                // 2. 剥离当前网址末尾可能残留的旧时间戳或锚点
+                                                var cleanUrl = window.location.href.split('?')[0].split('#')[0];
+
+                                                // 3. 挂载全新的时间戳，强制浏览器认为这是一个全新的页面
+                                                var forceRefreshUrl = cleanUrl + '?_t=' + new Date().getTime();
+
+                                                // 4. 执行替换跳转 (使用 replace 防止破坏用户的返回键历史)
+                                                window.location.replace(forceRefreshUrl);
                                         });
                                     }
                                 }, 1000);
