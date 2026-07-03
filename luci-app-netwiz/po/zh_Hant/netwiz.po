@@ -2193,3 +2193,12 @@ msgstr "正在下載並替換核心文件，請勿斷電..."
 
 msgid "Forcing system file overwrite... (Est. {sec}s remaining)"
 msgstr "正在強制覆蓋底層檔案... (預計還需 {sec} 秒)"
+
+msgid "Upgrade Successful!"
+msgstr "升級安裝成功！"
+
+msgid "The new version core has been deployed in the background!"
+msgstr "新版本核心已在底層部署完畢！"
+
+msgid "<b>Notice: Aggressive browser caching detected.</b><br>To ensure new menus and features display correctly, please press <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Ctrl + F5</kbd> or <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Shift + F5</kbd> to force refresh this page!<br><span style=\"font-size:13px; color:#64748b; font-weight:normal;\">(Mobile users: please manually clear browser cache and refresh)</span>"
+msgstr "<b>注意：瀏覽器存在強力頁面快取</b><br>為確保新選單和新功能正常顯示，請務必按下鍵盤上的 <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Ctrl + F5</kbd> 或 <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Shift + F5</kbd> 強制重新整理本頁！<br><span style=\"font-size:13px; color:#64748b; font-weight:normal;\">(手機端用戶請手動清理瀏覽器快取後重新整理)</span>"
