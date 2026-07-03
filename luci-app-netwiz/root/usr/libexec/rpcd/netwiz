@@ -481,8 +481,39 @@ case "$1" in
                 exit 0
                 ;;
 
+
+            # 检测网络连通性 + 删除 /tmp/ 升级无用的文件
             check_internet)
-                if ping -c 1 -W 2 223.5.5.5 >/dev/null 2>&1 || ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then echo '{"status":"ok"}'; else echo '{"status":"fail"}'; fi
+                # ==========================================
+                # 删除小红点升级可能残留 /tmp/ 文件
+                # ==========================================
+                if [ -f /tmp/netwiz_update.version ]; then
+                    # 确保后台没有任何下载和安装进程在运行
+                    if ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
+                        TARGET_VER=$(cat /tmp/netwiz_update.version | sed 's/[vV]//g' | tr -d '\r\n ')
+                        
+                        LOCAL_VERS=""
+                        for f in $(find /www/luci-static/ -name "netwiz.js" 2>/dev/null); do
+                            # 切出相关片段，完美破解单行压缩包
+                            RAW_EXTRACT=$(grep -o "APP_VERSION[^,}]*" "$f" 2>/dev/null)
+                            # 提取所有的纯数字版本号
+                            v=$(echo "$RAW_EXTRACT" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+                            LOCAL_VERS="$LOCAL_VERS $v"
+                        done
+                        
+                        # 前端真实生效的代码里包含目标版本，删除残留 /tmp/ 升级文件
+                        if [ -n "$LOCAL_VERS" ] && [ -n "$TARGET_VER" ] && echo "$LOCAL_VERS" | grep -q "$TARGET_VER"; then
+                            rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null
+                        fi
+                    fi
+                fi
+                # ==========================================
+            
+                if ping -c 1 -W 2 223.5.5.5 >/dev/null 2>&1 || ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
+                    echo '{"status":"ok"}'
+                else
+                    echo '{"status":"fail"}'
+                fi
                 exit 0
                 ;;
             get_client_mac)
@@ -830,27 +861,6 @@ case "$1" in
 
             # 获取向导状态与智能探针
             get_wizard_status)
-                # ==========================================
-                # 对比版本号，删除 /tmp/ 里的升级文件
-                # ==========================================
-                if [ -f /tmp/netwiz_update.version ] && ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
-                    # 1. 提取目标版本 (例如 1.0.0)
-                    TARGET_VER=$(cat /tmp/netwiz_update.version | tr -d '\r\n ' | sed 's/^v//')
-                    
-                    # 2. 精准截取前端 JS 文件中出现的第一个版本号
-                    LOCAL_VER=""
-                    JS_FILE="/www/luci-static/resources/netwiz.js"
-                    if [ -f "$JS_FILE" ]; then
-                        LOCAL_VER=$(grep "APP_VERSION" "$JS_FILE" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)
-                    fi
-                    
-                    # 3. 真实版本号与目标一致，删除 /tmp/ 里的升级文件
-                    if [ -n "$LOCAL_VER" ] && [ -n "$TARGET_VER" ] && [ "$LOCAL_VER" = "$TARGET_VER" ]; then
-                        rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null
-                    fi
-                fi
-                # ==========================================
-
                 configured=$(uci -q get netwiz.global.configured)
                 [ -z "$configured" ] && configured=0
                 
