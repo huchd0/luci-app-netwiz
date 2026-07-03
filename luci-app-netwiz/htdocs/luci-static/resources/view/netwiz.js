@@ -1116,7 +1116,7 @@ return view.extend({
                             // 独立封装倒计时逻辑
                             var startCountdown = function() {
                                 var waitSec = 0;
-                                // 等待 10 秒
+                                // 10 秒倒计时
                                 var totalWait = 10;
                                 var pollTimer = setInterval(function() {
                                     waitSec++;
@@ -1153,7 +1153,9 @@ return view.extend({
                                         });
                                     }
                                 }, 1000);
-                            // 断开对 API 的等待，发完指令瞬间启动倒计时！
+                            };
+
+                            // 断开对 API 的等待，发完指令瞬间启动倒计时
                             callNetSetup('do_install').catch(function(){}); // 无论成败，默默执行
                             startCountdown(); // 立刻开始倒计时
                         }
