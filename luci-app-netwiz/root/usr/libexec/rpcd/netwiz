@@ -884,7 +884,7 @@ case "$1" in
                     arg1=$(echo "$input" | jsonfilter -e '@.arg1')
 
                     # ==========================================
-                    # 拦截热更新 (OTA) - 放在最顶层，拦截无意义的磁盘 I/O
+                    # 拦截热更新 (OTA) - 拦截无意义的磁盘 I/O
                     # ==========================================
                     if [ "$mode" = "prepare_update" ]; then
                         echo '{"result":0}'
@@ -915,15 +915,16 @@ dl_file() {
     
     for i in 1 2 3; do
         rm -f "$out"
-        wget -qO "$out" --no-check-certificate --timeout=15 "$url1" || \
-        wget -qO "$out" --no-check-certificate --timeout=15 "$url2"
-        
-        if [ -f "$out" ]; then
-            local fsize=$(wc -c < "$out" | awk '{print $1}')
-            # 智能安检：体积大于 2KB 且 内部不包含 HTML 标签
-            if [ "$fsize" -gt 2048 ]; then
-                if ! grep -qi "<html" "$out"; then
-                    return 0
+        if wget -qO "$out" --no-check-certificate --timeout=15 "$url1" || \
+           wget -qO "$out" --no-check-certificate --timeout=15 "$url2"; then
+            
+            if [ -f "$out" ]; then
+                local fsize=$(wc -c < "$out" 2>/dev/null | awk '{print $1}')
+                # 严苛体积校验
+                if [ -n "$fsize" ] && [ "$fsize" -gt 10240 ]; then
+                    if ! grep -qi "<html" "$out"; then
+                        return 0
+                    fi
                 fi
             fi
         fi
@@ -933,7 +934,7 @@ dl_file() {
     return 1
 }
 
-# 保持官方原名下载到 /tmp
+# 只有主程序下载并校验绝对成功，才去下语言包并打上 ready 标记
 if dl_file "$F_MAIN"; then
     dl_file "$F_CN"
     dl_file "$F_TW"
@@ -954,9 +955,9 @@ EOF
                         exit 0
                         
                     # 无感热重载
-                elif [ "$mode" = "do_install" ]; then
-                    echo '{"result":0}'
-                    cat << 'EOF' > /tmp/nw_install.sh
+                    elif [ "$mode" = "do_install" ]; then
+                        echo '{"result":0}'
+                        cat << 'EOF' > /tmp/nw_install.sh
 #!/bin/sh
 sleep 2
 
@@ -972,10 +973,7 @@ F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
 F_CN="/tmp/${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
 F_TW="/tmp/${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
 
-# ==========================================
-# 🛡️ 验证大小
-# ==========================================
-# 主程序文件存在且大小超过 10KB (10240 字节)，就认为是完整包
+# 再次确认主包存在且体积合法，防止被清理
 F_SIZE=$(wc -c < "$F_MAIN" 2>/dev/null || echo 0)
 if [ "$F_SIZE" -lt 10240 ]; then
     echo "❌ 致命错误：主程序包缺失或体积异常 (仅 ${F_SIZE} 字节)，升级已强制终止！" > /tmp/netwiz_install.log
@@ -987,15 +985,11 @@ INSTALL_LIST="$F_MAIN"
 [ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
 [ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
 
-# ==========================================
-# 覆盖安装
-# ==========================================
 if [ "$EXT" = ".apk" ]; then
-    # --force-upgrade 进行原地强行升级/覆盖。
-    apk add --allow-untrusted --force-overwrite --force-upgrade $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
+    # --force-reinstall 本地覆盖安装
+    apk add --allow-untrusted --force-overwrite --force-reinstall $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
     INSTALL_STATUS=$?
 else
-    # opkg 原本的逻辑就是完美的原地重装
     opkg install $INSTALL_LIST --force-reinstall --force-overwrite --force-maintainer > /tmp/netwiz_install.log 2>&1
     INSTALL_STATUS=$?
 fi
@@ -1012,10 +1006,10 @@ else
     echo "❌ Error: Installation failed with exit code $INSTALL_STATUS. Check /tmp/netwiz_install.log" >> /tmp/netwiz_install.log
 fi
 EOF
-                    chmod +x /tmp/nw_install.sh
-                    /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
-                    exit 0
-                fi
+                        chmod +x /tmp/nw_install.sh
+                        /tmp/nw_install.sh </dev/null >/dev/null 2>&1 &
+                        exit 0
+                    fi
                     # ==========================================
 
                     # ==========================================
