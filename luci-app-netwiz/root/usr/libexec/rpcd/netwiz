@@ -972,18 +972,30 @@ F_MAIN="/tmp/${PREFIX}luci-app-netwiz${EXT}"
 F_CN="/tmp/${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
 F_TW="/tmp/${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
 
-INSTALL_LIST=""
-[ -f "$F_MAIN" ] && INSTALL_LIST="$INSTALL_LIST $F_MAIN"
-[ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
-[ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
+# ==========================================
+# 不安装破损包
+# ==========================================
+# 使用 tar -tzf 探测压缩包尾部结构，任何残缺包都会报错退出
+if [ ! -f "$F_MAIN" ] || ! tar -tzf "$F_MAIN" >/dev/null 2>&1; then
+    echo "❌ 致命错误：主程序包损坏或未下载完整，为防止破坏系统，升级已强制终止！" > /tmp/netwiz_install.log
+    rm -f "$F_MAIN" "$F_CN" "$F_TW" /tmp/nw_install.sh /tmp/nw_dl.sh
+    exit 1
+fi
 
+INSTALL_LIST="$F_MAIN"
+# 语言包也进行严格验货，只有完整无损的才加入安装队列
+[ -f "$F_CN" ] && tar -tzf "$F_CN" >/dev/null 2>&1 && INSTALL_LIST="$INSTALL_LIST $F_CN"
+[ -f "$F_TW" ] && tar -tzf "$F_TW" >/dev/null 2>&1 && INSTALL_LIST="$INSTALL_LIST $F_TW"
+
+# ==========================================
+# 🛡️ 覆盖安装
+# ==========================================
 if [ "$EXT" = ".apk" ]; then
-    # 先卸载旧包解除依赖锁
-    apk del luci-i18n-netwiz-zh-cn luci-i18n-netwiz-zh-tw >/dev/null 2>&1
-    apk del luci-app-netwiz >/dev/null 2>&1
-    apk add --allow-untrusted --force-overwrite $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
+    # 利用 --force-upgrade 进行原地强行升级/覆盖。
+    apk add --allow-untrusted --force-overwrite --force-upgrade $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
     INSTALL_STATUS=$?
 else
+    # opkg 原本的逻辑就是完美的原地重装
     opkg install $INSTALL_LIST --force-reinstall --force-overwrite --force-maintainer > /tmp/netwiz_install.log 2>&1
     INSTALL_STATUS=$?
 fi
