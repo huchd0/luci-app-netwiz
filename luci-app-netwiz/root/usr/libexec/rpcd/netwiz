@@ -830,9 +830,13 @@ case "$1" in
 
             # 获取向导状态与智能探针
                 get_wizard_status)
+                    if ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
+                        rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh 2>/dev/null
+                    fi
+
                     configured=$(uci -q get netwiz.global.configured)
                     [ -z "$configured" ] && configured=0
-                    
+
                     wizard_enable=$(uci -q get netwiz.main.wizard_enable)
                     [ -z "$wizard_enable" ] && wizard_enable=1
 
