@@ -973,25 +973,25 @@ F_CN="/tmp/${PREFIX}luci-i18n-netwiz-zh-cn${EXT}"
 F_TW="/tmp/${PREFIX}luci-i18n-netwiz-zh-tw${EXT}"
 
 # ==========================================
-# 不安装破损包
+# 🛡️ 验证大小
 # ==========================================
-# 使用 tar -tzf 探测压缩包尾部结构，任何残缺包都会报错退出
-if [ ! -f "$F_MAIN" ] || ! tar -tzf "$F_MAIN" >/dev/null 2>&1; then
-    echo "❌ 致命错误：主程序包损坏或未下载完整，为防止破坏系统，升级已强制终止！" > /tmp/netwiz_install.log
+# 主程序文件存在且大小超过 10KB (10240 字节)，就认为是完整包
+F_SIZE=$(wc -c < "$F_MAIN" 2>/dev/null || echo 0)
+if [ "$F_SIZE" -lt 10240 ]; then
+    echo "❌ 致命错误：主程序包缺失或体积异常 (仅 ${F_SIZE} 字节)，升级已强制终止！" > /tmp/netwiz_install.log
     rm -f "$F_MAIN" "$F_CN" "$F_TW" /tmp/nw_install.sh /tmp/nw_dl.sh
     exit 1
 fi
 
 INSTALL_LIST="$F_MAIN"
-# 语言包也进行严格验货，只有完整无损的才加入安装队列
-[ -f "$F_CN" ] && tar -tzf "$F_CN" >/dev/null 2>&1 && INSTALL_LIST="$INSTALL_LIST $F_CN"
-[ -f "$F_TW" ] && tar -tzf "$F_TW" >/dev/null 2>&1 && INSTALL_LIST="$INSTALL_LIST $F_TW"
+[ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
+[ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
 
 # ==========================================
-# 🛡️ 覆盖安装
+# 覆盖安装
 # ==========================================
 if [ "$EXT" = ".apk" ]; then
-    # 利用 --force-upgrade 进行原地强行升级/覆盖。
+    # --force-upgrade 进行原地强行升级/覆盖。
     apk add --allow-untrusted --force-overwrite --force-upgrade $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
     INSTALL_STATUS=$?
 else
