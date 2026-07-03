@@ -831,22 +831,21 @@ case "$1" in
             # 获取向导状态与智能探针
             get_wizard_status)
                 # ==========================================
-                # 前端刷新页面，且后台确认没有正在下载或安装的进程...
+                # 对比版本号，删除 /tmp/ 里的升级文件
                 # ==========================================
                 if [ -f /tmp/netwiz_update.version ] && ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
-                    # 提取之前下载时记录的目标版本
+                    # 1. 提取目标版本 (例如 1.0.0)
                     TARGET_VER=$(cat /tmp/netwiz_update.version | tr -d '\r\n ' | sed 's/^v//')
                     
-                    # 提取路由器当前底层真实安装的版本
-                    CUR_VER=""
-                    if command -v apk >/dev/null 2>&1; then
-                        CUR_VER=$(apk info -e luci-app-netwiz 2>/dev/null | sed 's/luci-app-netwiz-//')
-                    elif command -v opkg >/dev/null 2>&1; then
-                        CUR_VER=$(opkg status luci-app-netwiz 2>/dev/null | grep Version | awk '{print $2}')
+                    # 2. 精准截取前端 JS 文件中出现的第一个版本号
+                    LOCAL_VER=""
+                    JS_FILE="/www/luci-static/resources/netwiz.js"
+                    if [ -f "$JS_FILE" ]; then
+                        LOCAL_VER=$(grep "APP_VERSION" "$JS_FILE" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)
                     fi
                     
-                    # 底层真实版本已经达到了目标版本，删除 /tmp 里的安装包和 ready 标记
-                    if [ -n "$CUR_VER" ] && [ -n "$TARGET_VER" ] && echo "$CUR_VER" | grep -q "$TARGET_VER"; then
+                    # 3. 真实版本号与目标一致，删除 /tmp/ 里的升级文件
+                    if [ -n "$LOCAL_VER" ] && [ -n "$TARGET_VER" ] && [ "$LOCAL_VER" = "$TARGET_VER" ]; then
                         rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null
                     fi
                 fi
