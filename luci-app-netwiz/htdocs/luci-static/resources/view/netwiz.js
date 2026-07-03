@@ -1100,7 +1100,7 @@ return view.extend({
                         msg: '<b>' + T['U_READY_MSG'] + '</b><br><br><div style="text-align:left; font-size:13px; background:#f1f5f9; padding:10px; margin:5px 0 20px 0; border-radius:6px; max-height:150px; overflow-y:auto; border:1px solid #cbd5e1;">' + cleanText.replace(/\n/g, '<br>') + '</div>',
                         okText: T['U_BTN_NOW'], cancelText: T['U_BTN_LATER'],
                         onOk: function() {
-                            // 点击升级，删除防刷锁与更新缓存
+                            // 点击升级后，删除防刷锁与更新缓存
                             localStorage.removeItem('nw_update_cooldown');
                             localStorage.removeItem(cacheKey);
                             
@@ -1110,40 +1110,38 @@ return view.extend({
                             
                             openModal({ title: T['U_UPGRADING_TITLE'], msg: T['U_UPGRADING_MSG'], hideCancel: true, hideOk: true, spin: true });
                             
-                            callNetSetup('do_install').then(function(){
+                            // 独立封装倒计时逻辑
+                            var startCountdown = function() {
                                 var waitSec = 0;
-                                // 底层包管理器 25 秒时间进行覆盖和清理
                                 var totalWait = 25; 
                                 var pollTimer = setInterval(function() {
                                     waitSec++;
                                     var pMsg = document.querySelector('#nw-global-msg');
                                     if (pMsg) {
+                                        var waitText = (T['U_UPGRADING_WAIT'] || '⏳ Forcing system file overwrite... (Est. {sec}s remaining)').replace('{sec}', (totalWait - waitSec));
                                         pMsg.innerHTML = '<div style="color:#3b82f6; font-size:15px; font-weight:bold;">' + T['U_UPGRADING_MSG'] + '<br><br>' + waitText + '</div>';
                                     }
                                     
-                                    // 25 秒倒计时结束，发起终极重载
                                     if (waitSec >= totalWait) {
                                         clearInterval(pollTimer);
-                                        
-                                        // 清理前端
                                         sessionStorage.clear();
                                         for (var i = localStorage.length - 1; i >= 0; i--) {
                                             var k = localStorage.key(i);
-                                            // 不删掉向导的隐藏记忆
+                                            // 绝对不要删掉向导的隐藏记忆
                                             if (k && k !== 'nw_wizard_never_show' && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
                                                 localStorage.removeItem(k);
                                             }
                                         }
-                                        
-                                        // 带时间戳跳转，删除浏览器缓存 (Reload)
                                         var cleanUrl = window.location.href.split('?')[0];
                                         window.location.replace(cleanUrl + '?_t=' + Date.now());
-                                        setTimeout(function() {
-                                            window.location.reload(true);
-                                        }, 100);
+                                        setTimeout(function() { window.location.reload(true); }, 100);
                                     }
                                 }, 1000);
-                            }).catch(function(){});
+                            };
+
+                            // 断开对 API 的等待，发完指令瞬间启动倒计时！
+                            callNetSetup('do_install').catch(function(){}); // 无论成败，默默执行
+                            startCountdown(); // 立刻开始倒计时
                         }
                     });
                 });
