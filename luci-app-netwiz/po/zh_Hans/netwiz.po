@@ -2193,3 +2193,15 @@ msgstr "正在下载并替换核心文件，请勿断电..."
 
 msgid "Forcing system file overwrite... (Est. {sec}s remaining)"
 msgstr "正在强制覆盖底层文件... (预计还需 {sec} 秒)"
+
+msgid "Upgrade Successful!"
+msgstr "升级安装成功！"
+
+msgid "The new version core has been deployed in the background!"
+msgstr "新版本核心已在底层部署完毕！"
+
+msgid "<b>Notice: Aggressive browser caching detected.</b><br>To ensure new menus and features display correctly, please press <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Ctrl + F5</kbd> or <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Shift + F5</kbd> to force refresh this page!<br><span style=\"font-size:13px; color:#64748b; font-weight:normal;\">(Mobile users: please manually clear browser cache and refresh)</span>"
+msgstr "<b>注意：浏览器存在强力页面缓存</b><br>为确保新菜单和新功能正常显示，请务必按下键盘上的 <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Ctrl + F5</kbd> 或 <kbd style=\"background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;\">Shift + F5</kbd> 强制刷新本页！<br><span style=\"font-size:13px; color:#64748b; font-weight:normal;\">(手机端用户请手动清理浏览器缓存后刷新)</span>"
+
+msgid "OK, I will manually refresh"
+msgstr "好的，我去手动刷新"
