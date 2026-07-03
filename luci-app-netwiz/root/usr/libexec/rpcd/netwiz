@@ -828,55 +828,77 @@ case "$1" in
                 fi
                 ;;
 
-               # 获取向导状态与智能探针
-                get_wizard_status)
-                    configured=$(uci -q get netwiz.global.configured)
-                    [ -z "$configured" ] && configured=0
+            # 获取向导状态与智能探针
+            get_wizard_status)
+                # ==========================================
+                # 前端刷新页面，且后台确认没有正在下载或安装的进程...
+                # ==========================================
+                if [ -f /tmp/netwiz_update.version ] && ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
+                    # 提取之前下载时记录的目标版本
+                    TARGET_VER=$(cat /tmp/netwiz_update.version | tr -d '\r\n ' | sed 's/^v//')
                     
-                    wizard_enable=$(uci -q get netwiz.main.wizard_enable)
-                    [ -z "$wizard_enable" ] && wizard_enable=1
-
-                    is_pppoe=0
-                    wan_proto=$(uci -q get network.wan.proto)
-                    wan_user=$(uci -q get network.wan.username)
-                    if [ "$wan_proto" = "pppoe" ] && [ -n "$wan_user" ]; then
-                        is_pppoe=1
-                    fi
-
-                    echo "{\"configured\": $configured, \"wizard_enable\": $wizard_enable, \"is_pppoe\": $is_pppoe}"
-                    exit 0
-                    ;;
-
-                # 状态锁控
-                set_wizard_status)
-                    input=$(cat)
-                    mode=$(echo "$input" | jsonfilter -e '@.mode')
-                    
-                    # 防呆
-                    # 检查并创建节点，防止因为配置文件缺失导致的 uci set 静默失效
-                    [ ! -f /etc/config/netwiz ] && touch /etc/config/netwiz
-                    uci -q get netwiz.global >/dev/null 2>&1 || uci set netwiz.global=global
-                    uci -q get netwiz.main >/dev/null 2>&1 || uci set netwiz.main=main
-
-                    if [ "$mode" = "skip" ]; then
-                        # 普通跳过
-                        uci set netwiz.global.configured='1'
-                    elif [ "$mode" = "restore" ]; then
-                        # 手动恢复弹窗
-                        uci set netwiz.global.configured='1'
-                        uci set netwiz.main.wizard_enable='1'
-                    elif [ "$mode" = "done" ]; then
-                        # 彻底完成/不再提示
-                        uci set netwiz.global.configured='1'
-                        uci set netwiz.main.wizard_enable='0'
+                    # 提取路由器当前底层真实安装的版本
+                    CUR_VER=""
+                    if command -v apk >/dev/null 2>&1; then
+                        CUR_VER=$(apk info -e luci-app-netwiz 2>/dev/null | sed 's/luci-app-netwiz-//')
+                    elif command -v opkg >/dev/null 2>&1; then
+                        CUR_VER=$(opkg status luci-app-netwiz 2>/dev/null | grep Version | awk '{print $2}')
                     fi
                     
-                    uci commit netwiz
-                    sync  # 刷入物理闪存，防止丢失
-                    
-                    echo '{"result": 0}'
-                    exit 0
-                    ;;
+                    # 底层真实版本已经达到了目标版本，删除 /tmp 里的安装包和 ready 标记
+                    if [ -n "$CUR_VER" ] && [ -n "$TARGET_VER" ] && echo "$CUR_VER" | grep -q "$TARGET_VER"; then
+                        rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null
+                    fi
+                fi
+                # ==========================================
+
+                configured=$(uci -q get netwiz.global.configured)
+                [ -z "$configured" ] && configured=0
+                
+                wizard_enable=$(uci -q get netwiz.main.wizard_enable)
+                [ -z "$wizard_enable" ] && wizard_enable=1
+
+                is_pppoe=0
+                wan_proto=$(uci -q get network.wan.proto)
+                wan_user=$(uci -q get network.wan.username)
+                if [ "$wan_proto" = "pppoe" ] && [ -n "$wan_user" ]; then
+                    is_pppoe=1
+                fi
+
+                echo "{\"configured\": $configured, \"wizard_enable\": $wizard_enable, \"is_pppoe\": $is_pppoe}"
+                exit 0
+                ;;
+
+            # 状态锁控
+            set_wizard_status)
+                input=$(cat)
+                mode=$(echo "$input" | jsonfilter -e '@.mode')
+                
+                # 防呆
+                # 检查并创建节点，防止因为配置文件缺失导致的 uci set 静默失效
+                [ ! -f /etc/config/netwiz ] && touch /etc/config/netwiz
+                uci -q get netwiz.global >/dev/null 2>&1 || uci set netwiz.global=global
+                uci -q get netwiz.main >/dev/null 2>&1 || uci set netwiz.main=main
+
+                if [ "$mode" = "skip" ]; then
+                    # 普通跳过
+                    uci set netwiz.global.configured='1'
+                elif [ "$mode" = "restore" ]; then
+                    # 手动恢复弹窗
+                    uci set netwiz.global.configured='1'
+                    uci set netwiz.main.wizard_enable='1'
+                elif [ "$mode" = "done" ]; then
+                    # 彻底完成/不再提示
+                    uci set netwiz.global.configured='1'
+                    uci set netwiz.main.wizard_enable='0'
+                fi
+                
+                uci commit netwiz
+                sync  # 刷入物理闪存，防止丢失
+                
+                echo '{"result": 0}'
+                exit 0
+                ;;
 
             set_network)
                     input=$(cat)
