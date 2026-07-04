@@ -3512,6 +3512,17 @@ return view.extend({
                         }
                     }
 
+                    // 1：缓存协议
+                    if (wProto) {
+                        window._nwCachedWProto = wProto;
+                        window._nwCachedWanName = realWanName;
+                    } else if (window._nwCachedWProto) {
+                        // 埋点：当发生底层数据丢失，触发我们的缓存保护时，打印黄色警告
+                        console.warn('[Netwiz Debug] ⚠️ UCI 协议读取为空！已触发缓存保护，强行恢复为: ' + window._nwCachedWProto);
+                        wProto = window._nwCachedWProto;
+                        realWanName = window._nwCachedWanName;
+                    }
+
                     var isWanMode = (wProto === 'dhcp' || wProto === 'pppoe' || wProto === 'static');
 
                     // ==========================================
@@ -3665,9 +3676,14 @@ return view.extend({
                         } else {
                             // 系统空闲，且向导关闭，开启防抖
                             window._wanDropCount++;
+                            // 埋点：每次侦测到断线，打印一次计数
+                            console.log('[Netwiz Debug] 🔌 探测到底层 l1up:false 或未获取到IP。当前防抖计次: ' + window._wanDropCount);
                             
-                            // 1 次断线（約 1~5 秒）确认断线，且没有弹过窗，才触发弹窗
-                            if (window._wanDropCount >= 1) {
+                            // 2：将防抖阈值从 1 改为 3
+                            // 连续 3 次（约 9~15 秒）探测到彻底断线，才允许弹出警告，过滤底层握手时的假死
+                            if (window._wanDropCount >= 3) {
+                                // 埋点：触发弹窗，打印红色错误！
+                                console.error('[Netwiz Debug] 🚨 连续 3 次确认断线，正式触发全屏红窗拦截！');
                                 if (!window._hasAlertedWanDown && !safeGetLocal('ignoreWanAlert')) {
                                     window._hasAlertedWanDown = true;
                                     
@@ -3699,6 +3715,11 @@ return view.extend({
                             }
                         }
                     } else if (!isWanDown) {
+                        // 埋点：如果之前有断线计数，现在突然恢复了，打印一条日志
+                        if (window._wanDropCount > 0) {
+                            console.log('[Netwiz Debug] 🟩 侦测到物理网卡恢复 UP，防抖计数器清零。');
+                        }
+                        
                         // 侦测到网线恢复，立刻将计数器清零
                         window._wanDropCount = 0;
 
@@ -3708,9 +3729,6 @@ return view.extend({
                             customAlert.remove();
                         }
                         window._hasAlertedWanDown = false;
-                        
-                        // 清除免扰状态
-                        safeRemoveLocal('ignoreWanAlert'); 
                     }
 
                     var dns2 = dnsServers[1] || '';
