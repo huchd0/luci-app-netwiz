@@ -4651,7 +4651,7 @@ return view.extend({
                                     }
                                 }
 
-                                // 🌟 接收暗号：惰性垃圾回收成功！
+                                // 接收信号：惰性垃圾回收成功！
                                 if (res.upgrade_success === 1) {
                                     // A：瞬间隐藏小红点
                                     var redDot = document.querySelector('.nw-version-dot');
