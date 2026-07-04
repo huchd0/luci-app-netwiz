@@ -482,36 +482,36 @@ case "$1" in
                 ;;
 
 
-            # 检测网络连通性 + 删除 /tmp/ 升级无用的文件
+            # 检测网络连通性
             check_internet)
                 # ==========================================
-                # 删除小红点升级可能残留 /tmp/ 文件
+                # 惰性垃圾回收 (/tmp/ 升级文件)
                 # ==========================================
                 if [ -f /tmp/netwiz_update.version ]; then
-                    # 确保后台没有任何下载和安装进程在运行
                     if ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
                         TARGET_VER=$(cat /tmp/netwiz_update.version | sed 's/[vV]//g' | tr -d '\r\n ')
                         
                         LOCAL_VERS=""
                         for f in $(find /www/luci-static/ -name "netwiz.js" 2>/dev/null); do
-                            # 切出相关片段，完美破解单行压缩包
-                            RAW_EXTRACT=$(grep -o "APP_VERSION[^,}]*" "$f" 2>/dev/null)
-                            # 提取所有的纯数字版本号
+                            # 锁定 "APP_VERSION + 任意符号 + 数字" 的结构，无视逗号、大括号或换行
+                            RAW_EXTRACT=$(grep -oE "APP_VERSION[^a-zA-Z0-9]+[vV]?[0-9]+\.[0-9]+\.[0-9]+" "$f" 2>/dev/null)
+                            
+                            # 纯净提炼数字
                             v=$(echo "$RAW_EXTRACT" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
                             LOCAL_VERS="$LOCAL_VERS $v"
                         done
                         
-                        # 前端真实生效的代码里包含目标版本，删除残留 /tmp/ 升级文件
                         if [ -n "$LOCAL_VERS" ] && [ -n "$TARGET_VER" ] && echo "$LOCAL_VERS" | grep -q "$TARGET_VER"; then
                             rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null
                         fi
                     fi
                 fi
                 # ==========================================
-            
-                if ping -c 1 -W 2 223.5.5.5 >/dev/null 2>&1 || ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
+
+                # 检测网络连通性，原生 ping 逻辑
+                if ping -c 1 -W 2 223.5.5.5 >/dev/null 2>&1 || ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then 
                     echo '{"status":"ok"}'
-                else
+                else 
                     echo '{"status":"fail"}'
                 fi
                 exit 0
@@ -1015,16 +1015,8 @@ EOF
                         echo '{"result":0}'
                         cat << 'EOF' > /tmp/nw_install.sh
 #!/bin/sh
+# 稍微等一秒，让前端接口有时间返回 {"result":0}，避免网络连接被强制掐断
 sleep 1
-
-# cron 定时删除 (1分钟后执行)
-touch /etc/crontabs/root
-grep -v "netwiz_ota_gc" /etc/crontabs/root > /tmp/cron_gc.tmp || true
-echo "* * * * * sleep 20; rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null; sed -i '/netwiz_ota_gc/d' /etc/crontabs/root; /etc/init.d/cron restart #netwiz_ota_gc" >> /tmp/cron_gc.tmp
-mv /tmp/cron_gc.tmp /etc/crontabs/root
-/etc/init.d/cron restart
-
-sleep 2
 
 if command -v apk >/dev/null 2>&1; then
     PREFIX="apk_"
@@ -1042,6 +1034,7 @@ INSTALL_LIST="$F_MAIN"
 [ -f "$F_CN" ] && INSTALL_LIST="$INSTALL_LIST $F_CN"
 [ -f "$F_TW" ] && INSTALL_LIST="$INSTALL_LIST $F_TW"
 
+# 执行安装
 if [ "$EXT" = ".apk" ]; then
     apk add --allow-untrusted --force-overwrite --force-reinstall $INSTALL_LIST > /tmp/netwiz_install.log 2>&1
     INSTALL_STATUS=$?
@@ -1050,6 +1043,7 @@ else
     INSTALL_STATUS=$?
 fi
 
+# 安装成功后，清理 luci 缓存并热重载
 if [ "$INSTALL_STATUS" -eq 0 ]; then
     rm -rf /tmp/luci-modulecache/ /tmp/luci-indexcache* /tmp/luci-app-netwiz.*
     ubus call luci reload >/dev/null 2>&1
