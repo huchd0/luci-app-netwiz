@@ -3465,16 +3465,31 @@ return view.extend({
                         }
                         // 接收信号：惰性垃圾回收成功！
                         if (res.upgrade_success === 1) {
-                            // A：瞬间隐藏小红点和升级提示框
+                            // 1. 瞬间隐藏小红点
                             var redDot = document.querySelector('.nw-version-dot');
                             if (redDot) redDot.style.display = 'none';
+                            
+                            // 2. 瞬间把页面上的版本号文字，替换为后台发来的新版本号
                             var verTag = document.querySelector('.nw-version-tag');
-                            if (verTag) verTag.classList.remove('has-update');
+                            if (verTag) {
+                                verTag.classList.remove('has-update');
+                                if (res.new_ver) {
+                                    // 动态注入新版本号，保留红点 DOM 结构以便将来使用
+                                    verTag.innerHTML = 'v' + res.new_ver + '<span class="nw-version-dot" style="display: none;"></span>';
+                                }
+                            }
 
-                            // B：静默强刷当前页面 (拉取最新版本号与界面)
-                            var cleanUrl = window.location.href.split('?')[0];
-                            window.location.replace(cleanUrl + '?_t=' + Date.now());
-                            setTimeout(function() { window.location.reload(true); }, 100);
+                            // 3. 静默清理本地 LuCI 缓存
+                            // 确保用户下次离开页面再进来时，不会再加载出旧缓存
+                            try {
+                                sessionStorage.clear();
+                                for (var i = localStorage.length - 1; i >= 0; i--) {
+                                    var k = localStorage.key(i);
+                                    if (k && k !== 'nw_wizard_never_show' && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
+                                        localStorage.removeItem(k);
+                                    }
+                                }
+                            } catch(e) {}
                         }
                     });
                 }
@@ -4653,17 +4668,32 @@ return view.extend({
 
                                 // 接收信号：惰性垃圾回收成功！
                                 if (res.upgrade_success === 1) {
-                                    // A：瞬间隐藏小红点
-                                    var redDot = document.querySelector('.nw-version-dot');
-                                    if (redDot) redDot.style.display = 'none';
-                                    var verTag = document.querySelector('.nw-version-tag');
-                                    if (verTag) verTag.classList.remove('has-update');
-
-                                    // B：静默强刷当前页面
-                                    var cleanUrl = window.location.href.split('?')[0];
-                                    window.location.replace(cleanUrl + '?_t=' + Date.now());
-                                    setTimeout(function() { window.location.reload(true); }, 100);
+                                // 1. 隐藏小红点
+                                var redDot = document.querySelector('.nw-version-dot');
+                                if (redDot) redDot.style.display = 'none';
+                                
+                                // 2. 把页面上的版本号文字，替换为后台发来的新版本号
+                                var verTag = document.querySelector('.nw-version-tag');
+                                if (verTag) {
+                                    verTag.classList.remove('has-update');
+                                    if (res.new_ver) {
+                                        // 动态注入新版本号，保留红点 DOM 结构以便将来使用
+                                        verTag.innerHTML = 'v' + res.new_ver + '<span class="nw-version-dot" style="display: none;"></span>';
+                                    }
                                 }
+
+                                // 3. 静默清理本地 LuCI 缓存
+                                // 确保用户下次离开页面再进来时，不会再加载出旧缓存
+                                try {
+                                    sessionStorage.clear();
+                                    for (var i = localStorage.length - 1; i >= 0; i--) {
+                                        var k = localStorage.key(i);
+                                        if (k && k !== 'nw_wizard_never_show' && (k.indexOf('nw_') === 0 || k.indexOf('luci') !== -1)) {
+                                            localStorage.removeItem(k);
+                                        }
+                                    }
+                                } catch(e) {}
+                            }
                             });
                         }
                     }
