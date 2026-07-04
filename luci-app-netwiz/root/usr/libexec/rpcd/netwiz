@@ -503,6 +503,8 @@ case "$1" in
                         
                         if [ -n "$LOCAL_VERS" ] && [ -n "$TARGET_VER" ] && echo "$LOCAL_VERS" | grep -q "$TARGET_VER"; then
                             rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null
+                            # 清场成功，准备发射隐藏小红点信号
+                            UPGRADE_SUCCESS=1
                         fi
                     fi
                 fi
