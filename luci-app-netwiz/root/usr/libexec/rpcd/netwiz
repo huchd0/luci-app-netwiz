@@ -490,21 +490,22 @@ case "$1" in
                 if [ -f /tmp/netwiz_update.version ]; then
                     if ! pidof wget >/dev/null 2>&1 && ! pidof apk >/dev/null 2>&1 && ! pidof opkg >/dev/null 2>&1; then
                         TARGET_VER=$(cat /tmp/netwiz_update.version | sed 's/[vV]//g' | tr -d '\r\n ')
-                        
+
                         LOCAL_VERS=""
                         for f in $(find /www/luci-static/ -name "netwiz.js" 2>/dev/null); do
                             # 锁定 "APP_VERSION + 任意符号 + 数字" 的结构，无视逗号、大括号或换行
                             RAW_EXTRACT=$(grep -oE "APP_VERSION[^a-zA-Z0-9]+[vV]?[0-9]+\.[0-9]+\.[0-9]+" "$f" 2>/dev/null)
-                            
+
                             # 纯净提炼数字
                             v=$(echo "$RAW_EXTRACT" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
                             LOCAL_VERS="$LOCAL_VERS $v"
                         done
-                        
+
                         if [ -n "$LOCAL_VERS" ] && [ -n "$TARGET_VER" ] && echo "$LOCAL_VERS" | grep -q "$TARGET_VER"; then
                             rm -f /tmp/apk_luci-* /tmp/ipk_luci-* /tmp/netwiz_update.* /tmp/nw_dl.sh /tmp/nw_install.sh /tmp/netwiz_install.log 2>/dev/null
                             # 清场成功，准备发射隐藏小红点信号
                             UPGRADE_SUCCESS=1
+                            NEW_VER="$TARGET_VER"
                         fi
                     fi
                 fi
