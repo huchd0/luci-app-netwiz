@@ -3463,6 +3463,19 @@ return view.extend({
                             badgeEl.innerHTML = window.nwInetStatus === 'ok' ? '🌐' : '❌';
                             badgeEl.title = window.nwInetStatus === 'ok' ? (T['TXT_NET_OK'] || 'Internet Connected') : (T['TXT_NET_FAIL'] || 'Internet Disconnected');
                         }
+                        // 接收信号：惰性垃圾回收成功！
+                        if (res.upgrade_success === 1) {
+                            // A：瞬间隐藏小红点和升级提示框
+                            var redDot = document.querySelector('.nw-version-dot');
+                            if (redDot) redDot.style.display = 'none';
+                            var verTag = document.querySelector('.nw-version-tag');
+                            if (verTag) verTag.classList.remove('has-update');
+
+                            // B：静默强刷当前页面 (拉取最新版本号与界面)
+                            var cleanUrl = window.location.href.split('?')[0];
+                            window.location.replace(cleanUrl + '?_t=' + Date.now());
+                            setTimeout(function() { window.location.reload(true); }, 100);
+                        }
                     });
                 }
 
@@ -4623,7 +4636,7 @@ return view.extend({
 
                     if (modeTextEl) {
                         modeTextEl.innerHTML = "<div style='font-size:17px; font-weight:600; margin-bottom:8px; color:#ffffff; font-family: monospace; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; max-width:100%; min-width:0;'><span style='white-space:nowrap; max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis;'>" + sTitle + "</span>" + statusBadge + "</div>" + "<div style='font-size:15.5px; font-weight:bold; color:#ffffff; font-family:monospace; letter-spacing:0.5px; display:flex; flex-wrap:wrap; justify-content:center; line-height: 1.3; max-width:100%; min-width:0; gap:8px;'>" + sDetails + "</div>" + sDnsHtml + ipv6Html + devMgrBtn + extraInfo + advToggleHtml;
-                        
+
                         // 异步检测网络连通性
                         if (statusBadge.indexOf('nw-inet-badge') !== -1) {
                             callCheckInternet().then(function(res) {
@@ -4636,6 +4649,20 @@ return view.extend({
                                         el.innerHTML = "❌";
                                         el.title = T['TXT_NET_FAIL'];
                                     }
+                                }
+
+                                // 🌟 接收暗号：惰性垃圾回收成功！
+                                if (res.upgrade_success === 1) {
+                                    // A：瞬间隐藏小红点
+                                    var redDot = document.querySelector('.nw-version-dot');
+                                    if (redDot) redDot.style.display = 'none';
+                                    var verTag = document.querySelector('.nw-version-tag');
+                                    if (verTag) verTag.classList.remove('has-update');
+
+                                    // B：静默强刷当前页面
+                                    var cleanUrl = window.location.href.split('?')[0];
+                                    window.location.replace(cleanUrl + '?_t=' + Date.now());
+                                    setTimeout(function() { window.location.reload(true); }, 100);
                                 }
                             });
                         }
