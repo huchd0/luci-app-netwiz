@@ -91,8 +91,7 @@ Copy all the code inside the `worker.js` file in this project to use in the next
 🎉 **All done!** Your router is now equipped with self-healing capabilities for IPv6 direct connections!
 🎉 **完成！** 现在您的路由器已经具备了 IPv6 直联的自愈能力！
 🎉 **完成！** 現在您的路由器已經具備了 IPv6 直聯的自癒能力！
-
-# ============================================================================
+# ================================= 结束 =================================
 */
 
 
