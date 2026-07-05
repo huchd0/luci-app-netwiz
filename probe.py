@@ -42,6 +42,7 @@
 #
 # 【常用管理命令】
 # 查看状态: systemctl status netwiz-probe
+# 停止探针: systemctl stop netwiz-probe
 # 重启探针: systemctl restart netwiz-probe
 # 实时日志: journalctl -u netwiz-probe -f
 # ============================ 结束 ============================
