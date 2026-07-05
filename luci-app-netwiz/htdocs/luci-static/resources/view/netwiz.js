@@ -3325,7 +3325,7 @@ return view.extend({
         }
         // ========================================================
 
-        function safePromise(p, f) { return new Promise(function(r) { var t = setTimeout(function() { r(f); }, 3000); if (!p || !p.then) { clearTimeout(t); return r(f); } p.then(function(res) { clearTimeout(t); r(res); }).catch(function() { clearTimeout(t); r(f); }); }); }
+        function safePromise(p, f) { return new Promise(function(r) { var t = setTimeout(function() { r(f); }, 8000); if (!p || !p.then) { clearTimeout(t); return r(f); } p.then(function(res) { clearTimeout(t); r(res); }).catch(function() { clearTimeout(t); r(f); }); }); }
         function safeUciGet(c, s, o, d) { try { var v = uci.get(c, s, o); return (v === null || v === undefined) ? d : String(v).trim(); } catch(e) { return d; } }
 
         // SSID 后缀转换
@@ -3447,6 +3447,8 @@ return view.extend({
         }).catch(function(err) {});
 
         function updateStatusDisplay(isSilent) {
+            if (window._isUpdatingStatus) return; // 防并发锁，彻底解决请求拥堵
+            window._isUpdatingStatus = true;
             try {
                 // --- 互联网状态全域快取与防闪烁逻辑 ---
                 if (typeof window.nwInetStatus === 'undefined') window.nwInetStatus = 'wait';
@@ -3478,7 +3480,11 @@ return view.extend({
                 if (modeTextEl && !isSilent) modeTextEl.innerHTML = "<div class='nw-spinner' style='width:30px; height:30px; border-width:3px; margin: 0 auto; border-top-color: #fff;'></div><div style='margin-top:10px; font-size:15px; font-weight:bold; color:#fff;'>" + T['LOADING_CONFIG'] + "</div>";
                 try { uci.unload('network'); uci.unload('dhcp'); uci.unload('wireless'); } catch(e) {}
 
-                Promise.all([ safePromise(uci.load('network'), null), safePromise(uci.load('dhcp'), null), safePromise(uci.load('wireless'), null), safePromise(getWanStatus(), {}), safePromise(callNetCheckWifi(), {}) ]).then(function(results) {
+                // 底层 Wi-Fi 硬件扫描，只在首次进入时请求一次，极大降低路由器 CPU 负担
+                var checkWifiPromise = window._cachedWifiRes ? Promise.resolve(window._cachedWifiRes) : callNetCheckWifi().then(function(r) { window._cachedWifiRes = r; return r; });
+
+                Promise.all([ safePromise(uci.load('network'), null), safePromise(uci.load('dhcp'), null), safePromise(uci.load('wireless'), null), safePromise(getWanStatus(), {}), safePromise(checkWifiPromise, {}) ]).then(function(results) {
+                    window._isUpdatingStatus = false; // 请求完成，释放锁
                     var wifiRes = results[4] || {};
                     var rawIfaces = results[3] || {};
                     var currentIfaces = Array.isArray(rawIfaces.interface) ? rawIfaces.interface : (Array.isArray(rawIfaces) ? rawIfaces : []);
@@ -4670,16 +4676,20 @@ return view.extend({
                                     // 隐藏小红点
                                     var redDot = document.querySelector('.nw-version-dot');
                                     if (redDot) redDot.style.display = 'none';
-                                    
+
                                     var verTag = document.querySelector('.nw-version-tag');
                                     if (verTag) verTag.classList.remove('has-update');
                                 }
                             });
                         }
                     }
-                    
-                }).catch(function() {});
-            } catch(e) {}
+
+                }).catch(function() {
+                    window._isUpdatingStatus = false; // 异常释放锁
+                });
+            } catch(e) {
+                window._isUpdatingStatus = false; // 异常释放锁
+            }
         }
 
         // 智能备份与恢复事件绑定
