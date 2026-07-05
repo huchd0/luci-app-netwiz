@@ -1,5 +1,7 @@
-# Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
-# Licensed under the GNU General Public License v3.0
+/*
+ * Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
+ * Licensed under the GNU General Public License v3.0
+*/
 
 /*
 
