@@ -1,3 +1,6 @@
+# Copyright (C) 2026 huchd0 <https://github.com/huchd0/luci-app-netwiz>
+# Licensed under the GNU General Public License v3.0
+
 /*
 
 # 📡 Netwiz Probe (IPv6 Watchdog) - Cloudflare Edition | (IPv6 保活探针) - Cloudflare 版
