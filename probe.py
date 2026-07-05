@@ -10,7 +10,7 @@
 #
 # 【极致轻量部署步骤】
 # 1. 保存文件：
-#    将此代码保存到 VPS 的 /root/probe.py
+#    复制本项目中的 `probe.py` 里的全部代码，保存到 VPS 的 /root/probe.py
 #
 # 2. 创建守护服务：
 #    在终端执行命令: nano /etc/systemd/system/netwiz-probe.service
