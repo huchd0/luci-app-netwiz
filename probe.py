@@ -37,7 +37,7 @@
 #    systemctl start netwiz-probe
 #
 # 4. 插件填写：
-#    在 Netwiz 高级实用设置的 <📡 IPv6 深度保活> 设置中，直接填写：http://您的VPS_IP:18080
+#    在 Netwiz 高级实用设置的 <📡 IPv6 深度保活> 设置中，填写：http://您的VPS_IP:18080
 #    (注：请确保 VPS 防火墙与云服务商安全组已放行 18080 端口)
 #
 # 【常用管理命令】
