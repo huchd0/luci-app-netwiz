@@ -4,8 +4,9 @@
 */
 
 /*
-
-# 📡 Netwiz Probe (IPv6 Watchdog) - Cloudflare Edition | (IPv6 保活探针) - Cloudflare 版
+# ============================================================================
+# 📡 IPv6 Watchdog - (Cloudflare Edition) | 📡 IPv6 深度保活 - (Cloudflare 版)
+# ============================================================================
 
 Developed specifically to address the instability of IPv6 direct-connected devices. Leveraging Cloudflare's global edge network, it allows you to deploy quickly with zero cost and zero configuration.
 专门针对 IPv6 直连设备时不稳定的痛点开发，借助 Cloudflare 覆盖全球的边缘节点网络优势，让您可以零成本、免配置地快速部署。
@@ -91,6 +92,7 @@ Copy all the code inside the `worker.js` file in this project to use in the next
 🎉 **完成！** 现在您的路由器已经具备了 IPv6 直联的自愈能力！
 🎉 **完成！** 現在您的路由器已經具備了 IPv6 直聯的自癒能力！
 
+# ============================================================================
 */
 
 
