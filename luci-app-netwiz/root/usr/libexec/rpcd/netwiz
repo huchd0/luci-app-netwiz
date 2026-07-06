@@ -2067,7 +2067,7 @@ if [ -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ]; then
     
     # ==========================================
     # 【前置防御】启动跨重启防砖看门狗 (WAL 模式)
-    # 此时已通过所有防呆检测，即将覆盖核心文件！标志物理护盾
+    # 覆盖核心文件！标志物理护盾
     # ==========================================
     echo "$(date '+%F %T') [RESTORE] [安全防御] 正在将当前健康配置写入闪存，准备跨越重启防砖..." >> "$LOG_FILE"
     mkdir -p /etc/netwiz/failsafe
@@ -2077,13 +2077,25 @@ if [ -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ]; then
     touch /etc/netwiz_pending_recovery
     # ==========================================
 
+    # 【软件源智能护盾】提取当前系统健康的源
+    echo "$(date '+%F %T') [RESTORE] 正在提取当前系统健康的软件源..." >> "$LOG_FILE"
+    mkdir -p /tmp/nw_repo_bak
+    cp -r /etc/apk/repositories* /tmp/nw_repo_bak/ 2>/dev/null
+    cp -p /etc/opkg/*feeds.conf /tmp/nw_repo_bak/ 2>/dev/null
+
     # 护盾就绪，开始向系统根目录释放配置，这是“危险操作”
     tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> "$LOG_FILE" 2>&1
+
+    # 【软件源反向覆盖】解压完历史配置后，用健康的源覆盖回去
+    echo "$(date '+%F %T') [RESTORE] 正在更新并修正恢复后的软件源..." >> "$LOG_FILE"
+    cp -r /tmp/nw_repo_bak/repositories* /etc/apk/ 2>/dev/null
+    cp -p /tmp/nw_repo_bak/*feeds.conf /etc/opkg/ 2>/dev/null
+    rm -rf /tmp/nw_repo_bak
 fi
 
 if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
     update_status "running" "MSG_RST_PKGS"
-    
+
     # --- 安装前删除除底层系统核心包，彻底杜绝依赖冲突中断 ---
     rm -f /tmp/nw_ghost_tmp/nw_offline_pkgs/firewall-* \
           /tmp/nw_ghost_tmp/nw_offline_pkgs/firewall4-* \
