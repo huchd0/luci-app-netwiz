@@ -1270,9 +1270,9 @@ return view.extend({
         // ====================================================================
         var defaultAdvLayout = [
             { id: 'link-cron-reboot',   icon: '⏱️', name: (T['LBL_CRON_REBOOT_LINK'] || '⏱️ Scheduled Reboot').replace('⏱️ ', ''), show: true },
-            { id: 'link-mac-clone',     icon: '🔗', name: (T['LBL_MAC_CLONE_LINK'] || '🔗 MAC Clone').replace('🔗 ', ''), show: true },
             { id: 'link-modify-hosts',  icon: '✏️', name: (T['LBL_HOSTS_LINK'] || '✏️ Custom Hosts').replace('✏️ ', ''), show: true },
-            { id: 'link-repair-plugin', icon: '🚑', name: (T['LBL_REPAIR_BTN'] || '🚑 Plugin Repair').replace('🚑 ', ''), show: true },
+            { id: 'link-mac-clone',     icon: '🔗', name: (T['LBL_MAC_CLONE_LINK'] || '🔗 MAC Clone').replace('🔗 ', ''), show: false },
+            { id: 'link-repair-plugin', icon: '🚑', name: (T['LBL_REPAIR_BTN'] || '🚑 Plugin Repair').replace('🚑 ', ''), show: false },
             { id: 'link-offline-safe',  icon: '📦', name: (T['ADV_SAFE_BTN'] || '📦 Plugin Installation').replace('📦 ', ''), show: false },
             { id: 'link-ipv6-watchdog', icon: '📡', name: (T['LBL_WATCHDOG_LINK'] || '📡 IPv6 Watchdog').replace('📡 ', ''), show: false }
         ];
