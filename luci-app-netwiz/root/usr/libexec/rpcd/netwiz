@@ -2064,10 +2064,9 @@ fi
 
 if [ -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ]; then
     update_status "running" "MSG_RST_CONF"
-    
+
     # ==========================================
-    # 【前置防御】启动跨重启防砖看门狗 (WAL 模式)
-    # 覆盖核心文件！标志物理护盾
+    # 前置防御: 启动跨重启防砖看门狗
     # ==========================================
     echo "$(date '+%F %T') [RESTORE] [安全防御] 正在将当前健康配置写入闪存，准备跨越重启防砖..." >> "$LOG_FILE"
     mkdir -p /etc/netwiz/failsafe
@@ -2075,27 +2074,41 @@ if [ -f "/tmp/nw_ghost_tmp/nw_sys_config.tar.gz" ]; then
     cp -p /etc/config/dhcp /etc/netwiz/failsafe/dhcp_bak 2>/dev/null
     cp -p /etc/config/wireless /etc/netwiz/failsafe/wireless_bak 2>/dev/null
     touch /etc/netwiz_pending_recovery
-    # ==========================================
 
-    # 【软件源智能护盾】提取当前系统健康的源
-    echo "$(date '+%F %T') [RESTORE] 正在提取当前系统健康的软件源..." >> "$LOG_FILE"
-    mkdir -p /tmp/nw_repo_bak
-    cp -r /etc/apk/repositories* /tmp/nw_repo_bak/ 2>/dev/null
-    cp -p /etc/opkg/*feeds.conf /tmp/nw_repo_bak/ 2>/dev/null
+    # 获取当前系统版本号与固件派系 (OpenWrt/ImmortalWrt/LEDE等)
+    CUR_VER="unknown"
+    CUR_FW_TYPE="OpenWrt"
+    if [ -f /etc/openwrt_release ]; then
+        . /etc/openwrt_release
+        CUR_VER=${VERSION:-${DISTRIB_RELEASE:-unknown}}
+        [ -n "$DISTRIB_ID" ] && CUR_FW_TYPE="$DISTRIB_ID"
+    fi
 
-    # 护盾就绪，开始向系统根目录释放配置，这是“危险操作”
-    tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> "$LOG_FILE" 2>&1
+    # 版本号与固件派系【双重对比】
+    if [ "$BACKUP_VER" = "$CUR_VER" ] && [ "$BACKUP_FW_TYPE" = "$CUR_FW_TYPE" ] && [ "$BACKUP_VER" != "unknown" ]; then
+        echo "$(date '+%F %T') [RESTORE] 检测到同派系同版本恢复 ($CUR_FW_TYPE $CUR_VER)，允许无损还原历史软件源..." >> "$LOG_FILE"
+        tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> "$LOG_FILE" 2>&1
+    else
+        echo "$(date '+%F %T') [RESTORE] 检测到跨版本或跨派系 ($BACKUP_FW_TYPE $BACKUP_VER -> $CUR_FW_TYPE $CUR_VER)，触发软件源智能护盾..." >> "$LOG_FILE"
 
-    # 【软件源反向覆盖】解压完历史配置后，用健康的源覆盖回去
-    echo "$(date '+%F %T') [RESTORE] 正在更新并修正恢复后的软件源..." >> "$LOG_FILE"
-    cp -r /tmp/nw_repo_bak/repositories* /etc/apk/ 2>/dev/null
-    cp -p /tmp/nw_repo_bak/*feeds.conf /etc/opkg/ 2>/dev/null
-    rm -rf /tmp/nw_repo_bak
+        # 提取当前新系统的健康软件源
+        mkdir -p /tmp/nw_repo_bak
+        cp -r /etc/apk/repositories* /tmp/nw_repo_bak/ 2>/dev/null
+        cp -p /etc/opkg/*feeds.conf /tmp/nw_repo_bak/ 2>/dev/null
+
+        # 执行危险解压操作
+        tar -xzf /tmp/nw_ghost_tmp/nw_sys_config.tar.gz -C / >> "$LOG_FILE" 2>&1
+
+        # 用健康的源覆盖，删除旧版遗留的污染
+        cp -r /tmp/nw_repo_bak/repositories* /etc/apk/ 2>/dev/null
+        cp -p /tmp/nw_repo_bak/*feeds.conf /etc/opkg/ 2>/dev/null
+        rm -rf /tmp/nw_repo_bak
+    fi
 fi
 
 if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
     update_status "running" "MSG_RST_PKGS"
-
+    
     # --- 安装前删除除底层系统核心包，彻底杜绝依赖冲突中断 ---
     rm -f /tmp/nw_ghost_tmp/nw_offline_pkgs/firewall-* \
           /tmp/nw_ghost_tmp/nw_offline_pkgs/firewall4-* \
