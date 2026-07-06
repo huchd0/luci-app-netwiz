@@ -4,10 +4,10 @@
 
 LOG_FILE="/tmp/netwiz.log"
 
-# ========================================================
+# =======================================================
 # 全量备份：高级资产目录配置白名单
 # 需要备份的插件配置文件夹，直接在此处追加，系统会自动探测打包
-# ========================================================
+# =======================================================
 EXTRA_BACKUP_DIRS="
     /etc/openclash/core
     /etc/openclash/history
@@ -23,7 +23,6 @@ EXTRA_BACKUP_DIRS="
     /etc/bypass
     /etc/ddns-go
 "
-# ========================= 结束 =========================
 
 # 用法: log "[标签]" "日志内容"
 log() {
@@ -306,12 +305,37 @@ case "$1" in
                         if command -v apk >/dev/null 2>&1; then
                             pkg_name=$(apk info -W "/etc/config/$plugin" 2>/dev/null | awk '{print $1}' | head -n1)
                         elif command -v opkg >/dev/null 2>&1; then
-                            pkg_name=$(opkg search "/etc/config/$plugin" 2>/dev/null | awk '{print $1}' | awk -F' - ' '{print $1}' | head -n1)
+                            pkg_name=$(opkg search "/config/$plugin" 2>/dev/null | awk '{print $1}' | awk -F' - ' '{print $1}' | head -n1)
                         fi
                         # 兜底：如果找不出套件名，直接用插件名去模糊匹配
                         [ -z "$pkg_name" ] && pkg_name="$plugin"
 
-                        # === 2. 状态保护：备份当前坏掉的配置，防止修复失败后状态丢失 ===
+                        # === 1.5 孤件误删问题：事前侦测安装包是否存在 ===
+                        pkg_available=0
+                        if command -v apk >/dev/null 2>&1; then
+                            # 查本地保险箱
+                            if ls /etc/netwiz/custom_pkgs/*${pkg_name}*.apk >/dev/null 2>&1 || ls /etc/netwiz/custom_pkgs/*${plugin}*.apk >/dev/null 2>&1; then
+                                pkg_available=1
+                            # 查远端官方源
+                            elif apk search -q -e "$pkg_name" >/dev/null 2>&1 || apk search -q -e "$plugin" >/dev/null 2>&1; then
+                                pkg_available=1
+                            fi
+                        elif command -v opkg >/dev/null 2>&1; then
+                            if ls /etc/netwiz/custom_pkgs/*${pkg_name}*.ipk >/dev/null 2>&1 || ls /etc/netwiz/custom_pkgs/*${plugin}*.ipk >/dev/null 2>&1; then
+                                pkg_available=1
+                            elif opkg list | awk '{print $1}' | grep -qx "$pkg_name" || opkg list | awk '{print $1}' | grep -qx "$plugin"; then
+                                pkg_available=1
+                            fi
+                        fi
+
+                        if [ "$pkg_available" -eq 0 ]; then
+                            log "[REPAIR]" "🚨 源内无包且无本地备份，外挂已死亡。触发孤件逻辑！"
+                            # 返回孤件警告
+                            echo '{"result": 2, "error": "Ghost package"}'
+                            exit 0
+                        fi
+
+                        # === 2. 状态保护：确定包存在后，再删除旧配置并重装 ===
                         mv "/etc/config/$plugin" "/tmp/${plugin}_netwiz_bak" 2>/dev/null
                         # 删除所有附加配置文件夹
                         rm -rf "/etc/config/${plugin}."* 2>/dev/null
@@ -345,7 +369,7 @@ case "$1" in
 
                     # === 4. 判定配置重置是否成功 ===
                     if [ ! -f "/etc/config/$plugin" ]; then
-                        log "[REPAIR]" "🚨 源内无包且无本地备份，外挂已死亡。触发死件逻辑！"
+                        log "[REPAIR]" "🚨 源内无包且无本地备份，外挂已死亡。触发孤件逻辑！"
                         # 恢复备份的配置，确保“取消”后，下拉菜单还能看到它！
                         mv "/tmp/${plugin}_netwiz_bak" "/etc/config/$plugin" 2>/dev/null
                         echo '{"result": 2, "error": "Ghost package"}'
@@ -391,7 +415,7 @@ case "$1" in
                 # --------------------------------------------------
 
                 if [ -n "$plugin" ]; then
-                    log "[REPAIR]" "💀 触发终极系统净化，准备彻底拔除死件: $plugin"
+                    log "[REPAIR]" "💀 触发终极系统净化，准备彻底拔除孤件: $plugin"
 
                     # 1. 停止服务并取消开机自启
                     if [ -x "/etc/init.d/$plugin" ]; then
