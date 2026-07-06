@@ -189,7 +189,7 @@ jobs:
           body: |
          
             ### ✨ 最新版发布
-            ${{ inputs.release_notes }}
+            ${{ inputs.release_notes || '优化代码，提升稳定性与兼容性，修复已知问题。' }}
             
             ---
             
