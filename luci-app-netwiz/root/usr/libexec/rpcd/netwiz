@@ -4,6 +4,27 @@
 
 LOG_FILE="/tmp/netwiz.log"
 
+# ========================================================
+# 全量备份：高级资产目录配置白名单
+# 需要备份的插件配置文件夹，直接在此处追加，系统会自动探测打包
+# ========================================================
+EXTRA_BACKUP_DIRS="
+    /etc/openclash/core
+    /etc/openclash/history
+    /etc/mosdns/rule
+    /etc/adguardhome
+    /usr/share/v2ray
+    /usr/share/xray
+    /etc/passwall
+    /etc/smartdns
+    /etc/homeproxy
+    /etc/mihomo
+    /etc/ssrplus
+    /etc/bypass
+    /etc/ddns-go
+"
+# ========================= 结束 =========================
+
 # 用法: log "[标签]" "日志内容"
 log() {
     local tag="$1"
@@ -1772,23 +1793,8 @@ EOF
                         fi
                     done
                     
-                    # 探测高级资产目录
-                    check_dirs="
-                        /etc/openclash/core
-                        /etc/openclash/history
-                        /etc/mosdns/rule
-                        /etc/adguardhome
-                        /usr/share/v2ray
-                        /usr/share/xray
-                        /etc/passwall
-                        /etc/smartdns
-                        /etc/homeproxy
-                        /etc/mihomo
-                        /etc/ssrplus
-                        /etc/bypass
-                    "
-                    
-                    for dir in $check_dirs; do
+                    # 探测高级资产目录（直接调用脚本顶部的全局白名单变量）
+                    for dir in $EXTRA_BACKUP_DIRS; do
                         if [ -d "$dir" ]; then
                             rel=$(echo "$dir" | sed 's/^\///')
                             tar_targets="$tar_targets $rel"
