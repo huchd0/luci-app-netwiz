@@ -189,7 +189,7 @@ jobs:
           body: |
          
             ### ✨ 最新版发布
-            ${{ inputs.release_notes || '优化代码，提升稳定性与兼容性，修复已知问题。' }}
+            ${{ inputs.release_notes || '🚀 Routine Update: Optimized underlying code, improved system stability and compatibility, and fixed known issues.<br>🚀 常规更新：优化底层代码，提升系统稳定性与兼容性，修复已知问题。' }}
             
             ---
             
