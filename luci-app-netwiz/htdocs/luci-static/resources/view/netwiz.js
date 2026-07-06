@@ -1407,8 +1407,7 @@ return view.extend({
                             list.insertBefore(draggingEl, next ? target.nextSibling : target);
                         }
                     });
-                    window.location.reload(true); // 强制忽略浏览器缓存刷新当前页面
-                }, 3000);
+                }, 300);
             });
         }
 
