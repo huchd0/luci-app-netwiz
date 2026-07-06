@@ -2099,7 +2099,7 @@ msgid "Keep a permanent backup in /etc/netwiz/custom_pkgs"
 msgstr "同时保留备份至 /etc/netwiz/custom_pkgs"
 
 msgid "Ghost Plugin Deletion Warning"
-msgstr "死件彻底拔除警告"
+msgstr "孤件彻底拔除警告"
 
 msgid "Eradicating completely..."
 msgstr "正在彻底执行连根拔除..."
