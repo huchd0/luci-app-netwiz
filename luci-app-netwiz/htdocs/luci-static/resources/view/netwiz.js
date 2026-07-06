@@ -463,7 +463,7 @@ var T = {
     'M_REP_NOTICE_TIT': _('Notice'),
     'M_REP_EMPTY_MSG': _('No repairable plugins found'),
     'M_REP_GET_ERR': _('Failed to get plugin list'),
-    // --- 死件拔除警告词条 ---
+    // --- 孤件拔除警告词条 ---
     'M_REP_GHOST_TIT': '💀 ' + _('Ghost Plugin Deletion Warning'),
     'M_REP_GHOST_MSG': _('Executing this will uninstall the software and delete its config files. However, no installation package was found, so you will need to manually reinstall it later.'),
     'BTN_ERADICATE': '🗑️ ' + _('Eradicate Completely'),
