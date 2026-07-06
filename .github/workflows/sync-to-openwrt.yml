@@ -27,11 +27,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
           echo "🔄 正在连接 OpenWrt 官方仓库获取最纯净的底层代码..."
-          # 🌟 核心修改：这里换成了 OpenWrt 官方的 luci 仓库
+          # OpenWrt 官方的 luci 仓库
           git remote add upstream https://github.com/openwrt/luci.git
           git fetch upstream master
           
-          # 🌟 建议将分支名改一下，方便您在 GitHub 上向 OpenWrt 提 PR 时进行区分
+          # 向 OpenWrt 提 PR 时进行区分
           BRANCH_NAME="add-luci-app-netwiz-openwrt"
           
           # 基于 OpenWrt 官方最新的纯净 master 创建分支
