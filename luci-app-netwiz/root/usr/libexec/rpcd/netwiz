@@ -2117,15 +2117,15 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
           /tmp/nw_ghost_tmp/nw_offline_pkgs/base-files-* \
           /tmp/nw_ghost_tmp/nw_offline_pkgs/libc-* 2>/dev/null
     # ---------------------------------------------------------------
-    
+
     # 全局剔除包含 netwiz / NetWiz 的安装包，防止重启 rpcd 导致脚本自杀
     rm -f /tmp/nw_ghost_tmp/nw_offline_pkgs/*[nN]et[wW]iz*.[ia]pk 2>/dev/null
     rm -f /etc/netwiz/custom_pkgs/*[nN]et[wW]iz*.[ia]pk 2>/dev/null
-    
+
     # ==========================================
     # 防呆检测：跨架构 (ipk <-> apk) 拦截机制
     # ==========================================
-    
+
     if command -v apk >/dev/null 2>&1; then
         # 当前系统为 apk，检测备份包中是否包含旧版 ipk
         if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >/dev/null 2>&1 || ls /etc/netwiz/custom_pkgs/*.ipk >/dev/null 2>&1; then
@@ -2133,12 +2133,20 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
             echo "$(date '+%F %T') [RESTORE] [DANGER] 🚨 触发智能防呆：当前系统使用 apk (Alpine)，但备份胶囊中检测到不兼容的 ipk 安装包！" >> "$LOG_FILE"
             echo "$(date '+%F %T') [RESTORE] [DANGER] 已自动拦截并跳过所有插件的还原，以防止底层架构损坏！请重新下载对应 apk 版本的插件放入保险箱。" >> "$LOG_FILE"
         else
-            echo "$(date '+%F %T') [RESTORE] >>> 系统架构匹配 (apk)，开始恢复插件..." >> "$LOG_FILE"
+            echo "$(date '+%F %T') [RESTORE] >>> 系统架构匹配 (apk)，开始独立恢复插件..." >> "$LOG_FILE"
+
             if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >/dev/null 2>&1; then
-                apk add --allow-untrusted --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk >> "$LOG_FILE" 2>&1
+                for pkg in /tmp/nw_ghost_tmp/nw_offline_pkgs/*.apk; do
+                    echo "$(date '+%F %T') [RESTORE] 尝试安装: $(basename "$pkg")" >> "$LOG_FILE"
+                    apk add --allow-untrusted --force-overwrite "$pkg" >> "$LOG_FILE" 2>&1 || echo "$(date '+%F %T') [RESTORE] ⚠️ 跳过存在依赖冲突的包: $(basename "$pkg")" >> "$LOG_FILE"
+                done
             fi
+
             if ls /etc/netwiz/custom_pkgs/*.apk >/dev/null 2>&1; then
-                apk add --allow-untrusted --force-overwrite /etc/netwiz/custom_pkgs/*.apk >> "$LOG_FILE" 2>&1
+                for pkg in /etc/netwiz/custom_pkgs/*.apk; do
+                    echo "$(date '+%F %T') [RESTORE] 尝试安装保险箱插件: $(basename "$pkg")" >> "$LOG_FILE"
+                    apk add --allow-untrusted --force-overwrite "$pkg" >> "$LOG_FILE" 2>&1 || echo "$(date '+%F %T') [RESTORE] ⚠️ 跳过存在依赖冲突的包: $(basename "$pkg")" >> "$LOG_FILE"
+                done
             fi
         fi
 
@@ -2149,13 +2157,20 @@ if [ -d "/tmp/nw_ghost_tmp/nw_offline_pkgs" ]; then
             echo "$(date '+%F %T') [RESTORE] [DANGER] 🚨 触发智能防呆：当前系统使用 opkg，但备份胶囊中检测到不兼容的 apk 安装包！" >> "$LOG_FILE"
             echo "$(date '+%F %T') [RESTORE] [DANGER] 已自动拦截并跳过所有插件的还原，以防止底层架构损坏！请重新下载对应 ipk 版本的插件放入保险箱。" >> "$LOG_FILE"
         else
-            echo "$(date '+%F %T') [RESTORE] >>> 系统架构匹配 (opkg)，开始恢复插件..." >> "$LOG_FILE"
-            
+            echo "$(date '+%F %T') [RESTORE] >>> 系统架构匹配 (opkg)，开始独立恢复插件..." >> "$LOG_FILE"
+
             if ls /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >/dev/null 2>&1; then
-                opkg install --force-reinstall --force-overwrite /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk >> "$LOG_FILE" 2>&1
+                for pkg in /tmp/nw_ghost_tmp/nw_offline_pkgs/*.ipk; do
+                    echo "$(date '+%F %T') [RESTORE] 尝试安装: $(basename "$pkg")" >> "$LOG_FILE"
+                    opkg install --force-reinstall --force-overwrite "$pkg" >> "$LOG_FILE" 2>&1 || echo "$(date '+%F %T') [RESTORE] ⚠️ 跳过存在依赖冲突的包: $(basename "$pkg")" >> "$LOG_FILE"
+                done
             fi
+
             if ls /etc/netwiz/custom_pkgs/*.ipk >/dev/null 2>&1; then
-                opkg install --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/*.ipk >> "$LOG_FILE" 2>&1
+                for pkg in /etc/netwiz/custom_pkgs/*.ipk; do
+                    echo "$(date '+%F %T') [RESTORE] 尝试安装保险箱插件: $(basename "$pkg")" >> "$LOG_FILE"
+                    opkg install --force-reinstall --force-overwrite "$pkg" >> "$LOG_FILE" 2>&1 || echo "$(date '+%F %T') [RESTORE] ⚠️ 跳过存在依赖冲突的包: $(basename "$pkg")" >> "$LOG_FILE"
+                done
             fi
         fi
     fi
@@ -2194,7 +2209,7 @@ EOF
 
         while true; do
             ENABLE=$(uci -q get netwiz.main.watchdog_enable)
-            
+
             # --- [ 动作A：每20秒执行（高频轻量保活）] ---
             if [ "$ENABLE" = "1" ]; then
                 ping -6 -c 1 -W 2 "$PING_TARGET" >/dev/null 2>&1
@@ -2202,7 +2217,7 @@ EOF
 
             # --- [ 动作 B：每 120 秒执行 (深度探测与高级自愈) ] ---
             if [ $((loop_cnt % 6)) -eq 0 ]; then
-                
+
                 # --- 1. 防呆：动态接管防火墙 Web 端口 ---
                 raw_port=$(uci -q get firewall.netwiz_web.dest_port 2>/dev/null)
                 [ -z "$raw_port" ] && raw_port=80
