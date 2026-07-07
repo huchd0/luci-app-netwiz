@@ -2117,7 +2117,13 @@ return view.extend({
                             title: '⚠️ ' + (T['MSG_SEC_NOTICE'] || 'Security Notice'),
                             msg: '<div style="font-size:14.5px; color:#ef4444; font-weight:bold; line-height:1.6; padding:10px 0;">' +
                                  (T['MSG_WOG_OFF_WAN'] || 'WAN access is about to be closed. To ensure complete firewall protection, the system will simultaneously disable the IPv6 Watchdog mechanism.') +
-                                 '</div>',
+                                 '</div>' +
+                                 '<div style="padding:6px 0; color:#0f172a; font-size:14px; margin-top:8px; font-weight: bold;">❌ ' +
+                                 (T['MSG_WOG_LINK_WAN'] || "Allow WAN Access to Web UI") + '</div>' +
+                                 
+                                 // 保活机制
+                                 '<div style="padding:6px 0; color:#0f172a; font-size:14px; font-weight: bold;">❌ ' +
+                                 (T['LBL_WATCHDOG_LINK'] || "IPv6 Watchdog") + '</div>',
                             okText: T['BTN_OK'] || 'OK',
 
                             // 关闭按钮
