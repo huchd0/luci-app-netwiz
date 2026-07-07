@@ -1691,7 +1691,7 @@ return view.extend({
                                 var needsPrompt = false;
                                 var promptHtml = '<div style="font-size:14px; line-height:1.6; color:#334155; text-align:left; padding: 5px;">' +
                                                  '<div style="margin-bottom: 12px; font-weight: bold; color: #0284c7;">' +
-                                                 (T['MSG_WOG_LINKAGE'] || "To ensure the probe works correctly, the following dependent features have been automatically enabled") + '：</div>';
+                                                 (T['MSG_WOG_LINKAGE'] || "To ensure the probe works correctly, the following dependent features have been automatically enabled") + '</div>';
 
                                 if (ipv6Checkbox && !ipv6Checkbox.checked) {
                                     ipv6Checkbox.checked = true;
