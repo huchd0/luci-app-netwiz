@@ -2157,8 +2157,8 @@ msgstr "允许外网访问面板"
 msgid "Security Notice"
 msgstr "安全提示"
 
-msgid "You have disabled WAN access. To ensure the firewall is completely closed, the IPv6 Watchdog has been automatically disabled."
-msgstr "您关闭了外网访问。为确保防火墙完全封闭，系统已同步为您关闭 IPv6 深度保活。"
+msgid "WAN access is about to be closed. To ensure complete firewall protection, the system will simultaneously disable the IPv6 Watchdog mechanism."
+msgstr "即将关闭外网访问通道。为保障防火墙防护完整封闭，系统将同步停用 IPv6 深度保活机制。"
 
 msgid "Dependency Notice"
 msgstr "依赖提示"
