@@ -2008,8 +2008,8 @@ msgstr "已被彻底卸载并清理。"
 msgid "Offline Reinstall Guide"
 msgstr "孤件离线重装指南"
 
-msgid "After uninstalling the ghost plugin, to reinstall it, you can upload the package via SSH to: <b>/etc/netwiz/custom_pkgs/</b> (auto-backed up).<br><b>If conflicts occur or the menu is missing</b>, you can use the <b>Force Install command</b>:"
-msgstr "卸载孤件后需重新安装包，可以使用 SSH 将安装包上传到 <b>/etc/netwiz/custom_pkgs/</b> 目录下（全量备份时会自动打包）。<br><b>若安装失败或无菜单显示</b>，可以使用 <b>强制安装命令</b>："
+msgid "To reinstall the plugin, it is highly recommended to use the <b>[📦 Plugin Installation]</b> feature in the Advanced Utilities panel for quick drag-and-drop setup.<br><br><b>If conflicts occur or the menu is missing</b>, you can upload the package via SSH to <b>/etc/netwiz/custom_pkgs/</b> and use the Force Install command:"
+msgstr "重新安装插件，可以使用“高级功能”面板中的 <b>[📦 插件安装]</b> 功能进行快捷的可视化拖拽安装。<br><br><b>如果发生冲突或菜单丢失</b>，您仍可通过 SSH 将安装包上传至 <b>/etc/netwiz/custom_pkgs/</b> 并使用以下强制安装命令："
 
 msgid "Hardware execution takes longer, running in background..."
 msgstr "底层硬件正在执行中，请耐心等待..."
