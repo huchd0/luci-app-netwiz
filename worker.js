@@ -4,7 +4,9 @@
 */
 
 /*
-# ==================== English | IPv6 Watchdog - (Cloudflare Edition) ====================
+# ==================================================
+# English | IPv6 Watchdog - (Cloudflare Edition)
+# ==================================================
 
 Developed specifically to address the instability of IPv6 direct-connected devices. Leveraging Cloudflare's global edge network, it allows you to deploy quickly with zero cost and zero configuration.
 
@@ -47,7 +49,9 @@ Copy all the code inside the `worker.js` file in this project to use in the next
 🎉 **All done!** Your router is now equipped with self-healing capabilities for IPv6 direct connections!
 
 
-# ==================== 简体中文 | IPv6 深度保活 - (Cloudflare 版) ====================
+# ==================================================
+# 简体中文 | IPv6 深度保活 - (Cloudflare 版)
+# ==================================================
 
 专门针对 IPv6 直连设备时不稳定的痛点开发，借助 Cloudflare 覆盖全球的边缘节点网络优势，让您可以零成本、免配置地快速部署。
 
@@ -90,7 +94,9 @@ Copy all the code inside the `worker.js` file in this project to use in the next
 🎉 **完成！** 现在您的路由器已经具备了 IPv6 直联的自愈能力！
 
 
-# ==================== 繁體中文 | IPv6 深度保活 - (Cloudflare 版) ====================
+# ==================================================
+# 繁體中文 | IPv6 深度保活 - (Cloudflare 版)
+# ==================================================
 
 專門針對 IPv6 直連設備時不穩定的痛點開發，借助 Cloudflare 覆蓋全球的邊緣節點網路優勢，讓您可以零成本、免配置地快速部署。
 
