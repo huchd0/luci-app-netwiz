@@ -2130,9 +2130,6 @@ msgstr "例如：XXXXX-XXXXX.workers.dev"
 msgid "Note:"
 msgstr "说明："
 
-msgid "Supports any API compatible with the specification. You can deploy it on Cloudflare, Cloud Servers, or even a VPS."
-msgstr "支持填写兼容规范的接口。您可将其部署在 Cloudflare、云服务器，甚至 VPS 上。"
-
 msgid "The server must parse this address and perform a live test:"
 msgstr "服务端需解析该地址并进行测活："
 
