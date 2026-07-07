@@ -2157,8 +2157,8 @@ msgstr "允許外網存取面板"
 msgid "Security Notice"
 msgstr "安全提示"
 
-msgid "You have disabled WAN access. To ensure the firewall is completely closed, the IPv6 Watchdog has been automatically disabled."
-msgstr "您關閉了外網存取。為確保防火牆完全封閉，系統已同步為您關閉 IPv6 進階保活。"
+msgid "WAN access is about to be closed. To ensure complete firewall protection, the system will simultaneously disable the IPv6 Watchdog mechanism."
+msgstr "即將關閉外網存取通道。為保障防火牆防護完整封閉，系統將同步停用 IPv6 深度保活機制。"
 
 msgid "Dependency Notice"
 msgstr "依賴提示"
