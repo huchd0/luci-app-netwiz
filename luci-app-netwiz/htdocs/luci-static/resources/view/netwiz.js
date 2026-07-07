@@ -3966,19 +3966,40 @@ return view.extend({
                     }
 
                     // --- IPv6 NAT 冲突防呆逻辑 ---
-                    var warningDiv = container.querySelector('#v6-nat-warning');
-                    if (warningDiv) warningDiv.remove(); // 先清理旧警告
+                    // 1. 缓存冲突状态，防止 LuCI 每 5 秒的自动轮询 (Polling) 导致的数据丢失
+                    if (wifiRes && wifiRes.lan_nat_conflict !== undefined) {
+                        window._nw_v6_nat_conflict = (wifiRes.lan_nat_conflict === true || String(wifiRes.lan_nat_conflict) === 'true');
+                    }
 
-                    if (wifiRes && (wifiRes.lan_nat_conflict === true || String(wifiRes.lan_nat_conflict) === 'true')) {
+                    // 2. 将插件的主容器设置为相对定位，作为居中计算的基准坐标
+                    if (container) {
+                        container.style.position = 'relative';
+                    }
+
+                    // 3. 使用全局缓存状态进行判断
+                    if (window._nw_v6_nat_conflict) {
                         if (ipv6Toggle) {
                             var v6Label = ipv6Toggle.closest('.nw-switch-row-padded');
                             if (v6Label) {
-                                warningDiv = document.createElement('div');
-                                warningDiv.id = 'v6-nat-warning';
-                                warningDiv.style.cssText = 'margin-bottom: 15px; font-size: 13.5px; line-height: 1.5; border-radius: 6px; padding: 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
+                                // 查找现有的全局警告框
+                                var warningDiv = document.getElementById('nw-global-v6-nat-warning');
+                                if (!warningDiv) {
+                                    warningDiv = document.createElement('div');
+                                    warningDiv.id = 'nw-global-v6-nat-warning';
+                                    
+                                    // position: absolute，基于 container 居中
+                                    warningDiv.style.cssText = 'position: absolute; top: 12%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 600px; z-index: 9999; font-size: 13.5px; line-height: 1.5; border-radius: 8px; padding: 20px; text-align: left; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); pointer-events: none;';
+                                    
+                                    // 挂载到 container (插件内部)，而不是 document.body (整个网页)
+                                    if (container) {
+                                        container.appendChild(warningDiv);
+                                    } else {
+                                        document.body.appendChild(warningDiv); // 防报错
+                                    }
+                                }
 
                                 if (window._trueIpv6State === '1') {
-                                    // 1、IPv6 已开启，且存在冲突，允许关闭，发出红色严重警告
+                                    // IPv6 已开启，且存在冲突，允许关闭，发出红色严重警告
                                     ipv6Toggle.disabled = false;
                                     v6Label.style.opacity = '1';
                                     v6Label.style.cursor = 'pointer';
@@ -3987,11 +4008,11 @@ return view.extend({
                                     
                                     warningDiv.style.color = '#7f1d1d';
                                     warningDiv.style.background = '#fef2f2';
-                                    warningDiv.style.borderLeft = '4px solid #ef4444';
-                                    warningDiv.innerHTML = '<b>' + (T['V6_NAT_ERR_TIT1'] || '🚨 Severe Conflict!') + '</b><br>' + (T['V6_NAT_ERR_MSG1'] || 'Conflict detected.');
-                                    v6Label.parentNode.insertBefore(warningDiv, v6Label.nextSibling);
+                                    warningDiv.style.border = '2px solid #ef4444';
+                                    warningDiv.innerHTML = '<b style="pointer-events: auto; font-size: 15px;">' + (T['V6_NAT_ERR_TIT1'] || '🚨 Severe Conflict!') + '</b><br><span style="pointer-events: auto; display: inline-block; margin-top: 6px;">' + (T['V6_NAT_ERR_MSG1'] || 'Conflict detected.') + '</span>';
+                                    
                                 } else {
-                                    // 2、IPv6 未开启，且存在冲突，暴力反灰死锁，禁止开启！
+                                    // IPv6 未开启，且存在冲突，反灰死锁，禁止开启
                                     ipv6Toggle.disabled = true;
                                     v6Label.style.opacity = '0.35';
                                     v6Label.style.cursor = 'not-allowed';
@@ -4000,14 +4021,17 @@ return view.extend({
                                     
                                     warningDiv.style.color = '#dc2626';
                                     warningDiv.style.background = '#fff5f5';
-                                    warningDiv.style.borderLeft = '4px solid #dc2626';
-                                    warningDiv.innerHTML = '<b>' + (T['V6_NAT_ERR_TIT2'] || '⚠️ Blocked') + '</b><br>' + (T['V6_NAT_ERR_MSG2'] || 'NAT is enabled.');
-                                    v6Label.parentNode.insertBefore(warningDiv, v6Label.nextSibling);
+                                    warningDiv.style.border = '2px solid #dc2626';
+                                    warningDiv.innerHTML = '<b style="pointer-events: auto; font-size: 15px;">' + (T['V6_NAT_ERR_TIT2'] || '⚠️ Blocked') + '</b><br><span style="pointer-events: auto; display: inline-block; margin-top: 6px;">' + (T['V6_NAT_ERR_MSG2'] || 'NAT is enabled.') + '</span>';
                                 }
                             }
                         }
                     } else {
-                        // 没有冲突，确保开关恢复正常
+                        // 只有在明确没有冲突时，才清理警告
+                        var globalWarning = document.getElementById('nw-global-v6-nat-warning');
+                        if (globalWarning) globalWarning.remove();
+                        
+                        // 恢复开关正常状态
                         if (ipv6Toggle) {
                             ipv6Toggle.disabled = false;
                             var v6Label = ipv6Toggle.closest('.nw-switch-row-padded');
