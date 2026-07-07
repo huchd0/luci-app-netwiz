@@ -348,7 +348,7 @@ uci commit netwiz
 
 ## ☕ 赞助与支持
 
-如果您觉得这个插件让您的网络配置体验变得更加优雅、省心，欢迎请作者喝杯咖啡，这将是我持续维护与更新的最大动力！❤️
+如果您觉得这个插件让您的网络配置体验变得更加优雅、省心，欢迎请作者喝杯咖啡，这将是持续维护与更新的最大动力！❤️
 
 <img src="https://github.com/huchd0/openwrt-x86-64-build/blob/master/.github/Donate.jpg" width="680" alt="Donate">
 
