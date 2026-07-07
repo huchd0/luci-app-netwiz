@@ -2008,6 +2008,11 @@ msgstr "已被徹底解除安裝並清理。"wf
 msgid "Offline Reinstall Guide"
 msgstr "孤件離線重裝指南"
 
+# 1. 對應按鈕名詞的翻譯（會被替換到 %s 的位置）
+msgid "Plugin Installation"
+msgstr "插件安裝"
+
+# 2. 對應整段指南的翻譯
 msgid "To reinstall the plugin, it is highly recommended to use the <b>[%s]</b> feature in the Advanced Utilities panel for quick drag-and-drop setup.<br><br><b>If conflicts occur or the menu is missing</b>, you can upload the package via SSH to <b>/etc/netwiz/custom_pkgs/</b> and use the Force Install command:"
 msgstr "重新安裝外掛，建議使用「進階功能」面板中的 <b>[%s]</b> 功能進行快捷的視覺化拖曳安装。<br><br><b>如果發生衝突或選單遺失</b>，您仍可透過 SSH 將安裝包上傳至 <b>/etc/netwiz/custom_pkgs/</b> 並使用以下強制安裝指令："
 
