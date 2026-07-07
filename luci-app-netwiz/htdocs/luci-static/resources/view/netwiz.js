@@ -327,9 +327,9 @@ var T = {
     'MSG_RST_DONE': _('Restore thoroughly complete! Router will auto-reboot!'),
     'MSG_RST_INVALID': _('Invalid capsule file! NetWiz signature missing, intercepted for security.'),
     'V6_NAT_ERR_TIT1': '🚨 ' + _('Severe Network Topology Conflict!'),
-    'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style="color:#ef4444;">Disable IPv6</b> in the LAN settings on the Netwiz homepage.'),
+    'V6_NAT_ERR_MSG1': _('System detected that IPv6 and LAN "Masquerading (NAT)" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>%s<b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style="color:#ef4444;">Disable IPv6</b> in the LAN settings on the Netwiz homepage.').replace('%s', '👉 '),
     'V6_NAT_ERR_TIT2': '⚠️ ' + _('IPv6 Configuration Blocked'),
-    'V6_NAT_ERR_MSG2': _('Detected that LAN "IP Masquerading (NAT)" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first.'),
+    'V6_NAT_ERR_MSG2': _('Detected that LAN "IP Masquerading (NAT)" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>%s<b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first.').replace('%s', '👉 '),
     'MSG_REBOOTING': _('System is rebooting, please wait...'),
     'MSG_WAIT_OFFLINE': _('Waiting for device to disconnect...'),
     'TIT_IP_CONFLICT': _('IP Conflict Warning'),
@@ -516,7 +516,6 @@ var T = {
     'WOG_URL_PH': _('e.g., XXXXX-XXXXX.workers.dev'),
     'WOG_HELP': '<div style="font-size:13px; color:#475569; line-height:1.6; text-align:left;">' +
                 '💡 <b>' + _('Note:') + '</b><br>' +
-                _('Supports any API compatible with the specification. You can deploy it on Cloudflare, Cloud Servers, or even a VPS.') + '<br>' +
                 _('The server must parse this address and perform a live test:') + ' <b style="color:#ef4444; padding:0 2px;">' + _('Your_URL/[IPv6_Address]:Port') + '</b>. ' +
                 _('If the network is accessible, it must return the plain text') + ' <code style="background:#e2e8f0; padding:2px 4px; color:#ef4444; border-radius:3px;">OK</code>.<br><br>' +
                 '✍️ <b>' + _('Examples:') + '</b><br>' +
@@ -2527,7 +2526,7 @@ return view.extend({
                             // 倒序排列公式：总长度减去当前索引
                             var displayNum = totalItems - idx; 
                             
-                            listHtml += '<div style="margin-bottom:12px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; transition:opacity 0.2s;" id="h-row-'+idx+'" style="opacity:'+opacity+';">';
+                            listHtml += '<div style="margin-bottom:12px; background:#f8fafc; padding:5px; border-radius:8px; border:1px solid #e2e8f0; transition:opacity 0.2s;" id="h-row-'+idx+'" style="opacity:'+opacity+';">';
                             listHtml += '<div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">';
                             listHtml += '<div style="background:#e2e8f0; color:#475569; width:26px; height:26px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; border:1px solid #cbd5e1;">' + displayNum + '</div>';
                             listHtml += '<input type="text" class="h-dom nd-input" data-idx="'+idx+'" value="'+esc(item.dom)+'" placeholder="' + (T['PH_HOSTS_DOMAIN']||'Domain') + '" style="flex:1; width:50% !important; height:34px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:13.5px; box-sizing:border-box; min-height: 34px !important;">';
