@@ -1564,17 +1564,14 @@ msgstr "確認要匯入該配置嗎？現有資料將被徹底覆蓋。"
 msgid "Severe Network Topology Conflict!"
 msgstr "嚴重網路拓撲衝突！"
 
-msgid "System detected that IPv6 and LAN \"Masquerading (NAT)\" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style=\"color:#ef4444;\">Disable IPv6</b> in the LAN settings on the Netwiz homepage."
-msgstr "系統檢測到 IPv6 與 LAN 區「動態偽裝 (NAT)」<b>同時處於開啟狀態</b>！這將導致 IPv6 分配癱瘓與路由死循環。<br>👉 <b>排錯指南：</b>請前往官方 <code>網路->防火牆</code> 關閉 LAN 區的動態偽裝，或在Netwiz首頁的區域網路設置裡 <b style=\"color:#ef4444;\">關閉 IPv6</b>。"
+msgid "System detected that IPv6 and LAN \"Masquerading (NAT)\" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>%s<b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style=\"color:#ef4444;\">Disable IPv6</b> in the LAN settings on the Netwiz homepage."
+msgstr "系統偵測到 IPv6 與區域網路「IP 動態偽裝 (NAT)」<b>同時開啟</b>！這將導致 IPv6 分配癱瘓及路由迴圈。<br>%s<b>修復方法：</b>請前往 <code>網路 -> 防火牆</code> 關閉區域網路的動態偽裝，或者在 Netwiz 首頁的區域網路設定中<b style=\"color:#ef4444;\">關閉 IPv6</b>。"
 
 msgid "IPv6 Configuration Blocked"
 msgstr "IPv6 配置已被系統安全攔截"
 
-msgid "System detected that IPv6 and LAN \"Masquerading (NAT)\" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>"
-msgstr "系統檢測到 IPv6 和區域網「IP 動態偽裝 (NAT)」<b>同時開啟</b>！這將導致 IPv6 分配癱瘓並引發路由環路。<br>"
-
-msgid "<b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style=\"color:#ef4444;\">Disable IPv6</b> in the LAN settings on the Netwiz homepage."
-msgstr "<b>修復建議：</b>請前往 <code>網路 -> 防火牆</code> 關閉區域網動態偽裝，或者在 Netwiz 首頁的區域網設定中<b style=\"color:#ef4444;\">關閉 IPv6</b>。"
+msgid "Detected that LAN \"IP Masquerading (NAT)\" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>%s<b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first."
+msgstr "偵測到區域網路「IP 動態偽裝 (NAT)」已開啟。在雙重 NAT 拓撲下強制開啟 IPv6 會導致斷網。<br>%s<b>修復方法：</b>請先前往 <code>網路 -> 防火牆 -> 區域</code> 關閉區域網路動態偽裝。"
 
 msgid "Restore Device Data"
 msgstr "還原設備資料"
