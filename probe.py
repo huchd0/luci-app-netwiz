@@ -41,7 +41,8 @@
 #
 # 4. Plugin Configuration:
 #    In the <📡 IPv6 Watchdog> section of the Netwiz Advanced Utility Settings, enter: http://YOUR_VPS_IP:18080
-#    (Note: Please ensure that the VPS firewall and cloud provider security group have allowed port 18080)
+#    (Note: Port 18080 can be freely modified in the basic configuration below: LISTEN_PORT = 18080.
+#    Please ensure the VPS firewall and cloud provider security group have allowed port 18080)
 #
 # [Common Management Commands]
 # Check status:  systemctl status netwiz-probe
@@ -90,7 +91,7 @@
 #
 # 4. 插件填写：
 #    在 Netwiz 高级实用设置的 <📡 IPv6 深度保活> 设置中，填写：http://您的VPS_IP:18080
-#    (注：请确保 VPS 防火墙与云服务商安全组已放行 18080 端口)
+#    (注：18080 端口可以在下方的基础配置：LISTEN_PORT = 18080 随意修改，请确保 VPS 防火墙与云服务商安全组已放行 18080 端口)
 #
 # 【常用管理命令】
 # 查看状态: systemctl status netwiz-probe
@@ -139,7 +140,7 @@
 #
 # 4. 外掛填寫：
 #    在 Netwiz 高級實用設置的 <📡 IPv6 深度保活> 設置中，填寫：http://您的VPS_IP:18080
-#    (註：請確保 VPS 防火牆與雲端服務商安全組已放行 18080 端口)
+#    (註：18080 端口可以在下方的基礎配置：LISTEN_PORT = 18080 隨意修改，請確保 VPS 防火牆與雲端服務商安全組已放行 18080 端口)
 #
 # 【常用管理命令】
 # 查看狀態: systemctl status netwiz-probe
