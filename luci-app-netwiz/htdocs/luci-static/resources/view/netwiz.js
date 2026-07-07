@@ -469,9 +469,9 @@ var T = {
     'BTN_ERADICATE': '🗑️ ' + _('Eradicate Completely'),
     'M_ERADICATE_PROC': _('Eradicating completely...'),
     'M_ERADICATE_SUCC': _('has been completely uninstalled and cleaned.'),
-    // --- 更新為精簡版重裝指南 ---
+    // --- 重裝指南 ---
     'M_GUIDE_TITLE': '💡 ' + _('Offline Reinstall Guide'),
-    'M_GUIDE_DESC': _('After uninstalling the ghost plugin, to reinstall it, you can upload the package via SSH to: <b>/etc/netwiz/custom_pkgs/</b> (auto-backed up).<br><b>If conflicts occur or the menu is missing</b>, you can use the <b>Force Install command</b>:'),
+    'M_GUIDE_DESC': _('To reinstall the plugin, it is highly recommended to use the <b>[%s]</b> feature in the Advanced Utilities panel for quick drag-and-drop setup.<br><br><b>If conflicts occur or the menu is missing</b>, you can upload the package via SSH to <b>/etc/netwiz/custom_pkgs/</b> and use the Force Install command:').replace('%s', '📦 ' + _('Plugin Installation')),
     'M_GUIDE_CMD_APK': 'apk add --allow-untrusted --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/XXXXXXX_your_name.apk',
     'M_GUIDE_CMD_OPKG': 'opkg install --force-reinstall --force-overwrite /etc/netwiz/custom_pkgs/XXXXXXX_your_name.ipk',
     // ---------------------------
