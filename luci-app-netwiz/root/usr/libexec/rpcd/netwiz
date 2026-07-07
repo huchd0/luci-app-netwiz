@@ -173,7 +173,7 @@ case "$1" in
                             continue
                         fi
 
-                        # 🎯 智能判定：用包管理器反查该配置文件是否有“主人”
+                        # 用包管理器反查该配置文件是否有安装包
                         is_ghost=1
                         if command -v apk >/dev/null 2>&1; then
                             if apk info -W "$f" 2>/dev/null | grep -q "owns"; then
@@ -185,11 +185,11 @@ case "$1" in
                             fi
                         fi
 
-                        # 兜底：如果包管理器不认，但系统里有它的启动脚本，也视为存活
+                        # 包管理器不认，但系统里有它的启动脚本，也视为存活
                         [ -f "/etc/init.d/$name" ] && is_ghost=0
 
                         display_name="$name"
-                        # 如果是孤魂野鬼，加上明显的标签！
+                        # 如果是孤件，加上标签
                         if [ "$is_ghost" -eq 1 ]; then
                             display_name="$name [💀💀💀]"
                         fi
@@ -210,7 +210,7 @@ case "$1" in
                 if [ -n "$layout" ]; then
                     # 安全转义双引号，确保前端 JSON.parse 能完美解析
                     safe_layout=$(echo "$layout" | sed 's/"/\\"/g')
-                    echo "{\"layout\": \"$safe_layout\"}"
+                    printf '{"layout": "%s"}\n' "$safe_layout"
                 else
                     echo "{\"layout\": null}"
                 fi
@@ -365,7 +365,8 @@ case "$1" in
 
                         if [ "$INSTALL_POSSIBLE" -eq 0 ]; then
                             log "[REPAIR]" "🚨 沙盒预检失败 (缺少依赖或源失效)，触发孤件逻辑！"
-                            # 阻断删除任何文件
+
+                            # 重新启动刚才为预检而停止的服务
                             [ -f "/etc/init.d/$plugin" ] && /etc/init.d/$plugin restart >/dev/null 2>&1 &
                             echo '{"result": 2, "error": "Ghost package"}'
                             exit 0
@@ -408,16 +409,19 @@ case "$1" in
                         # === 5. 真实重装失败，执行改名回滚 ===
                         if [ "$INSTALL_OK" -eq 0 ] || [ ! -f "/etc/config/$plugin" ]; then
                             log "[REPAIR]" "🚨 真实安装遭遇断网等玄学阻断！触发原地无损回滚..."
-                            
+
                             # 粉碎残缺安装留下的垃圾
                             rm -rf "/etc/config/$plugin" "/etc/${plugin}" 2>/dev/null
-                            
+
                             # 把之前加了后缀的备份，改名复原
                             mv "/etc/config/${plugin}.nw_bak_main" "/etc/config/$plugin" 2>/dev/null
                             if [ -d "/etc/${plugin}_nw_bak_dir" ]; then
                                 mv "/etc/${plugin}_nw_bak_dir" "/etc/${plugin}" 2>/dev/null
                             fi
-                            
+
+                            # 配置回滚完，重启服务
+                            [ -f "/etc/init.d/$plugin" ] && /etc/init.d/$plugin restart >/dev/null 2>&1 &
+
                             echo '{"result": 2, "error": "Ghost package"}'
                             exit 0
                         fi
