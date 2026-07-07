@@ -173,7 +173,7 @@ case "$1" in
                             continue
                         fi
 
-                        # 用包管理器反查该配置文件是否有安装包
+                        # 🎯 智能判定：用包管理器反查该配置文件是否有“主人”
                         is_ghost=1
                         if command -v apk >/dev/null 2>&1; then
                             if apk info -W "$f" 2>/dev/null | grep -q "owns"; then
@@ -185,8 +185,11 @@ case "$1" in
                             fi
                         fi
 
-                        # 包管理器不认，但系统里有它的启动脚本，也视为存活
+                        # 1：包管理器不认，但系统里有它的同名启动脚本，视为存活
                         [ -f "/etc/init.d/$name" ] && is_ghost=0
+                        
+                        # 2：如果是出厂自带插件 (在 ROM 中有备份)，不是死件
+                        [ -f "/rom/etc/config/$name" ] && is_ghost=0
 
                         display_name="$name"
                         # 如果是孤件，加上标签
