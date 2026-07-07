@@ -173,8 +173,29 @@ case "$1" in
                             continue
                         fi
 
+                        # 🎯 智能判定：用包管理器反查该配置文件是否有“主人”
+                        is_ghost=1
+                        if command -v apk >/dev/null 2>&1; then
+                            if apk info -W "$f" 2>/dev/null | grep -q "owns"; then
+                                is_ghost=0
+                            fi
+                        elif command -v opkg >/dev/null 2>&1; then
+                            if opkg search "$f" 2>/dev/null | grep -q " - "; then
+                                is_ghost=0
+                            fi
+                        fi
+
+                        # 兜底：如果包管理器不认，但系统里有它的启动脚本，也视为存活
+                        [ -f "/etc/init.d/$name" ] && is_ghost=0
+
+                        display_name="$name"
+                        # 如果是孤魂野鬼，加上明显的标签！
+                        if [ "$is_ghost" -eq 1 ]; then
+                            display_name="$name [💀💀💀]"
+                        fi
+
                         [ -n "$arr" ] && arr="$arr,"
-                        arr="$arr\"$name\""
+                        arr="$arr\"$display_name\""
                     fi
                 done
 
@@ -273,7 +294,8 @@ case "$1" in
 
             repair_config)
                 input=$(cat)
-                plugin=$(echo "$input" | jsonfilter -e '@.plugin')
+                # 剥离前端传来的标签后缀 (例如 "passwall [💀💀💀]" 还原为 "passwall")
+                plugin=$(echo "$input" | jsonfilter -e '@.plugin' | awk '{print $1}')
 
                 # --- 向导防呆锁：防止系统状态遗失导致向导意外弹出 ---
                 [ ! -f /etc/config/netwiz ] && touch /etc/config/netwiz
@@ -300,84 +322,110 @@ case "$1" in
                         # 后装外挂删除配置后重装
                         log "[REPAIR]" "检测为后装第三方外挂，正在执行深度重置 (Purge & Clean Install)..."
 
-                        # === 1. 极其关键：必须在物理删除前，先从底层数据库查出所属套件名 ===
+                        # === 1. 更新软件源，防止缓存假死 ===
+                        if [ ! -f /tmp/nw_pkg_updated_ok ]; then
+                            log "[REPAIR]" "正在同步最新软件源..."
+                            if command -v apk >/dev/null 2>&1; then apk update >/dev/null 2>&1; fi
+                            if command -v opkg >/dev/null 2>&1; then opkg update >/dev/null 2>&1; fi
+                            touch /tmp/nw_pkg_updated_ok
+                        fi
+
+                        # === 1.2 底层数据库查出所属套件名 ===
                         pkg_name=""
                         if command -v apk >/dev/null 2>&1; then
                             pkg_name=$(apk info -W "/etc/config/$plugin" 2>/dev/null | awk '{print $1}' | head -n1)
                         elif command -v opkg >/dev/null 2>&1; then
-                            pkg_name=$(opkg search "/config/$plugin" 2>/dev/null | awk '{print $1}' | awk -F' - ' '{print $1}' | head -n1)
+                            pkg_name=$(opkg search "/etc/config/$plugin" 2>/dev/null | awk '{print $1}' | awk -F' - ' '{print $1}' | head -n1)
                         fi
-                        # 兜底：如果找不出套件名，直接用插件名去模糊匹配
                         [ -z "$pkg_name" ] && pkg_name="$plugin"
 
-                        # === 1.5 孤件误删问题：事前侦测安装包是否存在 ===
-                        pkg_available=0
-                        if command -v apk >/dev/null 2>&1; then
-                            # 查本地保险箱
-                            if ls /etc/netwiz/custom_pkgs/*${pkg_name}*.apk >/dev/null 2>&1 || ls /etc/netwiz/custom_pkgs/*${plugin}*.apk >/dev/null 2>&1; then
-                                pkg_available=1
-                            # 查远端官方源
-                            elif apk search -q -e "$pkg_name" >/dev/null 2>&1 || apk search -q -e "$plugin" >/dev/null 2>&1; then
-                                pkg_available=1
-                            fi
-                        elif command -v opkg >/dev/null 2>&1; then
-                            if ls /etc/netwiz/custom_pkgs/*${pkg_name}*.ipk >/dev/null 2>&1 || ls /etc/netwiz/custom_pkgs/*${plugin}*.ipk >/dev/null 2>&1; then
-                                pkg_available=1
-                            elif opkg list | awk '{print $1}' | grep -qx "$pkg_name" || opkg list | awk '{print $1}' | grep -qx "$plugin"; then
-                                pkg_available=1
-                            fi
-                        fi
-
-                        if [ "$pkg_available" -eq 0 ]; then
-                            log "[REPAIR]" "🚨 源内无包且无本地备份，外挂已死亡。触发孤件逻辑！"
-                            # 返回孤件警告
-                            echo '{"result": 2, "error": "Ghost package"}'
-                            exit 0
-                        fi
-
-                        # === 2. 状态保护：确定包存在后，再删除旧配置并重装 ===
-                        mv "/etc/config/$plugin" "/tmp/${plugin}_netwiz_bak" 2>/dev/null
-                        # 删除所有附加配置文件夹
-                        rm -rf "/etc/config/${plugin}."* 2>/dev/null
-                        rm -rf "/etc/${plugin}" 2>/dev/null
-
-                        # === 3. 智能本地抢占与重装逻辑 (支持批量安装) ===
+                        # === 1.5 沙盒演练  ===
+                        INSTALL_POSSIBLE=0
                         if command -v apk >/dev/null 2>&1; then
                             local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${pkg_name}*.apk 2>/dev/null)
                             [ -z "$local_pkgs" ] && local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${plugin}*.apk 2>/dev/null)
 
                             if [ -n "$local_pkgs" ]; then
-                                log "[REPAIR]" "💡 在本地发现离线安装包，开始强制重装..."
-                                apk add --no-network --allow-untrusted --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1
+                                if apk add --simulate --allow-untrusted --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             else
-                                log "[REPAIR]" "未发现本地包，尝试官方源 apk fix..."
-                                apk fix "$pkg_name" >/dev/null 2>&1
+                                # 加上 --force-reinstall去软件源查询
+                                if apk add --simulate --force-reinstall "$pkg_name" >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             fi
                         elif command -v opkg >/dev/null 2>&1; then
                             local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${pkg_name}*.ipk 2>/dev/null)
                             [ -z "$local_pkgs" ] && local_pkgs=$(ls /etc/netwiz/custom_pkgs/*${plugin}*.ipk 2>/dev/null)
 
                             if [ -n "$local_pkgs" ]; then
-                                log "[REPAIR]" "💡 在本地发现离线安装包，开始强制重装..."
-                                opkg install --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1
+                                if opkg install --noaction --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             else
-                                log "[REPAIR]" "未发现本地包，尝试官方源重装..."
-                                opkg install --force-reinstall --force-maintainer "$pkg_name" >/dev/null 2>&1
+                                # 加上 --force-reinstall去软件源查询
+                                if opkg install --noaction --force-reinstall --force-maintainer "$pkg_name" >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             fi
                         fi
-                    fi
 
-                    # === 4. 判定配置重置是否成功 ===
-                    if [ ! -f "/etc/config/$plugin" ]; then
-                        log "[REPAIR]" "🚨 源内无包且无本地备份，外挂已死亡。触发孤件逻辑！"
-                        # 恢复备份的配置，确保“取消”后，下拉菜单还能看到它！
-                        mv "/tmp/${plugin}_netwiz_bak" "/etc/config/$plugin" 2>/dev/null
-                        echo '{"result": 2, "error": "Ghost package"}'
-                        exit 0
-                    fi
+                        if [ "$INSTALL_POSSIBLE" -eq 0 ]; then
+                            log "[REPAIR]" "🚨 沙盒预检失败 (缺少依赖或源失效)，触发孤件逻辑！"
+                            # 阻断删除任何文件
+                            [ -f "/etc/init.d/$plugin" ] && /etc/init.d/$plugin restart >/dev/null 2>&1 &
+                            echo '{"result": 2, "error": "Ghost package"}'
+                            exit 0
+                        fi
 
-                    # 修复成功，清理临时备份
-                    rm -f "/tmp/${plugin}_netwiz_bak"
+                        # === 2. 【改名】无损备份 ===
+                        # 将配置加后缀，不跨分区，不压缩
+                        mv "/etc/config/$plugin" "/etc/config/${plugin}.nw_bak_main" 2>/dev/null
+                        if [ -d "/etc/${plugin}" ]; then
+                            mv "/etc/${plugin}" "/etc/${plugin}_nw_bak_dir" 2>/dev/null
+                        fi
+
+                        # 抹除衍生的缓存或分身配置
+                        for f in /etc/config/${plugin}.*; do
+                            if [ "$f" != "/etc/config/${plugin}.nw_bak_main" ]; then
+                                rm -f "$f" 2>/dev/null
+                            fi
+                        done
+
+                        # === 4. 执行真实重装逻辑 ===
+                        INSTALL_OK=0
+                        if command -v apk >/dev/null 2>&1; then
+                            if [ -n "$local_pkgs" ]; then
+                                log "[REPAIR]" "💡 在本地发现离线安装包，开始强制重装..."
+                                apk add --no-network --allow-untrusted --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1 && INSTALL_OK=1
+                            else
+                                log "[REPAIR]" "未发现本地包，尝试官方源重装..."
+                                apk add --force-reinstall "$pkg_name" >/dev/null 2>&1 && INSTALL_OK=1
+                            fi
+                        elif command -v opkg >/dev/null 2>&1; then
+                            if [ -n "$local_pkgs" ]; then
+                                log "[REPAIR]" "💡 在本地发现离线安装包，开始强制重装..."
+                                opkg install --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1 && INSTALL_OK=1
+                            else
+                                log "[REPAIR]" "未发现本地包，尝试官方源重装..."
+                                opkg install --force-reinstall --force-maintainer "$pkg_name" >/dev/null 2>&1 && INSTALL_OK=1
+                            fi
+                        fi
+
+                        # === 5. 真实重装失败，执行改名回滚 ===
+                        if [ "$INSTALL_OK" -eq 0 ] || [ ! -f "/etc/config/$plugin" ]; then
+                            log "[REPAIR]" "🚨 真实安装遭遇断网等玄学阻断！触发原地无损回滚..."
+                            
+                            # 粉碎残缺安装留下的垃圾
+                            rm -rf "/etc/config/$plugin" "/etc/${plugin}" 2>/dev/null
+                            
+                            # 把之前加了后缀的备份，改名复原
+                            mv "/etc/config/${plugin}.nw_bak_main" "/etc/config/$plugin" 2>/dev/null
+                            if [ -d "/etc/${plugin}_nw_bak_dir" ]; then
+                                mv "/etc/${plugin}_nw_bak_dir" "/etc/${plugin}" 2>/dev/null
+                            fi
+                            
+                            echo '{"result": 2, "error": "Ghost package"}'
+                            exit 0
+                        fi
+
+                        # 修复成功，清理掉备份的后缀文件
+                        rm -f "/etc/config/${plugin}.nw_bak_main" 2>/dev/null
+                        rm -rf "/etc/${plugin}_nw_bak_dir" 2>/dev/null
+                    fi
 
                     # 网络组件特殊重启加载新配置
                     if [ "$plugin" = "network" ] || [ "$plugin" = "dhcp" ] || [ "$plugin" = "wireless" ]; then
@@ -402,7 +450,8 @@ case "$1" in
 
             eradicate_config)
                 input=$(cat)
-                plugin=$(echo "$input" | jsonfilter -e '@.plugin')
+                # 剥离前端传来的标签后缀
+                plugin=$(echo "$input" | jsonfilter -e '@.plugin' | awk '{print $1}')
 
                 # --- 向导防呆锁：防止系统状态丢失导致向导意外弹出 ---
                 [ ! -f /etc/config/netwiz ] && touch /etc/config/netwiz
