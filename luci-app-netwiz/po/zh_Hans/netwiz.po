@@ -1564,17 +1564,14 @@ msgstr "确认要导入该配置吗？现有数据将被彻底覆盖。"
 msgid "Severe Network Topology Conflict!"
 msgstr "严重网络拓扑冲突！"
 
-msgid "System detected that IPv6 and LAN \"Masquerading (NAT)\" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>"
-msgstr "系统检测到 IPv6 和局域网“IP 动态伪装 (NAT)”<b>同时开启</b>！这将导致 IPv6 分配瘫痪并引发路由环路。<br>"
-
-msgid "<b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style=\"color:#ef4444;\">Disable IPv6</b> in the LAN settings on the Netwiz homepage."
-msgstr "<b>修复建议：</b>请前往 <code>网络 -> 防火墙</code> 关闭局域网动态伪装，或者在 Netwiz 首页的局域网设置中<b style=\"color:#ef4444;\">关闭 IPv6</b>。"
+msgid "System detected that IPv6 and LAN \"Masquerading (NAT)\" are <b>BOTH enabled</b>!This will paralyze IPv6 allocation and cause routing loops.<br>%s<b>Fix:</b> Please go to <code>Network -> Firewall</code> to disable LAN Masquerading, or <b style=\"color:#ef4444;\">Disable IPv6</b> in the LAN settings on the Netwiz homepage."
+msgstr "系统检测到 IPv6 与局域网“IP 动态伪装 (NAT)”<b>同时开启</b>！这将导致 IPv6 分配瘫痪及路由环路。<br>%s<b>修复方法：</b>请前往 <code>网络 -> 防火墙</code> 关闭局域网的动态伪装，或者在 Netwiz 首页的局域网设置中<b style=\"color:#ef4444;\">关闭 IPv6</b>。"
 
 msgid "IPv6 Configuration Blocked"
 msgstr "IPv6 配置已被系统安全拦截"
 
-msgid "Detected that LAN \"IP Masquerading (NAT)\" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>👉 <b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first."
-msgstr "检测到防火墙 LAN 区已开启“IP 动态伪装 (NAT)”。在双重 NAT 拓扑下，强行开启 IPv6 将导致断网。<br>👉 <b>排错指南：</b>请前往官方后台 <code>网络->防火墙->区域</code>，关闭 LAN 区的动态伪装后重试。"
+msgid "Detected that LAN \"IP Masquerading (NAT)\" is enabled. Forcing IPv6 on under a double-NAT topology will cause network disconnection.<br>%s<b>Fix:</b> Please go to <code>Network -> Firewall -> Zones</code> to disable LAN Masquerading first."
+msgstr "检测到局域网“IP 动态伪装 (NAT)”已开启。在双重 NAT 拓扑下强制开启 IPv6 会导致断网。<br>%s<b>修复方法：</b>请先前往 <code>网络 -> 防火墙 -> 区域</code> 关闭局域网动态伪装。"
 
 msgid "Restore Device Data"
 msgstr "还原设备数据"
