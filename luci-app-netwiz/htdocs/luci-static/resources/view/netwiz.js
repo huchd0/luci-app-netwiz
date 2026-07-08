@@ -1633,7 +1633,7 @@ return view.extend({
                     var nEn = box.querySelector('#nw-wog-en').checked ? '1' : '0';
                     var nUrl = box.querySelector('#nw-wog-url').value.trim();
 
-                    // 防呆：完全没有修改，直接退出
+                    // 完全没有修改，直接退出
                     if (nEn === isEn && nUrl === url) {
                         return; 
                     }
@@ -1658,7 +1658,6 @@ return view.extend({
                             uci.set('dhcp', 'lan', 'ndp', 'server');
                             uci.set('dhcp', 'lan', 'ra_flags', ['managed-config', 'other-config']);
                         }
-                        // 💡 已删除：之前在这里强制调用 callSetAdvSettings 开启外网访问的逻辑已被彻底移除
                     }
 
                     p.then(function() {
