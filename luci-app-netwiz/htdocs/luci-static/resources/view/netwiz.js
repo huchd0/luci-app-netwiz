@@ -365,7 +365,7 @@ return view.extend({
                             <span class="mod-icon" style="font-size:20px; margin-right:12px;">${item.icon}</span>
                             <span class="mod-name" style="flex:1; font-weight:bold; color:#334155; font-size:14.5px;">${item.name}</span>
                             <label style="margin:0; display:flex; align-items:center; cursor:pointer;">
-                                <input type="checkbox" class="nw-layout-chk" ${item.show ? 'checked' : ''} style="width:20px; height:20px; cursor:pointer; accent-color:#3b82f6; background-color: var(--primary) !important; top: 0; margin: 0;">
+                                <input type="checkbox" class="nw-layout-chk" ${item.show ? 'checked' : ''} style="width:20px; height:20px; cursor:pointer; accent-color:#3b82f6; background-color: var(--primary) !important; top: 0; margin: 5px;">
                             </label>
                         </li>
                     `;
