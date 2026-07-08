@@ -523,9 +523,9 @@ var T = {
                 '<code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; color:#0f172a; margin-bottom:8px; display:inline-block; word-break:break-all;">http://your-vps-ip:18080</code> ' + _('<a href="https://raw.githubusercontent.com/huchd0/luci-app-netwiz/refs/heads/master/probe.py" target="_blank" style="color:#0284c7; text-decoration:underline; font-weight: bold;">' + _('(VPS_IPv6)')  + '</a>') + '<br>' +
                 '🔗 <a href="https://raw.githubusercontent.com/huchd0/luci-app-netwiz/refs/heads/master/worker.js" target="_blank" style="color:#0284c7; text-decoration:underline; font-weight: bold;">' + _('Click to view Cloudflare tutorial & source code') + '</a>' +
                 '</div>',
-    'MSG_WOG_LINKAGE': _('To ensure the probe works correctly, the following dependent features have been automatically enabled:'),
+    'MSG_WOG_LINKAGE': _('To ensure the works correctly, the following dependent features have been automatically enabled:'),
     'MSG_WOG_LINK_V6': _('IPv6 Master Switch'),
-    'MSG_WOG_LINK_WAN': _('Allow WAN Access to Web UI'),
+    'MSG_WOG_LINK_WAN': _('WAN Access Web UI Channel'),
     'MSG_SEC_NOTICE': _('Security Notice'),
     'MSG_WOG_OFF_WAN': _('WAN access is about to be closed. To ensure complete firewall protection, the system will simultaneously disable the IPv6 Watchdog mechanism.'),
     'MSG_DEP_NOTICE': _('Dependency Notice'),
@@ -541,6 +541,8 @@ var T = {
     'U_INST_SUCC_TIT': '🎉 ' + _('Upgrade Successful!'),
     'U_INST_SUCC_MSG': _('The new version core has been deployed in the background!'),
     'U_INST_SUCC_DESC': '⚠️ ' + _('<b>Notice: Aggressive browser caching detected.</b><br>To ensure new menus and features display correctly, please press <kbd style="background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;">Ctrl + F5</kbd> or <kbd style="background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;">Shift + F5</kbd> to force refresh this page!<br><span style="font-size:13px; color:#64748b; font-weight:normal;">(Mobile users: please manually clear browser cache and refresh)</span>'),
+    'MSG_ABOUT_TO_ENABLE': _('You are about to enable the <b>[%s]</b>.'),
+    'MSG_ABOUT_TO_DISABLE': _('You are about to disable the <b>[%s]</b>.'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -1702,7 +1704,7 @@ return view.extend({
                                 if (wanCheckbox && !wanCheckbox.checked) {
                                     wanCheckbox.checked = true;
                                     needsPrompt = true;
-                                    promptHtml += '<div style="padding:6px 0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_WAN'] || "Allow WAN Access to Web UI") + '</div>';
+                                    promptHtml += '<div style="padding:6px 0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_WAN'] || "WAN Access Web UI Channel") + '</div>';
                                 }
 
                                 promptHtml += '</div>';
@@ -1958,7 +1960,7 @@ return view.extend({
                     // 拦截非法数字范围
                     if (isNaN(pNum) || pNum < 1 || pNum > 65535) {
                         openModal({ title: T['M_REP_NOTICE_TIT'] || 'Notice', msg: T['M_PORT_RANGE'] || '⚠️ Port number must be between 1 and 65535', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
-                        webPort.value = lastValidPort; 
+                        webPort.value = lastValidPort;
                         // 根据历史状态来决定开关是开是关
                         if (lastValidPort === '') webTog.checked = false; else webTog.checked = true;
                         return;
@@ -1988,14 +1990,14 @@ return view.extend({
                 openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                 var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
                 
-                callSetAdvSettings('', val, '', '').then(function(res) { 
+                callSetAdvSettings('', val, '', '').then(function(res) {
                     // 此时 res 已经是完整的 JSON，可以成功读取 status
                     if (res && res.status === 'error') {
                         isSaving = false; // 遭遇拦截时，解除防抖锁
                         
                         // 完美回滚数值和开关状态
                         lastValidPort = oldPort;
-                        webPort.value = oldPort; 
+                        webPort.value = oldPort;
                         if (oldPort === '') webTog.checked = false;
                         
                         // 弹出红色警告窗口
@@ -2003,18 +2005,18 @@ return view.extend({
                         var p2 = T['M_PORT_CONFLICT_P2'] || 'is already in use by another application!';
                         var errMsg = '⚠️ ' + p1 + ' ' + val + ' ' + p2;
                         
-                        openModal({ 
-                            title: '⚠️ ' + (T['M_REP_NOTICE_TIT'] || 'Notice'), 
-                            msg: '<div style="color:#ef4444; font-weight:bold; padding: 10px 0;">' + errMsg + '</div>', 
-                            okText: T['M_CLOSE'] || 'Close', 
-                            hideCancel: true 
+                        openModal({
+                            title: '⚠️ ' + (T['M_REP_NOTICE_TIT'] || 'Notice'),
+                            msg: '<div style="color:#ef4444; font-weight:bold; padding: 10px 0;">' + errMsg + '</div>',
+                            okText: T['M_CLOSE'] || 'Close',
+                            hideCancel: true
                         });
                         return; // 中止后续的 reload，画面静止
                     }
                     
                     // 后端没有报错，才正式把新端口覆盖进内存
                     lastValidPort = val;
-                    setTimeout(function(){ window.location.reload(); }, 3500); 
+                    setTimeout(function(){ window.location.reload(); }, 3500);
                 }).catch(function() {
                     isSaving = false;
                     lastValidPort = oldPort;
@@ -2024,14 +2026,14 @@ return view.extend({
             }
 
             // 1. 页面初始化加载历史状态
-            callGetAdvSettings().then(function(res) { 
+            callGetAdvSettings().then(function(res) {
                 if (res) {
                     if (res.last_port && res.last_port !== '80' && res.last_port !== '1' && res.last_port !== '0') {
                         webPort.value = res.last_port;
                         lastValidPort = res.last_port;
                     }
-                    if (res.web && res.web !== '0') { 
-                        webTog.checked = true; 
+                    if (res.web && res.web !== '0') {
+                        webTog.checked = true;
                         if (res.web !== '1') {
                             webPort.value = res.web;
                             lastValidPort = res.web;
@@ -2080,10 +2082,92 @@ return view.extend({
             // 2. 点击开关事件
             webTog.addEventListener('change', function() {
                 if (this.checked) {
-                    // 开关打开时，强制把框内的值送去中央安检站
-                    validateAndSavePort(webPort.value);
+                    // ==============================================
+                    // 【逻辑 1】：开启时，联动检测 IPv6 总开关与保活开关，并弹出确认窗
+                    // ==============================================
+                    var needSyncV6 = (window._trueIpv6State !== '1');
+                    var wogEn = safeUciGet('netwiz', 'main', 'watchdog_enable', '0');
+                    var needSyncWog = (wogEn !== '1');
+
+                    // 准备弹窗文案
+                    var promptHtml = '<div style="font-size:14.5px; line-height:1.6; color:#334155; text-align:left; padding: 10px;">' +
+                                     (T['MSG_ABOUT_TO_ENABLE'] || 'You are about to enable the <b>[%s]</b>.').replace('%s', T['WAN Access Web UI Channel'] || 'WAN Access Web UI Channel');
+
+                    // 如果有需要联动的开关，追加提示
+                    if (needSyncV6 || needSyncWog) {
+                        promptHtml += '<br><br><span style="color:#0284c7; font-weight:bold;">' +
+                                      (T['MSG_WOG_LINKAGE'] || "To ensure the works correctly, the following dependent features have been automatically enabled:") + '</span>';
+                        if (needSyncV6) {
+                            promptHtml += '<div style="padding:12px; border-bottom: 1px dashed #e2e8f0; color:#0f172a;">✅ ' +
+                                          (T['MSG_WOG_LINK_V6'] || "IPv6 Master Switch") + '</div>';
+                        }
+                        if (needSyncWog) {
+                            promptHtml += '<div style="padding:12px; border-bottom: 1px dashed #e2e8f0; color:#0f172a;">✅ ' +
+                                          (T['LBL_WATCHDOG_LINK'] || "IPv6 Watchdog") + '</div>';
+                        }
+                    }
+                    promptHtml += '</div>';
+
+                    // 确认后的执行流程
+                    var proceedTurnOn = function() {
+                        if (needSyncV6 || needSyncWog) {
+                            openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
+                            var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
+                            
+                            // ⚠️ 核心修复：真实且完全地开启 OpenWrt 的 IPv6 配置
+                            uci.load('dhcp').then(function() {
+                                if (needSyncV6) {
+                                    uci.set('dhcp', 'lan', 'dhcpv6', 'server');
+                                    uci.set('dhcp', 'lan', 'ra', 'server');
+                                    uci.set('dhcp', 'lan', 'ndp', 'server');
+                                    uci.set('dhcp', 'lan', 'ra_flags', ['managed-config', 'other-config']);
+                                }
+                                if (needSyncWog) {
+                                    uci.set('netwiz', 'main', 'watchdog_enable', '1');
+                                }
+                                return uci.save();
+                            }).then(function() {
+                                return uci.apply();
+                            }).then(function() {
+                                // 同步界面与前端变量
+                                window._trueIpv6State = '1';
+                                var v6Toggle = document.getElementById('lan-ipv6-toggle');
+                                if (v6Toggle) v6Toggle.checked = true;
+                                
+                                // 最后执行原本的保存外网端口和通道逻辑
+                                validateAndSavePort(webPort.value);
+                            });
+                        } else {
+                            // 没有联动项，直接保存外网设定
+                            validateAndSavePort(webPort.value);
+                        }
+                    };
+
+                    // 统一拦截：只要开启就弹窗
+                    openModal({
+                        title: '💡 ' + (T['MSG_SEC_NOTICE'] || 'Notice'),
+                        msg: promptHtml,
+                        okText: T['BTN_OK'] || 'OK',
+                        cancelText: T['BTN_CANCEL'] || 'Cancel',
+                        onOk: function() {
+                            var gm = document.getElementById('nw-global-modal');
+                            if (gm) gm.style.display = 'none';
+                            // 延迟执行避免 DOM 卡顿
+                            setTimeout(function() { proceedTurnOn(); }, 50);
+                        },
+                        onCancel: function() {
+                            var gm = document.getElementById('nw-global-modal');
+                            if (gm) gm.style.display = 'none';
+                            // 用户点击取消，把开关回退到关闭状态
+                            if (webTog) webTog.checked = false; 
+                        }
+                    });
+                    var gm = document.getElementById('nw-global-modal'); if (gm) gm.style.zIndex = '100000';
+                    
                 } else {
-                    // 开关关闭时
+                    // ==============================================
+                    // 【逻辑 2】：关闭时，保留弹窗，但绝不关闭保活开关
+                    // ==============================================
                     if (isSaving) return;
 
                     var isWogEn = safeUciGet('netwiz', 'main', 'watchdog_enable', '0');
@@ -2094,36 +2178,26 @@ return view.extend({
                         openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                         var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
 
-                        var p = Promise.resolve();
-                        if (isWogEn === '1') {
-                            uci.set('netwiz', 'main', 'watchdog_enable', '0');
-                            // save 之后紧接 apply，彻底消除右上角的未保存提示
-                            p = uci.save().then(function() { return uci.apply(); });
-                        }
+                        // ⚠️ 保证底层不再发生联动关闭，此处的 uci.set 已被移除
 
-                        p.then(function() {
-                            // 完美保留您原有的 4 参数调用和异常兜底刷新逻辑
-                            callSetAdvSettings('', '0', '', '').then(function() {
-                                setTimeout(function(){ window.location.reload(); }, 3500);
-                            }).catch(function() {
-                                isSaving = false;
-                                window.location.reload(); // 异常兜底直接刷新
-                            });
+                        // 完美保留您原有的 4 参数调用和异常兜底刷新逻辑
+                        callSetAdvSettings('', '0', '', '').then(function() {
+                            setTimeout(function(){ window.location.reload(); }, 3500);
+                        }).catch(function() {
+                            isSaving = false;
+                            window.location.reload(); // 异常兜底直接刷新
                         });
                     };
 
+                    // 原封不动地保留弹窗确认逻辑
                     if (isWogEn === '1') {
                         openModal({
                             title: '⚠️ ' + (T['MSG_SEC_NOTICE'] || 'Security Notice'),
-                            msg: '<div style="font-size:14.5px; color:#ef4444; font-weight:bold; line-height:1.6; padding:10px 0;">' +
-                                 (T['MSG_WOG_OFF_WAN'] || 'WAN access is about to be closed. To ensure complete firewall protection, the system will simultaneously disable the IPv6 Watchdog mechanism.') +
-                                 '</div>' +
+                            msg: '<div style="font-size:14.5px; color:#ef4444; font-weight:bold; line-height:1.6; padding:10px;">' +
+                            (T['MSG_ABOUT_TO_DISABLE'] || 'You are about to disable the <b>[%s]</b>.').replace('%s', T['WAN Access Web UI Channel'] || 'WAN Access Web UI Channel') +
+                            '</div>' +
                                  '<div style="padding:6px 0; color:#0f172a; font-size:14px; margin-top:8px; font-weight: bold;">❌ ' +
-                                 (T['MSG_WOG_LINK_WAN'] || "Allow WAN Access to Web UI") + '</div>' +
-                                 
-                                 // 保活机制
-                                 '<div style="padding:6px 0; color:#0f172a; font-size:14px; font-weight: bold;">❌ ' +
-                                 (T['LBL_WATCHDOG_LINK'] || "IPv6 Watchdog") + '</div>',
+                                 (T['MSG_WOG_LINK_WAN'] || "WAN Access Web UI Channel") + '</div><br>',
                             okText: T['BTN_OK'] || 'OK',
 
                             // 关闭按钮
@@ -2152,8 +2226,23 @@ return view.extend({
                         });
                         var gm = document.getElementById('nw-global-modal'); if (gm) gm.style.zIndex = '100000';
                     } else {
-                        // 探针没开，直接走原有的保存流程，用户毫无感知
-                        proceedSave();
+                        // 探针没开，直接走原有的二次弹窗或者直接保存
+                        openModal({
+                            title: '💡 ' + (T['MSG_SEC_NOTICE'] || 'Notice'),
+                            msg: '<div style="font-size:14.5px; line-height:1.6; color:#334155; text-align:left; padding: 10px">即将关闭 <b>' + (T['MSG_WOG_LINK_WAN'] || "WAN Access Web UI Channel") + '</b> 。</div>',
+                            okText: T['BTN_OK'] || 'OK',
+                            cancelText: T['BTN_CANCEL'] || 'Cancel',
+                            onOk: function() {
+                                var gm = document.getElementById('nw-global-modal');
+                                if (gm) gm.style.display = 'none';
+                                setTimeout(function() { proceedSave(); }, 50);
+                            },
+                            onCancel: function() {
+                                var gm = document.getElementById('nw-global-modal');
+                                if (gm) gm.style.display = 'none';
+                                if (webTog) webTog.checked = true;
+                            }
+                        });
                     }
                 }
             });
