@@ -2083,17 +2083,23 @@ return view.extend({
             webTog.addEventListener('change', function() {
                 if (this.checked) {
                     // ==============================================
-                    // 【逻辑 1】：开启时，联动检测 IPv6 总开关与保活开关，并弹出确认窗
+                    // 【1】：开启时，联动检测 IPv6 总开关与保活开关，弹出确认窗
                     // ==============================================
                     var needSyncV6 = (window._trueIpv6State !== '1');
                     var wogEn = safeUciGet('netwiz', 'main', 'watchdog_enable', '0');
-                    var needSyncWog = (wogEn !== '1');
+                    var wogUrl = safeUciGet('netwiz', 'main', 'watchdog_url', '').trim(); // 读取探测源网址
+
+                    // 只有在没开启探针，且【存在探测网址】时，才自动联动开启
+                    var needSyncWog = (wogEn !== '1' && wogUrl !== '');
+                    
+                    // 没开启探针，且【没有探测网址】，则给出建议提示，不强制联动
+                    var suggestWog = (wogEn !== '1' && wogUrl === '');
 
                     // 准备弹窗文案
                     var promptHtml = '<div style="font-size:14.5px; line-height:1.6; color:#334155; text-align:left; padding: 10px;">' +
                                      (T['MSG_ABOUT_TO_ENABLE'] || 'You are about to enable the <b>[%s]</b>.').replace('%s', T['MSG_WOG_LINK_WAN'] || 'WAN Access Web UI Channel');
 
-                    // 如果有需要联动的开关，追加提示
+                    // 如果有需要自动联动的开关，追加提示
                     if (needSyncV6 || needSyncWog) {
                         promptHtml += '<br><br><span style="color:#0284c7; font-weight:bold;">' +
                                       (T['MSG_WOG_LINKAGE'] || "To ensure the works correctly, the following dependent features have been automatically enabled:") + '</span>';
@@ -2106,6 +2112,16 @@ return view.extend({
                                           (T['LBL_WATCHDOG_LINK'] || "IPv6 Watchdog") + '</div>';
                         }
                     }
+
+                    // 如果缺乏探测网址无法联动开启保活，给出黄色的建议提示
+                    if (suggestWog) {
+                        promptHtml += '<br><br><span style="color:#ca8a04; font-weight:bold;">' +
+                                      (T['MSG_WOG_SUGGEST_TIT'] || "💡 Suggestion:") + '</span>' +
+                                      '<div style="padding:6px 0; color:#475569; font-size: 13.5px;">' +
+                                      (T['MSG_WOG_SUGGEST_MSG'] || "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in <b>📡 IPv6 Watchdog</b> later.") + 
+                                      '</div>';
+                    }
+
                     promptHtml += '</div>';
 
                     // 确认后的执行流程
@@ -2114,7 +2130,7 @@ return view.extend({
                             openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                             var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
                             
-                            // ⚠️ 核心修复：真实且完全地开启 OpenWrt 的 IPv6 配置
+                            // 开启 OpenWrt 的 IPv6 配置
                             uci.load('dhcp').then(function() {
                                 if (needSyncV6) {
                                     uci.set('dhcp', 'lan', 'dhcpv6', 'server');
@@ -2134,11 +2150,11 @@ return view.extend({
                                 var v6Toggle = document.getElementById('lan-ipv6-toggle');
                                 if (v6Toggle) v6Toggle.checked = true;
                                 
-                                // 最后执行原本的保存外网端口和通道逻辑
+                                // 执行保存外网端口和通道逻辑
                                 validateAndSavePort(webPort.value);
                             });
                         } else {
-                            // 没有联动项，直接保存外网设定
+                            // 没有联动项（或只是单纯提醒了 suggestWog），直接保存外网设定
                             validateAndSavePort(webPort.value);
                         }
                     };
@@ -2166,7 +2182,7 @@ return view.extend({
                     
                 } else {
                     // ==============================================
-                    // 【逻辑 2】：关闭时，保留弹窗，但绝不关闭保活开关
+                    // 【2】：关闭时，弹窗，不关闭保活开关
                     // ==============================================
                     if (isSaving) return;
 
@@ -2178,9 +2194,7 @@ return view.extend({
                         openModal({ title: T['LBL_ADV_UTILS_TITLE'] || '⚙️ Advanced Utilities', msg: T['MSG_WRITING'] || 'Please wait...', spin: true });
                         var gm2 = document.getElementById('nw-global-modal'); if (gm2) gm2.style.zIndex = '100000';
 
-                        // ⚠️ 保证底层不再发生联动关闭，此处的 uci.set 已被移除
-
-                        // 完美保留您原有的 4 参数调用和异常兜底刷新逻辑
+                        // 调用和异常兜底刷逻辑
                         callSetAdvSettings('', '0', '', '').then(function() {
                             setTimeout(function(){ window.location.reload(); }, 3500);
                         }).catch(function() {
@@ -2189,7 +2203,7 @@ return view.extend({
                         });
                     };
 
-                    // 原封不动地保留弹窗确认逻辑
+                    // 弹窗确认逻辑
                     if (isWogEn === '1') {
                         openModal({
                             title: '⚠️ ' + (T['MSG_SEC_NOTICE'] || 'Security Notice'),
@@ -2204,7 +2218,7 @@ return view.extend({
                             cancelText: T['BTN_CANCEL'] || 'CANCEL',
 
                             onOk: function() {
-                                // 先强制隐藏当前警告弹窗
+                                // 隐藏当前警告弹窗
                                 var gm = document.getElementById('nw-global-modal');
                                 if (gm) gm.style.display = 'none';
 
