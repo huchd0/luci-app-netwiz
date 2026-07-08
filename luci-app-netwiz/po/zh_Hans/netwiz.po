@@ -2151,8 +2151,8 @@ msgstr "为了确保正常工作，系统已同步为您开启以下依赖功能
 msgid "IPv6 Master Switch"
 msgstr "IPv6 总开关"
 
-msgid "Allow WAN Access to Web UI"
-msgstr "允许外网访问面板"
+msgid "WAN Access Web UI Channel"
+msgstr "外网访问面板通道"
 
 msgid "Security Notice"
 msgstr "安全提示"
