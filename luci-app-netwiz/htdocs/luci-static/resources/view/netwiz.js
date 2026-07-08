@@ -1256,10 +1256,10 @@ return view.extend({
             bg.id = 'nw-adv-modal';
             bg.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px);';
             var box = document.createElement('div');
-            box.style.cssText = 'background:#fff; width:420px; max-width:95%; border-radius:12px; padding:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); font-family:sans-serif;';
-            box.innerHTML = '<div style="font-size:18px; font-weight:bold; color:#1e293b; margin-bottom:15px; text-align:center;">' + title + '</div>' + 
-                            '<div style="margin-bottom:20px; color:#475569; text-align:left; font-size:14.5px;">' + html + '</div>' +
-                            '<div class="nw-modal-btn-wrap" style="display:flex; justify-content:space-between; gap:12px; margin-top:25px;">' +
+            box.style.cssText = 'background:#fff; width:420px; max-width:95%; border-radius:12px; padding:20px 12px 24px 12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); font-family:sans-serif;';
+            box.innerHTML = '<div style="font-size:18px; font-weight:bold; color:#1e293b; margin-bottom:20px; text-align:center;">' + title + '</div>' + 
+                            '<div style="margin-bottom:15px; color:#475569; text-align:left; font-size:14.5px;">' + html + '</div>' +
+                            '<div class="nw-modal-btn-wrap" style="display:flex; justify-content:space-between; gap:12px; margin-top:15px;">' +
                             '<button id="mdl-cancel" class="nw-u-btn nw-u-btn-gray" style="flex:1; margin:0;">' + (T['BTN_CANCEL']||'Cancel') + '</button>' +
                             '<button id="mdl-ok" class="nw-u-btn nw-u-btn-blue" style="flex:1; margin:0;">' + (T['BTN_OK']||'OK') + '</button>' +
                             '</div>';
@@ -1435,7 +1435,7 @@ return view.extend({
                             (T['ADV_SAFE_BACKUP'] || 'Keep a permanent backup in /etc/netwiz/custom_pkgs') +
                         '</label>' +
                     '</div>' +
-                    '<div style="margin-top:15px; text-align:center;">' +
+                    '<div style="margin:15px 0 25px 0; text-align:center;">' +
                         '<button id="nw-btn-upload" class="cbi-button cbi-button-action" style="display:none; padding:10px 30px; background:#10b981; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:background 0.2s;">' + (T['ADV_BTN_START'] || '🚀 Start Upload & Secure') + '</button>' +
                         '<div id="nw-upload-progress" style="margin-top:12px; font-family:monospace; font-weight:bold; color:#ef4444;"></div>' +
                     '</div>';
