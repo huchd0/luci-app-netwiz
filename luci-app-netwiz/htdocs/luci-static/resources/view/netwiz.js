@@ -1658,11 +1658,7 @@ return view.extend({
                             uci.set('dhcp', 'lan', 'ndp', 'server');
                             uci.set('dhcp', 'lan', 'ra_flags', ['managed-config', 'other-config']);
                         }
-                        var wanCheckbox = document.getElementById('adv-web-toggle');
-                        if (wanCheckbox && wanCheckbox.checked) {
-                            var pVal = document.getElementById('adv-web-port') ? (document.getElementById('adv-web-port').value || '80') : '80';
-                            p = callSetAdvSettings('', pVal, '', ''); // 第一步：排队让 RPC 接口先写入
-                        }
+                        // 💡 已删除：之前在这里强制调用 callSetAdvSettings 开启外网访问的逻辑已被彻底移除
                     }
 
                     p.then(function() {
@@ -1685,7 +1681,6 @@ return view.extend({
                     var mBox = document.getElementById('nw-wog-url-box');
 
                     var ipv6Checkbox = document.getElementById('lan-ipv6-toggle');
-                    var wanCheckbox = document.getElementById('adv-web-toggle');
 
                     if(mChk && mBox) {
                         mChk.addEventListener('change', function() {
@@ -1695,18 +1690,12 @@ return view.extend({
                                 var needsPrompt = false;
                                 var promptHtml = '<div style="font-size:14px; line-height:1.6; color:#334155; text-align:left; padding: 5px;">' +
                                                  '<div style="margin-bottom: 12px; font-weight: bold; color: #0284c7;">' +
-                                                 (T['MSG_WOG_LINKAGE'] || "To ensure the probe works correctly, the following dependent features have been automatically enabled") + '</div>';
+                                                 (T['MSG_WOG_LINKAGE'] || "To ensure the probe works correctly, the following dependent features have been automatically enabled:") + '</div>';
 
                                 if (ipv6Checkbox && !ipv6Checkbox.checked) {
                                     ipv6Checkbox.checked = true;
                                     needsPrompt = true;
-                                    promptHtml += '<div style="padding:6px 0; border-bottom: 1px dashed #e2e8f0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_V6'] || "IPv6 Master Switch") + '</div>';
-                                }
-
-                                if (wanCheckbox && !wanCheckbox.checked) {
-                                    wanCheckbox.checked = true;
-                                    needsPrompt = true;
-                                    promptHtml += '<div style="padding:6px 0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_WAN'] || "WAN Access Web UI Channel") + '</div>';
+                                    promptHtml += '<div style="padding:6px 0; color:#0f172a;">✅ ' + (T['MSG_WOG_LINK_V6'] || "IPv6 Master Switch") + '</div>';
                                 }
 
                                 promptHtml += '</div>';
@@ -1726,6 +1715,7 @@ return view.extend({
                 }, 50);
             });
         });
+        // ================== 结束 ==================
 
         // ================= 高级与实验室：动态包裹与折叠逻辑 =================
         setTimeout(function() {
