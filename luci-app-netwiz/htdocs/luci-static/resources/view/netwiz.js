@@ -6246,8 +6246,13 @@ return view.extend({
                             openModal({
                                 title: '⚠️ ' + (T['MSG_DEP_NOTICE'] || 'Dependency Notice'),
                                 msg: '<div style="font-size:14.5px; color:#f59e0b; font-weight:bold; line-height:1.6; padding:10px 0;">' + 
-                                     (T['MSG_WOG_OFF_V6_ALL'] || 'You have disabled IPv6. To ensure security, the dependent IPv6 Watchdog and WAN Access will be automatically disabled.') + 
-                                     '</div>',
+                                    (T['MSG_WOG_OFF_V6_ALL'] || 'You have disabled IPv6. To ensure security, the dependent IPv6 Watchdog and WAN Access will be automatically disabled.') + 
+                                    '</div>' +
+
+                                    '<div style="padding:6px 0; color:#0f172a; font-size:14px; margin-top:4px; font-weight: bold;">❌ ' +
+                                    (T['LBL_WATCHDOG_LINK'] || "IPv6 Watchdog") + '</div>' +
+                                    '<div style="padding:6px 0; color:#0f172a; font-size:14px; font-weight: bold;">❌ ' +
+                                    (T['MSG_WOG_LINK_WAN'] || "WAN Access Web UI Channel") + '</div>',
                                 okText: T['BTN_OK'] || 'OK',
                                 onOk: function() {
                                     var gm = document.getElementById('nw-global-modal');
