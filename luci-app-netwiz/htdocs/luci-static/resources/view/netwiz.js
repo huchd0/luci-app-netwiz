@@ -2115,12 +2115,13 @@ return view.extend({
                         }
                     }
 
-                    // 缺少探测网址无法联动开启保活，给出黄色的建议提示
+                    // 没有探测网址无法联动开启保活，给出黄色的建议提示
                     if (suggestWog) {
                         promptHtml += '<br><br><span style="color:#ca8a04; font-weight:bold;">💡 ' +
                                       (T['MSG_SUGGESTION'] || "Suggestion:") + '</span>' +
                                       '<div style="padding:6px 0; color:#475569; font-size: 13.5px;">' +
-                                      (T['MSG_WOG_SUGGEST_MSG'] || "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in <b>📡 IPv6 Watchdog</b> later.") + 
+                                      // 👇 核心修改：提取了 📡，并用 %s 占位
+                                      (T['MSG_WOG_SUGGEST_MSG'] || "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in %s later.").replace('%s', '<b>📡 ' + (T['LBL_WATCHDOG_LINK'] || 'IPv6 Watchdog') + '</b>') + 
                                       '</div>';
                     }
 
