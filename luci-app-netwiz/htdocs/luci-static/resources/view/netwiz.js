@@ -2091,7 +2091,7 @@ return view.extend({
 
                     // 准备弹窗文案
                     var promptHtml = '<div style="font-size:14.5px; line-height:1.6; color:#334155; text-align:left; padding: 10px;">' +
-                                     (T['MSG_ABOUT_TO_ENABLE'] || 'You are about to enable the <b>[%s]</b>.').replace('%s', T['WAN Access Web UI Channel'] || 'WAN Access Web UI Channel');
+                                     (T['MSG_ABOUT_TO_ENABLE'] || 'You are about to enable the <b>[%s]</b>.').replace('%s', T['MSG_WOG_LINK_WAN'] || 'WAN Access Web UI Channel');
 
                     // 如果有需要联动的开关，追加提示
                     if (needSyncV6 || needSyncWog) {
@@ -2194,7 +2194,7 @@ return view.extend({
                         openModal({
                             title: '⚠️ ' + (T['MSG_SEC_NOTICE'] || 'Security Notice'),
                             msg: '<div style="font-size:14.5px; color:#ef4444; font-weight:bold; line-height:1.6; padding:10px;">' +
-                            (T['MSG_ABOUT_TO_DISABLE'] || 'You are about to disable the <b>[%s]</b>.').replace('%s', T['WAN Access Web UI Channel'] || 'WAN Access Web UI Channel') +
+                            (T['MSG_ABOUT_TO_DISABLE'] || 'You are about to disable the <b>[%s]</b>.').replace('%s', T['MSG_WOG_LINK_WAN'] || 'WAN Access Web UI Channel') +
                             '</div>' +
                                  '<div style="padding:6px 0; color:#0f172a; font-size:14px; margin-top:8px; font-weight: bold;">❌ ' +
                                  (T['MSG_WOG_LINK_WAN'] || "WAN Access Web UI Channel") + '</div><br>',
