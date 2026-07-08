@@ -682,7 +682,10 @@ case "$1" in
 
                 # --- 接收前端传来的 Hosts JSON 字符串 ---
                 hosts_str=$(echo "$input" | jsonfilter -e '@.hosts')
-                if echo "$input" | grep -q '"hosts"'; then
+                
+                # 只有当 hosts_str 不是空字串時才執行更新
+                # (前端传 '' 代表不修改，傳 '[]' 代表清空所有規則)
+                if [ -n "$hosts_str" ]; then
                     mkdir -p /etc/netwiz
                     echo "$hosts_str" > /etc/netwiz/hosts.json
                     
