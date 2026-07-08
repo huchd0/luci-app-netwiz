@@ -2208,5 +2208,5 @@ msgstr "即将关闭 <b>[%s]</b>。"
 msgid "Suggestion:"
 msgstr "建议提醒："
 
-msgid "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in <b>IPv6 Watchdog</b> later."
-msgstr "检测到尚未配置探测源目标网址。为保障外网访问的长期稳定性，建议您稍后前往 <b>📡 IPv6 深度保活</b> 手动配置并开启此功能。"
+msgid "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in %s later."
+msgstr "检测到尚未配置探测源目标网址。为保障外网访问的长期稳定性，建议您稍后前往 %s 手动配置并开启此功能。"
