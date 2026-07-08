@@ -573,6 +573,35 @@ input:checked + .nw-slider:before { transform: translateX(20px); }
 .nd-legend-color { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
 
+/* 动态弹窗专用样式 (由 JS 呼叫) */
+/* 红色严重警告主文字 */
+.nw-alert-danger {
+    font-size: 14.5px;
+    color: #ef4444;
+    font-weight: bold;
+    line-height: 1.6;
+    padding: 10px 0;
+}
+
+/* 黄色依赖警告主文字 */
+.nw-alert-warning {
+    font-size: 14.5px; 
+    color: #f59e0b; 
+    font-weight: bold; 
+    line-height: 1.6; 
+    padding: 10px 0;
+}
+
+/* 警告弹窗列表（带有关闭/开启图标的那行）*/
+.nw-alert-detail-item {
+    padding: 6px 0;
+    color: #0f172a;
+    font-size: 14px;
+    margin-top: 4px;
+    font-weight: bold;
+}
+
+
 /* =========================================================
    12. 手机端响应式适配
 ========================================================= */
