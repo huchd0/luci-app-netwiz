@@ -2145,8 +2145,8 @@ msgstr "填寫範例："
 msgid "Click to view Cloudflare tutorial & source code"
 msgstr "點擊查看 Cloudflare 範例教學與原始碼"
 
-msgid "To ensure the probe works correctly, the following dependent features have been automatically enabled:"
-msgstr "為了確保探針正常運作，系統已同步為您啟用以下相依功能："
+msgid "To ensure the works correctly, the following dependent features have been automatically enabled:"
+msgstr "為了確保正常運作，系統已同步為您啟用以下相依功能："
 
 msgid "IPv6 Master Switch"
 msgstr "IPv6 總開關"
