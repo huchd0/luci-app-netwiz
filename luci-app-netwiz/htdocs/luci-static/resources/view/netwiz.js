@@ -544,7 +544,7 @@ var T = {
     'MSG_ABOUT_TO_ENABLE': _('You are about to enable the <b>[%s]</b>.'),
     'MSG_ABOUT_TO_DISABLE': _('You are about to disable the <b>[%s]</b>.'),
     'MSG_SUGGESTION': _('Suggestion:'),
-    'MSG_WOG_SUGGEST_MSG': _('No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in <b>IPv6 Watchdog</b> later.'),
+    'MSG_WOG_SUGGEST_MSG': _('No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in %s later.'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
