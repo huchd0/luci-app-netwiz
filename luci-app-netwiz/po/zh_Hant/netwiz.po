@@ -2204,3 +2204,9 @@ msgstr "即將開啟 <b>[%s]</b>。"
 
 msgid "You are about to disable the <b>[%s]</b>."
 msgstr "即將關閉 <b>[%s]</b>。"
+
+msgid "Suggestion:"
+msgstr "建議提醒："
+
+msgid "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in <b>IPv6 Watchdog</b> later."
+msgstr "檢測到尚未配寘探測源目標網址。為保障外網訪問的長期穩定性，建議您稍後前往<b>📡 IPv6深度保活</b>手動配寘並開啟此功能。"
