@@ -543,6 +543,8 @@ var T = {
     'U_INST_SUCC_DESC': '⚠️ ' + _('<b>Notice: Aggressive browser caching detected.</b><br>To ensure new menus and features display correctly, please press <kbd style="background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;">Ctrl + F5</kbd> or <kbd style="background:#fff; padding:2px 6px; border:1px solid #ccc; border-radius:4px; box-shadow:0 1px 1px rgba(0,0,0,0.2); color:#000;">Shift + F5</kbd> to force refresh this page!<br><span style="font-size:13px; color:#64748b; font-weight:normal;">(Mobile users: please manually clear browser cache and refresh)</span>'),
     'MSG_ABOUT_TO_ENABLE': _('You are about to enable the <b>[%s]</b>.'),
     'MSG_ABOUT_TO_DISABLE': _('You are about to disable the <b>[%s]</b>.'),
+    'MSG_SUGGESTION': _('Suggestion:'),
+    'MSG_WOG_SUGGEST_MSG': _('No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in <b>IPv6 Watchdog</b> later.'),
 };
 
 var callNetSetup = rpc.declare({ object: 'netwiz', method: 'set_network', params: ['mode', 'arg1', 'arg2', 'arg3', 'arg4', 'arg5', 'arg6'], expect: { result: 0 } });
@@ -2113,10 +2115,10 @@ return view.extend({
                         }
                     }
 
-                    // 如果缺乏探测网址无法联动开启保活，给出黄色的建议提示
+                    // 缺少探测网址无法联动开启保活，给出黄色的建议提示
                     if (suggestWog) {
-                        promptHtml += '<br><br><span style="color:#ca8a04; font-weight:bold;">' +
-                                      (T['MSG_WOG_SUGGEST_TIT'] || "💡 Suggestion:") + '</span>' +
+                        promptHtml += '<br><br><span style="color:#ca8a04; font-weight:bold;">💡 ' +
+                                      (T['MSG_SUGGESTION'] || "Suggestion:") + '</span>' +
                                       '<div style="padding:6px 0; color:#475569; font-size: 13.5px;">' +
                                       (T['MSG_WOG_SUGGEST_MSG'] || "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in <b>📡 IPv6 Watchdog</b> later.") + 
                                       '</div>';
