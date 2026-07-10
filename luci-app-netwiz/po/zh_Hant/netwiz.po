@@ -1234,11 +1234,26 @@ msgstr "立即修改並重啟網絡"
 msgid "Invalid IP format! System restored safe default, please confirm."
 msgstr "無效的 IP 格式！系統已恢復安全推薦值，請重新確認。"
 
-msgid "Still conflicting! The modified IP is still in the same subnet as upstream.\nSystem restored safe default, please change the 3rd number!"
-msgstr "依然衝突！修改後的 IP 仍與上級網絡在同一網段。\n系統已恢復安全推薦值，請修改第三段數字！"
+msgid "Still conflicting! The modified IP is still in the same subnet as upstream."
+msgstr "仍然衝突！修改後的 IP 依然與上級網路處於同一網段。"
 
-msgid "IMPORTANT:\n\nTo resolve the fatal network loop, the system must change LAN IP and restart immediately.\n\nChanges you made on this page will NOT be saved.\nPlease reconfigure after the network restarts and redirects to the new IP.\n\nContinue to fix conflict?"
-msgstr "重要提示：\n\n為優先解決致命的網絡死環，系統必須立即修改局域網 IP 並重啟。\n\n您剛才填寫的【當前頁面的其他配置】將不會被保存。\n請在網絡重啟、跳轉到新 IP 後重新配置。\n\n確定要立即修復衝突嗎？"
+msgid "System restored safe default, please change the 3rd number!"
+msgstr "系統已恢復安全預設值，請嘗試修改第 3 段數字！"
+
+msgid "IMPORTANT:"
+msgstr "重要提示："
+
+msgid "To resolve the fatal network loop, the system must change LAN IP and restart immediately."
+msgstr "為了解除致命的網路死環，系統必須立即修改區域網路 IP 並重啟網路。"
+
+msgid "Changes you made on this page will NOT be saved."
+msgstr "您在此頁面上做出的其他修改將不會被保存。"
+
+msgid "Please reconfigure after the network restarts and redirects to the new IP."
+msgstr "請在網路重啟並跳轉到新 IP 後，重新進行設定。"
+
+msgid "Continue to fix conflict?"
+msgstr "是否繼續修復衝突？"
 
 msgid "Network Conflict Blocked"
 msgstr "網絡衝突已攔截"
