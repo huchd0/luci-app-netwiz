@@ -2872,13 +2872,21 @@ return view.extend({
                     var dns2 = dnsServers[1] || '';
 
                     var wIp = safeUciGet('network', 'wan', 'ipaddr', T['TXT_NOT_GOT']).split('/')[0], wGw = safeUciGet('network', 'wan', 'gateway', T['TXT_NOT_SET']);
-                    var lIp = safeUciGet('network', 'lan', 'ipaddr', '192.168.1.1').split('/')[0], lGw = safeUciGet('network', 'lan', 'gateway', T['TXT_NOT_SET']), lIgnore = safeUciGet('dhcp', 'lan', 'ignore', ''), isBypass = (lIgnore === '1' || lIgnore === 'true' || lIgnore === 'on' || lIgnore === 'yes');
+                    var lIp = safeUciGet('network', 'lan', 'ipaddr', '').split('/')[0], lGw = safeUciGet('network', 'lan', 'gateway', T['TXT_NOT_SET']), lIgnore = safeUciGet('dhcp', 'lan', 'ignore', ''), isBypass = (lIgnore === '1' || lIgnore === 'true' || lIgnore === 'on' || lIgnore === 'yes');
                     
                     // 全局拦截，只要发现网段死环，立刻弹窗
                     var sysWanIp = window._liveWanIp || ''; 
-                    var currentLanIp = lIp; // 刚刚获取的最新局域网 IP
                     
-                    // 只要拿到 WAN IP，且发现和 LAN 在同一网段，立刻触发警报
+                    // 🛡️ 优先从输入框获取真实 IP，如果输入框没有，用 uci 取到的 lIp
+                    var lanIpInput = container.querySelector('#lan-ip');
+                    var currentLanIp = (lanIpInput && lanIpInput.value) ? lanIpInput.value : lIp; 
+                    
+                    // 防呆锁，如果 currentLanIp 为空，或者根本不是合法的 IP 格式，直接将其置空，跳过后续检测
+                    if (!currentLanIp || currentLanIp.indexOf('.') === -1) {
+                        currentLanIp = ''; 
+                    }
+                    
+                    // 只要拿到 WAN IP，且发现和 LAN 在同一网段，且真实 LAN IP 已就绪，立刻触发警报
                     if (sysWanIp && currentLanIp && isSameSubnet(sysWanIp, currentLanIp)) {
                         if (!window._hasAlertedConflict && container.querySelector('#nw-global-modal').style.display === 'none') {
                             window._hasAlertedConflict = true; 
