@@ -128,7 +128,7 @@ jobs:
           # 自动提取版本号并注入前端 js (循环处理多个文件)
           echo "🏷️ 准备将版本号 v${{ needs.prepare.outputs.pkg_version }} 注入前端..."
           
-          for JS_FILE in "luci-app-netwiz/htdocs/luci-static/resources/view/netwiz.js" "luci-app-netwiz/htdocs/luci-static/resources/view/netwiz_dev.js"; do
+          for JS_FILE in "luci-app-netwiz/htdocs/luci-static/resources/view/netwiz_tmpl.js" "luci-app-netwiz/htdocs/luci-static/resources/view/netwiz_dev.js"; do
             if [ -f "$JS_FILE" ]; then
               echo "✅ 找到目标文件: $JS_FILE"
               
