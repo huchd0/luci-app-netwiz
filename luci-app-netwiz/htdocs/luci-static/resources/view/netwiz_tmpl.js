@@ -229,8 +229,12 @@ return view.extend({ // 继承view
         'M_CFLT_GLOBAL_MSG': _('System detected that the upstream network (<b style="color:#ef4444;">{wan_ip}</b>) and the LAN (<b style="color:#ef4444;">{lan_ip}</b>) are in the same subnet!<br><br>This will crash the router. <b style="color:#059669;">Please confirm or modify the new LAN IP below and click auto-evade:</b><br><br>'),
         'BTN_FIX_CONFLICT': _('Modify and Restart Network'),
         'M_INVALID_IP_FMT': '❌ ' + _('Invalid IP format! System restored safe default, please confirm.'),
-        'M_STILL_CONFLICT': '❌ ' + _('Still conflicting! The modified IP is still in the same subnet as upstream.\nSystem restored safe default, please change the 3rd number!'),
-        'M_WARN_UNSAVED': _('IMPORTANT:\n\nTo resolve the fatal network loop, the system must change LAN IP and restart immediately.\n\nChanges you made on this page will NOT be saved.\nPlease reconfigure after the network restarts and redirects to the new IP.\n\nContinue to fix conflict?'),
+        'M_STILL_CONFLICT': '❌ ' + _('Still conflicting! The modified IP is still in the same subnet as upstream.') + '\n' + _('System restored safe default, please change the 3rd number!'),
+        'M_WARN_UNSAVED': _('IMPORTANT:') + '\n\n' + 
+                  _('To resolve the fatal network loop, the system must change LAN IP and restart immediately.') + '\n\n' + 
+                  _('Changes you made on this page will NOT be saved.') + '\n' + 
+                  _('Please reconfigure after the network restarts and redirects to the new IP.') + '\n\n' + 
+                  _('Continue to fix conflict?'),
         'M_CFLT_INTERCEPT_TIT': _('Network Conflict Blocked'),
         'M_CFLT_WIZ_MSG': _('Upstream network ({wan_ip}) conflicts with local LAN ({lan_ip})!<br><br>Please click below to safely evade to: <b>{safe_ip}</b> to finish setup.'),
         'BTN_AUTO_EVADE': _('Auto Evade'),
