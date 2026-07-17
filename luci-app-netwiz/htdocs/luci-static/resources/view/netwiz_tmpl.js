@@ -385,7 +385,7 @@ return view.extend({ // 继承view
         'LBL_ADV_UTILS_TITLE': '⚙️ ' + _('Advanced Utilities'),
         'LBL_MAC_CLONE_LINK': '🔗 ' + _('MAC Address Clone'),
         'LBL_CRON_REBOOT_LINK': '⏱️ ' + _('Scheduled Reboot'),
-        'LBL_WEB_ACCESS_TOGGLE': '🌐 ' + _('Allow WAN Web Access'),
+        'LBL_WEB_ACCESS_TOGGLE': '🌐 ' + _('IPv6 Web Access, Port:'),
 
         'MSG_MAC_CLONE_TIP': '💡 ' + _('<b>Tip:</b> Some ISPs or campus networks bind to a specific device MAC. If dial-up fails, enter the cloned MAC here.'),
         'BTN_GET_MAC': '⚡ ' + _('Auto-fill MAC'),
