@@ -1765,7 +1765,7 @@ msgstr "MAC 地址克隆"
 msgid "Scheduled Reboot"
 msgstr "定时重启设置"
 
-msgid "Allow WAN Web Access"
+msgid "IPv6 Web Access, Port:"
 msgstr "IPv6直联后台，端口："
 
 msgid "<b>Tip:</b> Some ISPs or campus networks bind to a specific device MAC. If dial-up fails, enter the cloned MAC here."
