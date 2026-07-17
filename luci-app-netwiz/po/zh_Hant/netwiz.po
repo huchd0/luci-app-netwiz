@@ -1766,7 +1766,7 @@ msgid "Scheduled Reboot"
 msgstr "定時重啟設定"
 
 msgid "Allow WAN Web Access"
-msgstr "Ipv6直聯後臺，外網埠："
+msgstr "IPv6直聯後臺，外網埠："
 
 msgid "<b>Tip:</b> Some ISPs or campus networks bind to a specific device MAC. If dial-up fails, enter the cloned MAC here."
 msgstr "<b>提示：</b>部分社區寬頻或校園網綁定了特定的設備 MAC（如舊路由器或電腦）。若撥號失敗，請在此填入該 MAC 進行偽裝複製。"
