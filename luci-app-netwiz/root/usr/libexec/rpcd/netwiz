@@ -385,7 +385,8 @@ case "$1" in
                         # 抹除衍生的缓存或分身配置
                         for f in /etc/config/${plugin}.*; do
                             if [ "$f" != "/etc/config/${plugin}.nw_bak_main" ]; then
-                                rm -f "$f" 2>/dev/null
+                                # 文件或文件夹，全部删除
+                                rm -rf "$f" 2>/dev/null
                             fi
                         done
 
