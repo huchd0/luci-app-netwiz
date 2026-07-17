@@ -190,8 +190,10 @@ fi
 # 5. 重建缓存与唤醒服务
 # ==========================================
 echo "🔄 正在重建 LuCI 缓存并唤醒服务..."
-rm -rf /tmp/luci-indexcache /tmp/luci-modulecache/ /var/run/luci-indexcache /var/run/luci-modulecache/ 2>/dev/null
+# 删除缓存
+rm -rf /tmp/luci-indexcache* /tmp/luci-modulecache* /var/run/luci-indexcache* /var/run/luci-modulecache* 2>/dev/null
 rm -rf /tmp/luci-sessions/* /var/run/luci-sessions/* 2>/dev/null
+
 /etc/init.d/rpcd reload 2>/dev/null
 
 if [ -f "/etc/init.d/uhttpd" ]; then
