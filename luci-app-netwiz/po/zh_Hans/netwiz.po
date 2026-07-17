@@ -1708,7 +1708,7 @@ msgstr "正在后台拉取最新列表..."
 msgid "Verifying the list of plugins for automatic backup...<br><br>Depending on the network, this usually takes <b>15 to 20 seconds</b>.<br>The system is verifying, please wait..."
 msgstr "正在核实可以自动备份的插件清单...<br><br>受限于网络，这通常需要 <b>15 ~ 20秒</b>。<br>系统正在核实，请稍候..."
 
-msgid ", I will try again later"
+msgid "OK, I will try again later"
 msgstr "停止备份"
 
 msgid "RESTORE FAILED: Package manager mismatch (apk vs ipk). Please use firmware with the same underlying system."
