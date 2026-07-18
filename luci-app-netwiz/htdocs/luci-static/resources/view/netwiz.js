@@ -37,6 +37,7 @@ var callSetAdvSettings = rpc.declare({ object: 'netwiz', method: 'set_adv_settin
 
 var callGetAdvLayout = rpc.declare({ object: 'netwiz', method: 'get_adv_layout', expect: { '': {} } });
 var callSetAdvLayout = rpc.declare({ object: 'netwiz', method: 'set_adv_layout', params: ['layout'], expect: { result: 0 } });
+var callSysRestore = rpc.declare({ object: 'system', method: 'sysupgrade', params: ['restore', 'filepath'], expect: { result: 0 } });
 
 return view.extend({
     handleSaveApply: null,
@@ -3855,6 +3856,134 @@ return view.extend({
                 window._isUpdatingStatus = false; // 异常释放锁
             }
         }
+
+        // ==========================================
+        // 原生备份与恢复配置逻辑绑定
+        // ==========================================
+        var btnBackupConfig = container.querySelector('#btn-backup-config');
+        var btnRestoreConfig = container.querySelector('#btn-restore-config');
+        var fileRestoreConfig = container.querySelector('#file-restore-config');
+
+        // 1. 备份配置
+        if (btnBackupConfig) {
+            btnBackupConfig.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                openModal({
+                    title: T['M_BAK_CONF_TIT'] || '备份配置',
+                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_CONF_MSG'] || '正在生成并下载配置备份，请稍候...') + '</div>',
+                    spin: true,
+                    hideCancel: true,
+                    hideOk: true
+                });
+
+                // OpenWrt 原生的系统备份直接请求 cgi-backup 端点触发下载
+                var backupUrl = window.location.origin + '/cgi-bin/cgi-backup';
+                var a = document.createElement('a');
+                a.href = backupUrl;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // 延迟关闭弹窗，留出触发浏览器下载的时间
+                setTimeout(function() {
+                    var gm = document.getElementById('nw-global-modal');
+                    if (gm) gm.style.display = 'none';
+                }, 2500);
+            });
+        }
+
+        // 2. 恢复配置
+        if (btnRestoreConfig && fileRestoreConfig) {
+            // 点击可视按钮，触发隐藏的 file input
+            btnRestoreConfig.addEventListener('click', function(e) {
+                e.preventDefault();
+                fileRestoreConfig.value = ''; // 清空选中状态以允许重复选中同名文件
+                fileRestoreConfig.click();
+            });
+
+            // 监听文件选取并执行上传
+            fileRestoreConfig.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+
+                // 第一阶段：危险操作二次确认
+                openModal({
+                    title: '⚠️ ' + (T['M_RST_CONF_TIT'] || '恢复配置确认'),
+                    msg: '<div style="color:#ef4444; font-size:15px; font-weight:bold; margin-bottom:10px;">' +
+                         (T['M_RST_CONF_WARN'] || '警告：恢复配置将覆盖当前所有设置，并在完成后自动重启路由器！') + '</div>' +
+                         '<div style="color:#475569; font-size:14px;">选中文件：' + escapeHTML(file.name) + '</div>',
+                    okText: '🚀 ' + (T['BTN_RST_START'] || '确认恢复'),
+                    cancelText: T['BTN_CANCEL'] || '取消',
+                    isDanger: true,
+                    onOk: function() {
+                        // 第二阶段：接管并上传
+                        openModal({
+                            title: T['M_RST_CONF_TIT'] || '正在恢复配置',
+                            msg: '<div style="text-align:center; padding:10px 0; color:#64748b;">' +
+                                 (T['MSG_RESTORE_UPLOADING'] || '正在上传备份文件，请勿断开电源...') +
+                                 '<br><div id="nw-upload-progress" style="font-size:24px; color:#3b82f6; font-weight:bold; margin-top:10px; font-family:monospace;">0%</div></div>',
+                            spin: true
+                        });
+
+                        var fd = new FormData();
+                        var sid = (typeof L !== 'undefined' && L.env && L.env.sessionid) ? L.env.sessionid : "";
+                        if (!sid) {
+                            var match = document.cookie.match(/sysauth_http=([^;]+)/) || document.cookie.match(/sysauth=([^;]+)/);
+                            if (match) sid = match[1];
+                        }
+                        fd.append("sessionid", sid);
+                        fd.append("filename", "/tmp/backup_restore.tar.gz");
+                        fd.append("file", file);
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/cgi-bin/cgi-upload', true);
+
+                        xhr.upload.onprogress = function(evt) {
+                            if (evt.lengthComputable) {
+                                var percent = Math.floor((evt.loaded / evt.total) * 100);
+                                var pEl = document.getElementById('nw-upload-progress');
+                                if (pEl) pEl.innerText = percent + '%';
+                            }
+                        };
+
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                var pEl = document.getElementById('nw-upload-progress');
+                                if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:16px;">' + (T['M_RST_DELIVERED'] || '文件已送达，开始执行恢复...') + '</span>';
+
+                                // 第三阶段：执行底层的配置恢复并自动重启
+                                rpc.declare({ object: 'system', method: 'sysupgrade', params: ['restore', '/tmp/backup_restore.tar.gz'] })().then(function() {
+                                    var rebootSec = 0;
+                                    setInterval(function() {
+                                        rebootSec++;
+                                        if (pEl) pEl.innerHTML = '<span style="color:#3b82f6; font-size:16px;">🔄 ' + (T['MSG_REBOOTING'] || '系统正在重启...') + ' (' + rebootSec + 's)</span>';
+                                        // 倒计时后自动刷新页面以重连后台
+                                        if (rebootSec > 60) window.location.reload();
+                                    }, 1000);
+                                }).catch(function(err) {
+                                    // 异常兜底：RPC 被强杀 (网络服务已重启) 通常意味着恢复命令已成功下发并切断了当前连接
+                                    if (pEl) pEl.innerHTML = '<span style="color:#f59e0b; font-size:16px;">⏳ 恢复指令已下发，设备可能正在重启中...</span>';
+                                    setTimeout(function(){ window.location.reload(); }, 60000);
+                                });
+
+                            } else {
+                                fileRestoreConfig.value = '';
+                                openModal({ title: T['M_SYS_ERR'] || '错误', msg: '上传失败: ' + xhr.status, hideCancel: true, okText: T['M_CLOSE'] || '关闭' });
+                            }
+                        };
+
+                        xhr.onerror = function() {
+                            fileRestoreConfig.value = '';
+                            openModal({ title: T['M_RST_NET_ERR'] || '网络错误', msg: T['M_RST_NET_INTR'] || '网络连接意外中断！', hideCancel: true, okText: T['M_CLOSE'] || '关闭' });
+                        };
+
+                        xhr.send(fd);
+                    }
+                });
+            });
+        }
+        // ==========================================
 
         // 智能备份与恢复事件绑定
         var btnSmartBackup = container.querySelector('#btn-smart-backup');
