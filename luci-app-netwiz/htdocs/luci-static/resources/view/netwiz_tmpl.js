@@ -574,6 +574,7 @@ return view.extend({ // 继承view
       'M_RST_SUCC_MSG': _('%s config file has been restored and reloaded!'),
       'M_RST_FAIL_TIT': _('Restore Failed'),
       'M_RST_FAIL_MSG': _('Failed to extract or restart service.'),
+      'M_RELOAD': _('Reload Page'),
 
       // ==========================================
       // 网络与报错相关
