@@ -2231,3 +2231,96 @@ msgstr "備份設定"
 
 msgid "Restore Config"
 msgstr "還原設定"
+
+msgid "Restore Configuration Confirm"
+msgstr "恢復配置確認"
+
+msgid "Warning: Restoring the configuration will overwrite all current settings and automatically restart the router upon completion!"
+msgstr "警告：恢復配置將覆蓋目前所有設定，並在完成後自動重啟路由器！"
+
+msgid "Selected file: "
+msgstr "選取檔案："
+
+msgid "Confirm Restore"
+msgstr "確認恢復"
+
+msgid "Restoring Configuration"
+msgstr "正在恢復配置"
+
+msgid "Uploading backup file, please do not disconnect power..."
+msgstr "正在上傳備份檔案，請勿斷開電源..."
+
+msgid "File delivered, starting restore..."
+msgstr "檔案已送達，開始執行恢復..."
+
+msgid "System is restarting..."
+msgstr "系統正在重啟..."
+
+msgid "Restore command issued, device may be restarting..."
+msgstr "恢復指令已下發，設備可能正在重啟中..."
+
+msgid "Backing up"
+msgstr "備份中"
+
+msgid "Precisely packing "
+msgstr "正在精準打包 "
+
+msgid "config and generating download, please wait..."
+msgstr "的配置並生成下載，請稍候..."
+
+msgid "Backup Successful"
+msgstr "備份成功"
+
+msgid "The file contains core assets and is downloading in the background. Please check your browser!"
+msgstr "檔案包含了核心資產，已開始在後台為您下載，請留意瀏覽器提示！"
+
+msgid "Backup Failed"
+msgstr "備份失敗"
+
+msgid "Config not found or packaging error. Please check if the plugin is installed."
+msgstr "找不到配置或打包出錯，請檢查是否安裝了該外掛程式。"
+
+msgid "Request Failed"
+msgstr "請求失敗"
+
+msgid "API request failed: "
+msgstr "請求介面失敗："
+
+msgid "Restoring"
+msgstr "恢復中"
+
+msgid "Uploading and restoring "
+msgstr "正在上傳並恢復 "
+
+msgid "config..."
+msgstr "的配置..."
+
+msgid "Restore Successful"
+msgstr "恢復成功"
+
+msgid "config file has been restored and reloaded!"
+msgstr "設定檔已還原並重新載入！"
+
+msgid "Restore Failed"
+msgstr "恢復失敗"
+
+msgid "Failed to extract or restart service."
+msgstr "解壓或重啟服務失敗。"
+
+msgid "Upload Failed"
+msgstr "上傳失敗"
+
+msgid "File upload rejected, status code: "
+msgstr "檔案上傳被拒絕，狀態碼："
+
+msgid "Upload failed: "
+msgstr "上傳失敗: "
+
+msgid "Error"
+msgstr "錯誤"
+
+msgid "Network Error"
+msgstr "網路錯誤"
+
+msgid "Network connection unexpectedly interrupted!"
+msgstr "網路連線意外中斷！"
