@@ -595,7 +595,7 @@ return view.extend({ // 继承view
       'BTN_FORCE_RST': _('Force Restore'),
    },
 
-    // 2. HTML 结构
+   // 2. HTML 结构
    html: `
    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}">
    <style>
