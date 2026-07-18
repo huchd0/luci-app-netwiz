@@ -162,64 +162,92 @@ case "$1" in
         case "$2" in
 
             backup_plugin_config)
-                input=$(cat)
-                # 剥离前端传来的标签后缀，获取纯净的插件名
-                plugin=$(echo "$input" | jsonfilter -e '@.plugin' | awk '{print $1}')
+                read input
+                plugin_name=$(echo "$input" | jsonfilter -e '@.plugin')
                 
-                if [ -n "$plugin" ] && [ -f "/etc/config/$plugin" ]; then
-                    log "[PLUGIN_BAK]" ">>> 正在备份 $plugin 的配置文件..."
-                    # 创建存放独立插件备份的目录
-                    mkdir -p /etc/netwiz/plugin_bak
-                    cd /
-                    
-                    # 默认备份 /etc/config 下的文件
-                    tar_targets="etc/config/$plugin"
-                    # 如果该插件在 /etc/ 下有附属的配置文件夹，一并打包
-                    [ -d "etc/$plugin" ] && tar_targets="$tar_targets etc/$plugin"
-                    
-                    tar -czf "/etc/netwiz/plugin_bak/${plugin}_bak.tar.gz" $tar_targets >/dev/null 2>&1
-                    
-                    if [ $? -eq 0 ]; then
-                        log "[PLUGIN_BAK]" "✅ $plugin 配置备份成功"
-                        echo '{"result": 0}'
-                    else
-                        log "[PLUGIN_BAK]" "❌ $plugin 配置备份失败"
-                        echo '{"result": 1, "error": "Backup failed"}'
-                    fi
-                else
-                    echo '{"result": 1, "error": "Config not found"}'
+                if [ -z "$plugin_name" ]; then
+                    echo '{ "result": 1 }'
+                    exit 0
                 fi
-                exit 0
+
+                TARGET_FILES=""
+
+                # 规则 1：匹配 /etc/config/ 下的同名文件及其衍生文件夹
+                for item in /etc/config/${plugin_name}*; do
+                    if [ -e "$item" ]; then
+                        TARGET_FILES="$TARGET_FILES $item"
+                    fi
+                done
+
+                # 规则 2：遍历顶部全局白名单
+                for dir in $EXTRA_BACKUP_DIRS; do
+                    if echo "$dir" | grep -q "$plugin_name"; then
+                        if [ -e "$dir" ]; then
+                            TARGET_FILES="$TARGET_FILES $dir"
+                        fi
+                    fi
+                done
+
+                TARGET_FILES=$(echo $TARGET_FILES | xargs)
+                if [ -z "$TARGET_FILES" ]; then
+                    echo '{ "result": 2 }'
+                    exit 0
+                fi
+
+                # 在 Web 目录下挂载 RAM Disk
+                DL_DIR="/www/netwiz_dl"
+                
+                # 创建挂载点（空目录只占几个字节）
+                mkdir -p "$DL_DIR"
+                
+                # 如果这个目录还没挂载内存盘，则将它挂载为 tmpfs，大小限制 50M
+                if ! mount | grep -q "$DL_DIR"; then
+                    mount -t tmpfs -o size=50M tmpfs "$DL_DIR"
+                fi
+                
+                # 挂载后赋予读取权限
+                chmod 777 "$DL_DIR"
+                
+                # 清除上一次遗留的备份文件，阅后即焚，不占系统运行内存
+                rm -f "$DL_DIR"/*
+                
+                TMP_FILE="$DL_DIR/${plugin_name}_bak.tar.gz"
+                
+                # 在 RAM 内存中打包
+                tar -czf "$TMP_FILE" $TARGET_FILES >/dev/null 2>&1
+                
+                if [ $? -eq 0 ]; then
+                    # 赋予文件可读权限
+                    chmod 644 "$TMP_FILE"
+                    
+                    # 仅返回文件的直链 URL
+                    echo "{ \"result\": 0, \"url\": \"/netwiz_dl/${plugin_name}_bak.tar.gz\" }"
+                else
+                    echo '{ "result": 2 }'
+                fi
                 ;;
 
             restore_plugin_config)
-                input=$(cat)
-                plugin=$(echo "$input" | jsonfilter -e '@.plugin' | awk '{print $1}')
-                
-                if [ -n "$plugin" ] && [ -f "/etc/netwiz/plugin_bak/${plugin}_bak.tar.gz" ]; then
-                    log "[PLUGIN_RST]" ">>> 正在恢复 $plugin 的配置文件..."
-                    cd /
-                    tar -xzf "/etc/netwiz/plugin_bak/${plugin}_bak.tar.gz" >/dev/null 2>&1
-                    
-                    if [ $? -eq 0 ]; then
-                        # 兼容特殊网络组件重启机制
-                        if [ "$plugin" = "network" ] || [ "$plugin" = "dhcp" ] || [ "$plugin" = "wireless" ]; then
-                            /etc/init.d/network restart >/dev/null 2>&1 &
-                        elif [ "$plugin" = "firewall" ]; then
-                            /etc/init.d/firewall restart >/dev/null 2>&1 &
-                        else
-                            [ -f "/etc/init.d/$plugin" ] && /etc/init.d/$plugin restart >/dev/null 2>&1 &
-                        fi
-                        log "[PLUGIN_RST]" "✅ $plugin 配置恢复完毕并已重启服务"
-                        echo '{"result": 0}'
-                    else
-                        log "[PLUGIN_RST]" "❌ $plugin 配置解压失败"
-                        echo '{"result": 1, "error": "Restore failed"}'
-                    fi
-                else
-                    echo '{"result": 1, "error": "No backup archive found"}'
+                read input
+                plugin_name=$(echo "$input" | jsonfilter -e '@.plugin')
+
+                TMP_FILE="/tmp/plugin_restore_tmp.tar.gz"
+
+                if [ ! -f "$TMP_FILE" ]; then
+                    echo '{ "result": 1 }'
+                    exit 0
                 fi
-                exit 0
+
+                # 恢复逻辑：使用 -C / 参数，压缩包里绝对路径还原到系统对应的目录
+                tar -xzf "$TMP_FILE" -C / >/dev/null 2>&1
+
+                # 尝试重启该插件的服务使所有配置文件生效
+                /etc/init.d/$plugin_name restart >/dev/null 2>&1
+
+                # 阅后即焚
+                rm -f "$TMP_FILE"
+
+                echo '{ "result": 0 }'
                 ;;
 
             get_repairable_configs)
