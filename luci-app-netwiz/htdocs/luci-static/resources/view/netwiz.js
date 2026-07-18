@@ -3941,33 +3941,34 @@ return view.extend({
         // 将点击事件挂载到最高层级 document，防止被拦截或 container 未就绪
         document.addEventListener('click', function(e) {
             
-            // 1. 拦截备份配置点击 (使用标准 UBUS 协议与 cgi-download)
+            // 1. 拦截备份配置点击 (完美配合 netwiz_dev 后端)
             var btnBackup = e.target.closest('#nw-btn-backup-plugin');
             if (btnBackup) {
                 e.preventDefault();
-                console.log('✅ 成功拦截到备份按钮点击！准备调用 UBUS...');
+                console.log('✅ 成功拦截到备份按钮点击！准备调用 netwiz_dev 后端...');
                 
                 openModal({
                     title: T['M_BAK_CONF_TIT'] || '备份配置',
-                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_CONF_MSG'] || '正在打包系统配置并生成下载凭证，请稍候...') + '</div>',
+                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_CONF_MSG'] || '正在打包系统配置，请稍候...') + '</div>',
                     spin: true,
                     hideCancel: true,
                     hideOk: true
                 });
-
+            
                 // 获取当前的 Session ID (身份凭证)
                 var sid = (typeof L !== 'undefined' && L.env && L.env.sessionid) ? L.env.sessionid : "";
                 if (!sid) {
                     var match = document.cookie.match(/sysauth_http=([^;]+)/) || document.cookie.match(/sysauth=([^;]+)/);
                     if (match) sid = match[1];
                 }
-
-                // 核心修复：构造标准 UBUS 请求，调用 rpc-sys 的 archive 方法打包配置
+            
+                // 核心修改 1：将 UBUS 对象从 "rpc-sys" 改为你的自定义后端 "netwiz_dev"
+                // 假设 netwiz_dev 脚本中暴露了名为 "archive" 或 "backup" 的方法
                 var ubusPayload = JSON.stringify({
                     jsonrpc: "2.0",
                     id: 1,
                     method: "call",
-                    params: [sid, "rpc-sys", "archive", {}]
+                    params: [sid, "netwiz_dev", "archive", {}] 
                 });
                 
                 fetch(window.location.origin + '/ubus', {
@@ -3977,23 +3978,37 @@ return view.extend({
                 }).then(function(res) { 
                     return res.json(); 
                 }).then(function(data) {
-                    // 检查底层是否成功返回了一次性下载 Token
-                    if (data && data.result && data.result[1] && data.result[1].token) {
-                        var token = data.result[1].token;
+                    // 核心修改 2：弹性解析 netwiz_dev 的返回值
+                    if (data && data.result && data.result[1]) {
+                        var resData = data.result[1];
                         
-                        // 使用官方标准的 cgi-download 配合 Token 进行安全下载
-                        var downloadUrl = window.location.origin + '/cgi-bin/cgi-download?sessionid=' + sid + '&token=' + token;
-                        window.location = downloadUrl; // 触发浏览器下载
+                        // 情况 A：如果 netwiz_dev 依然按官方标准返回 token，则走 cgi-download
+                        if (resData.token) {
+                            var downloadUrl = window.location.origin + '/cgi-bin/cgi-download?sessionid=' + sid + '&token=' + resData.token;
+                            window.location = downloadUrl;
+                        } 
+                        // 情况 B：如果 netwiz_dev 类似智能备份，直接在 /tmp 生成了文件并返回了直链或路径
+                        else if (resData.url || resData.path) {
+                            var a = document.createElement("a");
+                            a.href = resData.url || resData.path;
+                            a.download = resData.filename || "backup.tar.gz";
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        } else {
+                            throw new Error("netwiz_dev 返回了未知的成功格式");
+                        }
                         
                         // 下载触发后关闭提示框
                         setTimeout(function() {
                             var gm = document.getElementById('nw-global-modal');
                             if (gm) gm.style.display = 'none';
                         }, 2500);
+                        
                     } else {
                         openModal({ 
                             title: T['M_SYS_ERR'] || '错误', 
-                            msg: '无法生成备份凭证 (Token)，请检查系统权限或 UBUS 服务', 
+                            msg: 'netwiz_dev 后端未返回有效凭证，请检查脚本执行权限！', 
                             hideCancel: true,
                             okText: '关闭'
                         });
@@ -4001,7 +4016,7 @@ return view.extend({
                 }).catch(function(err) {
                     openModal({ 
                         title: T['M_RST_NET_ERR'] || '网络错误', 
-                        msg: '请求 UBUS 备份接口失败：' + err, 
+                        msg: '请求 netwiz_dev 备份接口失败：' + err, 
                         hideCancel: true,
                         okText: '关闭'
                     });
