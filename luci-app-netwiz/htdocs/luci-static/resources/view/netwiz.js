@@ -4079,7 +4079,20 @@ return view.extend({
                                             onOk: function() { window.location.reload(); }
                                         });
                                     } else {
-                                        openModal({ title: '❌ ' + (T['M_RST_FAIL_TIT'] || 'Restore Failed'), msg: T['M_RST_FAIL_MSG'] || 'Failed to extract or restart service.', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                        // 动态判断错误码
+                                        var errMsg = T['M_RST_FAIL_MSG'] || 'Failed to extract or restart service.';
+                                        if (r && String(r.result) === '3') {
+                                            errMsg = T['M_ERR_FILE_CORRUPT'] || 'The uploaded file is corrupted or not a valid archive!';
+                                        } else if (r && String(r.result) === '4') {
+                                            errMsg = (T['M_ERR_FILE_MISMATCH'] || 'The archive content does not match %s!').replace('%s', '<b>' + pName + '</b>');
+                                        }
+                                        
+                                        openModal({ 
+                                            title: '❌ ' + (T['M_RST_FAIL_TIT'] || 'Restore Failed'), 
+                                            msg: errMsg, 
+                                            okText: T['M_CLOSE'] || 'Close', 
+                                            hideCancel: true 
+                                        });
                                     }
                                 }).catch(function(err) {
                                     openModal({ title: '❌ ' + (T['M_REQ_FAIL_TIT'] || 'Request Failed'), msg: (T['M_REQ_FAIL_MSG'] || 'API request failed: %s').replace('%s', err), okText: T['M_CLOSE'] || 'Close', hideCancel: true });
