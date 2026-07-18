@@ -4008,8 +4008,14 @@ return view.extend({
                         var file = evt.target.files[0];
                         if (!file) return;
 
-                        // 防呆 1：检查文件格式
+                        // 动态获取下拉框最新选择的值
+                        var selPluginNow = document.getElementById('nw-repair-select');
+                        var currentPName = selPluginNow ? selPluginNow.value : '';
+                        if (!currentPName) return;
+
                         var fileName = file.name.toLowerCase();
+
+                        // 防呆 1：检查文件格式
                         if (!fileName.endsWith('.tar.gz') && !fileName.endsWith('.tar')) {
                             openModal({ 
                                 title: '❌ ' + (T['M_FMT_ERR_TIT'] || 'Format Error'), 
@@ -4022,25 +4028,25 @@ return view.extend({
                         }
 
                         // 防呆 2：检查文件名是否包含该插件的名称 (允许稍微模糊的匹配)
-                        if (file.name.toLowerCase().indexOf(pName.toLowerCase()) === -1) {
+                        if (fileName.indexOf(currentPName.toLowerCase()) === -1) {
                             openModal({ 
                                 title: '⚠️ ' + (T['M_WARN_TIT'] || 'Warning'), 
                                 msg: '<div style="color:#f59e0b;">' + 
                                      (T['M_WARN_MSG'] || 'The selected file does not seem to belong to %s.<br>File name: %f<br>Are you sure you want to continue?')
-                                         .replace('%s', '<b>' + pName + '</b>')
+                                         .replace('%s', '<b>' + currentPName + '</b>')
                                          .replace('%f', file.name) + 
                                      '</div>', 
                                 okText: T['BTN_FORCE_RST'] || 'Force Restore', 
                                 cancelText: T['BTN_CANCEL'] || 'Cancel',
                                 isDanger: true,
-                                onOk: function() { startUploadRestore(file, pName); } // 强制，则放行
+                                onOk: function() { startUploadRestore(file, currentPName); } // 强制，则放行
                             });
                             fileInput.value = '';
                             return;
                         }
 
                         // 验证通过，开始上传
-                        startUploadRestore(file, pName);
+                        startUploadRestore(file, currentPName);
                     });
 
                     // 上传逻辑抽离成一个独立函数，方便调用
