@@ -248,18 +248,22 @@ case "$1" in
                     chmod 777 "$DL_DIR" >/dev/null 2>&1
                 fi
                 
-                TMP_FILE="$DL_DIR/${plugin_name}_bak.tar"
+                TIME_STAMP=$(date +%Y%m%d_%H%M%S)
+                # 将文件名加上时间戳小尾巴
+                FILE_NAME="${plugin_name}_backup_${TIME_STAMP}.tar"
+                TMP_FILE="$DL_DIR/$FILE_NAME"
                 
-                # 打包
+                # 执行相对路径打包 (纯 tar 提速版)
                 tar -cf "$TMP_FILE" -C / $TARGET_FILES >/dev/null 2>&1
                 
                 if [ -s "$TMP_FILE" ]; then
                     chmod 644 "$TMP_FILE" >/dev/null 2>&1
                     
+                    # 动态计算下载链接给前端，带上新的文件名
                     if echo "$DL_DIR" | grep -q "luci-static"; then
-                        echo "{ \"result\": 0, \"url\": \"/luci-static/netwiz_dl/${plugin_name}_bak.tar\" }"
+                        echo "{ \"result\": 0, \"url\": \"/luci-static/netwiz_dl/$FILE_NAME\" }"
                     else
-                        echo "{ \"result\": 0, \"url\": \"/netwiz_dl/${plugin_name}_bak.tar\" }"
+                        echo "{ \"result\": 0, \"url\": \"/netwiz_dl/$FILE_NAME\" }"
                     fi
                 else
                     echo '{ "result": 3, "error": "tar_command_failed" }'
