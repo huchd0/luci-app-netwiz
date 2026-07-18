@@ -2283,8 +2283,8 @@ msgstr "找不到配置或打包出錯，請檢查是否安裝了該外掛程式
 msgid "Request Failed"
 msgstr "請求失敗"
 
-msgid "API request failed: "
-msgstr "請求介面失敗："
+msgid "API request failed: %s"
+msgstr "請求介面失敗：%s"
 
 msgid "Restoring"
 msgstr "恢復中"
@@ -2310,11 +2310,11 @@ msgstr "解壓或重啟服務失敗。"
 msgid "Upload Failed"
 msgstr "上傳失敗"
 
-msgid "File upload rejected, status code: "
-msgstr "檔案上傳被拒絕，狀態碼："
+msgid "File upload rejected, status code: %s"
+msgstr "檔案上傳被拒絕，狀態碼：%s"
 
-msgid "Upload failed: "
-msgstr "上傳失敗: "
+msgid "Upload failed: %s"
+msgstr "上傳失敗: %s"
 
 msgid "Error"
 msgstr "錯誤"
