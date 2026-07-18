@@ -166,64 +166,103 @@ case "$1" in
                 plugin_name=$(echo "$input" | jsonfilter -e '@.plugin')
                 
                 if [ -z "$plugin_name" ]; then
-                    echo '{ "result": 1 }'
+                    echo '{ "result": 1, "error": "plugin_name_empty" }'
                     exit 0
                 fi
 
                 TARGET_FILES=""
 
+                # 辅助函数：格式化路径，抹平斜杠差异
+                add_target() {
+                    local p="$1"
+                    p=$(echo "$p" | tr -s '/') # 合并连续的斜杠 (如 // 变 /)
+                    p="${p#/}"                 # 砍掉开头的斜杠
+                    p="${p%/}"                 # 砍掉结尾的斜杠
+                    if [ -n "$p" ]; then
+                        TARGET_FILES="$TARGET_FILES $p"
+                    fi
+                }
+
                 # 规则 1：匹配 /etc/config/ 下的同名文件及其衍生文件夹
                 for item in /etc/config/${plugin_name}*; do
-                    if [ -e "$item" ]; then
-                        TARGET_FILES="$TARGET_FILES $item"
+                    if [ -e "$item" ] || [ -L "$item" ]; then
+                        add_target "$item"
                     fi
                 done
 
-                # 规则 2：遍历顶部全局白名单
-                for dir in $EXTRA_BACKUP_DIRS; do
-                    if echo "$dir" | grep -q "$plugin_name"; then
-                        if [ -e "$dir" ]; then
-                            TARGET_FILES="$TARGET_FILES $dir"
+                # 规则 2：匹配同名的大型插件核心目录
+                if [ -d "/etc/$plugin_name" ] || [ -L "/etc/$plugin_name" ]; then
+                    add_target "/etc/$plugin_name"
+                fi
+
+                # 规则 3：遍历全局白名单
+                if [ -n "$EXTRA_BACKUP_DIRS" ]; then
+                    for dir in $EXTRA_BACKUP_DIRS; do
+                        if echo "$dir" | grep -q "$plugin_name"; then
+                            if [ -e "$dir" ] || [ -L "$dir" ]; then
+                                add_target "$dir"
+                            fi
                         fi
+                    done
+                fi
+
+                # 父子目录冲突剪枝算法
+                FINAL_TARGETS=""
+                # 先按字母顺序排序（确保 /etc/abc 一定排在 /etc/abc/def 前面）
+                SORTED_TARGETS=$(echo "$TARGET_FILES" | tr ' ' '\n' | sort -u)
+                
+                for current in $SORTED_TARGETS; do
+                    is_sub=0
+                    for parent in $FINAL_TARGETS; do
+                        # 判断当前路径是否以 "父路径/" 开头，如果是，说明它是子目录，抛弃
+                        case "$current/" in
+                            "$parent/"*) is_sub=1; break ;;
+                        esac
+                    done
+                    # 如果不是任何已存在路径的子目录，才允许加入最终名单
+                    if [ $is_sub -eq 0 ]; then
+                        FINAL_TARGETS="$FINAL_TARGETS $current"
                     fi
                 done
 
-                TARGET_FILES=$(echo $TARGET_FILES | xargs)
+                TARGET_FILES=$(echo "$FINAL_TARGETS" | xargs)
                 if [ -z "$TARGET_FILES" ]; then
-                    echo '{ "result": 2 }'
+                    echo '{ "result": 2, "error": "no_target_files_found" }'
                     exit 0
                 fi
 
-                # 在 Web 目录下挂载 RAM Disk
-                DL_DIR="/www/netwiz_dl"
+                # 动态获取当前路由器真实的 Web 根目录
+                WEB_ROOT=$(uci get uhttpd.main.home 2>/dev/null || echo "/www")
+                DL_DIR="$WEB_ROOT/netwiz_dl"
                 
-                # 创建挂载点（空目录只占几个字节）
-                mkdir -p "$DL_DIR"
+                # 先清除可能存在的死链或错误文件，再创建
+                rm -rf "$DL_DIR" >/dev/null 2>&1
+                mkdir -p "$DL_DIR" >/dev/null 2>&1
+                chmod 777 "$DL_DIR" >/dev/null 2>&1
                 
-                # 如果这个目录还没挂载内存盘，则将它挂载为 tmpfs，大小限制 50M
-                if ! mount | grep -q "$DL_DIR"; then
-                    mount -t tmpfs -o size=50M tmpfs "$DL_DIR"
+                # 如果当前 Web 根目录因为特殊挂载原因无法写入，则回退到绝对存在的 luci-static
+                if [ ! -d "$DL_DIR" ]; then
+                    DL_DIR="$WEB_ROOT/luci-static/netwiz_dl"
+                    rm -rf "$DL_DIR" >/dev/null 2>&1
+                    mkdir -p "$DL_DIR" >/dev/null 2>&1
+                    chmod 777 "$DL_DIR" >/dev/null 2>&1
                 fi
                 
-                # 挂载后赋予读取权限
-                chmod 777 "$DL_DIR"
+                TMP_FILE="$DL_DIR/${plugin_name}_bak.tar"
                 
-                # 清除上一次遗留的备份文件，阅后即焚，不占系统运行内存
-                rm -f "$DL_DIR"/*
+                # 打包
+                tar -cf "$TMP_FILE" -C / $TARGET_FILES >/dev/null 2>&1
                 
-                TMP_FILE="$DL_DIR/${plugin_name}_bak.tar.gz"
-                
-                # 在 RAM 内存中打包
-                tar -czf "$TMP_FILE" $TARGET_FILES >/dev/null 2>&1
-                
-                if [ $? -eq 0 ]; then
-                    # 赋予文件可读权限
-                    chmod 644 "$TMP_FILE"
+                if [ -s "$TMP_FILE" ]; then
+                    chmod 644 "$TMP_FILE" >/dev/null 2>&1
                     
-                    # 仅返回文件的直链 URL
-                    echo "{ \"result\": 0, \"url\": \"/netwiz_dl/${plugin_name}_bak.tar.gz\" }"
+                    if echo "$DL_DIR" | grep -q "luci-static"; then
+                        echo "{ \"result\": 0, \"url\": \"/luci-static/netwiz_dl/${plugin_name}_bak.tar\" }"
+                    else
+                        echo "{ \"result\": 0, \"url\": \"/netwiz_dl/${plugin_name}_bak.tar\" }"
+                    fi
                 else
-                    echo '{ "result": 2 }'
+                    echo '{ "result": 3, "error": "tar_command_failed" }'
                 fi
                 ;;
 
@@ -231,6 +270,7 @@ case "$1" in
                 read input
                 plugin_name=$(echo "$input" | jsonfilter -e '@.plugin')
                 
+                # 注意：前端固定上传到了这个临时文件名，Linux 不看后缀只看文件头，所以名字带 .gz 没关系
                 TMP_FILE="/tmp/plugin_restore_tmp.tar.gz"
                 
                 if [ ! -f "$TMP_FILE" ]; then
@@ -238,43 +278,47 @@ case "$1" in
                     exit 0
                 fi
                 
-                # 后端防呆 1：验证是否为损坏或伪造的 gzip 压缩包
-                # tar -tzf 只读取文件列表，不解压。如果返回值不是 0，文件已损坏或根本不是 tar.gz
-                if ! tar -tzf "$TMP_FILE" >/dev/null 2>&1; then
+                # 防呆 1：自适应识别文件格式 (是纯 tar 还是 gzip)
+                # 优先测试纯 tar (-tf)
+                if tar -tf "$TMP_FILE" >/dev/null 2>&1; then
+                    TAR_TEST="tar -tf"
+                    TAR_EXEC="tar -xf"
+                # 再测试 gzip (-tzf)
+                elif tar -tzf "$TMP_FILE" >/dev/null 2>&1; then
+                    TAR_TEST="tar -tzf"
+                    TAR_EXEC="tar -xzf"
+                else
+                    # 两种都不是，说明真传错文件或者损坏了
                     rm -f "$TMP_FILE"
-                    echo '{ "result": 3 }' # 返回状态 3：文件格式错误
+                    echo '{ "result": 3 }'
                     exit 0
                 fi
                 
-                # 后端防呆 2：内容交叉验证
-                # 检查压缩包内部的文件列表，是否包含当前选定插件的名字
-                if ! tar -tzf "$TMP_FILE" | grep -qi "$plugin_name"; then
+                # 防呆 2：内容交叉验证（防止张冠李戴）
+                # 动态使用上面检测出来的命令
+                if ! $TAR_TEST "$TMP_FILE" | grep -qi "$plugin_name"; then
                     rm -f "$TMP_FILE"
-                    echo '{ "result": 4 }' # 返回状态 4：内容不匹配
+                    echo '{ "result": 4 }' # 状态 4：内容不匹配
                     exit 0
                 fi
                 
-                # 验证通过，覆盖解压
-                # 先停止服务，释放文件锁，并防止进程在退出时反写旧配置
+                # 防呆通过！释放系统锁
                 if [ -f "/etc/init.d/$plugin_name" ]; then
                     /etc/init.d/$plugin_name stop >/dev/null 2>&1
                     sleep 1
                 fi
                 
-                # 防呆 3：校验解压过程
-                # 去掉原本闭眼解压的逻辑，捕获 tar 的退出状态码
-                tar -xzf "$TMP_FILE" -C / >/dev/null 2>&1
+                # 防呆 3：严苛校验写入系统
+                $TAR_EXEC "$TMP_FILE" -C / >/dev/null 2>&1
                 if [ $? -ne 0 ]; then
-                    # 如果解压失败（比如磁盘满了、文件权限错误等），清理垃圾并返回错误码 5
                     rm -f "$TMP_FILE"
-                    echo '{ "result": 5 }'
+                    echo '{ "result": 5 }' # 状态 5：解压写入失败
                     exit 0
                 fi
                 
-                # 配置文件已经 覆盖到了系统中
                 rm -f "$TMP_FILE"
                 
-                # 保护性后台启动（防止 UBUS 超时强杀）
+                # 保护性后台平滑重启
                 if [ -f "/etc/init.d/$plugin_name" ]; then
                     (
                         sleep 1
@@ -283,7 +327,6 @@ case "$1" in
                     ) >/dev/null 2>&1 &
                 fi
                 
-                # 准确返回结果：解压已确认成功，启动已交接给后台
                 echo '{ "result": 0 }'
                 ;;
 
