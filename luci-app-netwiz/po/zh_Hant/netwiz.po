@@ -1919,7 +1919,7 @@ msgid "Scanning for repairable plugins..."
 msgstr "正在掃描可修復的插件清單..."
 
 msgid "Standard uninstallation does not remove plugin configuration files. If a plugin malfunctions after reinstallation, select it below to reset it to its initial state."
-msgstr "常規卸載不會清除插件設定檔。若插件重裝後仍無法正常使用，可在下方選中對應插件，將其重置為初始狀態。"
+msgstr "常規卸載不會清除插件設定檔。若插件重裝後仍無法正常使用，可在下方選中對應插件，將其重置為初始狀態。也可以手動備份配置，需要時再手動恢復配置。"
 
 msgid "Factory Default"
 msgstr "出廠預設值"
