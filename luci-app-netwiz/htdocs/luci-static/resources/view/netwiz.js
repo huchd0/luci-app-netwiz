@@ -1429,10 +1429,10 @@ return view.extend({
                                                     }
                                                 }).catch(function(err) {
                                                     var errStr = String(err).toLowerCase();
-                                                    // 智能拦截超时报错：后台其实还在干活，只是闪存写入慢
+                                                    // 智能拦截超时报错：后台还在运行。
                                                     if (errStr.indexOf('timed out') !== -1 || errStr.indexOf('timeout') !== -1) {
                                                         openModal({ 
-                                                            title: T['M_REP_PROC_TIT'] || 'Processing', 
+                                                            title: T['M_REP_PROC_TIT'] || 'Processing',
                                                             msg: (T['MSG_WAIT'] || 'Please wait...') + '<br><br><span style="font-size:13px;color:#64748b;line-height:1.6;">' + (T['M_HW_WAIT'] || 'Hardware execution takes longer, running in background...') + '</span>', 
                                                             spin: true, hideCancel: true, hideOk: true 
                                                         });
@@ -3974,7 +3974,7 @@ return view.extend({
                         document.body.removeChild(a);
 
                         openModal({
-                            title: '✅ ' + (T['M_BAK_SUCC_TIT'] || 'Backup Successful'),
+                            title: T['M_BAK_SUCC_TIT'] || 'Backup Successful',
                             msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' + (T['M_BAK_SUCC_MSG'] || 'The file contains core assets and is downloading in the background. Please check your browser!') + '</div>', 
                             okText: T['M_CLOSE'] || 'Close',
                             hideCancel: true
