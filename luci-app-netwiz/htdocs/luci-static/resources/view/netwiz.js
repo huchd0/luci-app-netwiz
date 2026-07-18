@@ -22,6 +22,11 @@ var getWanStatus = rpc.declare({ object: 'network.interface', method: 'dump', ex
 var callNetCheckWifi = rpc.declare({ object: 'netwiz', method: 'check_wifi', expect: { '': {} } });
 var callSetPassword = rpc.declare({ object: 'netwiz', method: 'set_password', params: ['password'], expect: { result: 0 } });
 var callSystemBoard = rpc.declare({ object: 'system', method: 'board', expect: { '': {} } });
+
+// 单一插件的局部备份与恢复接口
+var callBackupPlugin = rpc.declare({ object: 'netwiz', method: 'backup_plugin_config', params: ['plugin'], expect: { result: 0 } });
+var callRestorePlugin = rpc.declare({ object: 'netwiz', method: 'restore_plugin_config', params: ['plugin'], expect: { result: 0 } });
+
 // 增加智能备份和恢复的接口声明
 var callSmartBackup = rpc.declare({ object: 'netwiz', method: 'smart_backup', params: ['type'], expect: { '': {} } });
 var callCheckBackup = rpc.declare({ object: 'netwiz', method: 'check_backup', expect: { '': {} } });
@@ -3941,108 +3946,93 @@ return view.extend({
         // 将点击事件挂载到最高层级 document，防止被拦截或 container 未就绪
         document.addEventListener('click', function(e) {
             
-            // 1. 拦截备份配置点击 (完美配合 netwiz_dev 后端)
+            // 1. 拦截备份配置点击 (单一插件局部备份)
             var btnBackup = e.target.closest('#nw-btn-backup-plugin');
             if (btnBackup) {
                 e.preventDefault();
-                console.log('✅ 成功拦截到备份按钮点击！准备调用 netwiz_dev 后端...');
+                
+                // 获取当前下拉框选中的插件名称
+                var selPlugin = document.getElementById('nw-repair-select');
+                if (!selPlugin || !selPlugin.value) {
+                    alert(T['M_SELECT_PLUGIN'] || "请先选择要备份的插件！");
+                    return;
+                }
+                var pName = selPlugin.value;
+                console.log('✅ 成功拦截到备份按钮点击！准备备份插件:', pName);
                 
                 openModal({
-                    title: T['M_BAK_CONF_TIT'] || '备份配置',
-                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_CONF_MSG'] || '正在打包系统配置，请稍候...') + '</div>',
+                    title: T['M_BAK_CONF_TIT'] || '📦 备份中',
+                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ 正在精准打包 <b>' + pName + '</b> 的配置文件，请稍候...</div>',
                     spin: true,
                     hideCancel: true,
                     hideOk: true
                 });
-            
-                // 获取当前的 Session ID (身份凭证)
-                var sid = (typeof L !== 'undefined' && L.env && L.env.sessionid) ? L.env.sessionid : "";
-                if (!sid) {
-                    var match = document.cookie.match(/sysauth_http=([^;]+)/) || document.cookie.match(/sysauth=([^;]+)/);
-                    if (match) sid = match[1];
-                }
-            
-                // 核心修改 1：将 UBUS 对象从 "rpc-sys" 改为你的自定义后端 "netwiz_dev"
-                // 假设 netwiz_dev 脚本中暴露了名为 "archive" 或 "backup" 的方法
-                var ubusPayload = JSON.stringify({
-                    jsonrpc: "2.0",
-                    id: 1,
-                    method: "call",
-                    params: [sid, "netwiz_dev", "archive", {}] 
-                });
                 
-                fetch(window.location.origin + '/ubus', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: ubusPayload
-                }).then(function(res) { 
-                    return res.json(); 
-                }).then(function(data) {
-                    // 核心修改 2：弹性解析 netwiz_dev 的返回值
-                    if (data && data.result && data.result[1]) {
-                        var resData = data.result[1];
-                        
-                        // 情况 A：如果 netwiz_dev 依然按官方标准返回 token，则走 cgi-download
-                        if (resData.token) {
-                            var downloadUrl = window.location.origin + '/cgi-bin/cgi-download?sessionid=' + sid + '&token=' + resData.token;
-                            window.location = downloadUrl;
-                        } 
-                        // 情况 B：如果 netwiz_dev 类似智能备份，直接在 /tmp 生成了文件并返回了直链或路径
-                        else if (resData.url || resData.path) {
-                            var a = document.createElement("a");
-                            a.href = resData.url || resData.path;
-                            a.download = resData.filename || "backup.tar.gz";
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
+                // 调用顶层声明好的 UBUS 接口
+                if (typeof callBackupPlugin === 'function') {
+                    callBackupPlugin(pName).then(function(r) {
+                        if (r && String(r.result) === '0') {
+                            openModal({ 
+                                title: '✅ 备份成功', 
+                                msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' + pName + ' 配置已安全保存到路由器。</div>', 
+                                okText: T['M_CLOSE'] || '关闭', 
+                                hideCancel: true 
+                            });
                         } else {
-                            throw new Error("netwiz_dev 返回了未知的成功格式");
+                            openModal({ title: '❌ 备份失败', msg: '找不到配置或打包出错，请检查后端脚本。', okText: T['M_CLOSE'] || '关闭', hideCancel: true });
                         }
-                        
-                        // 下载触发后关闭提示框
-                        setTimeout(function() {
-                            var gm = document.getElementById('nw-global-modal');
-                            if (gm) gm.style.display = 'none';
-                        }, 2500);
-                        
-                    } else {
-                        openModal({ 
-                            title: T['M_SYS_ERR'] || '错误', 
-                            msg: 'netwiz_dev 后端未返回有效凭证，请检查脚本执行权限！', 
-                            hideCancel: true,
-                            okText: '关闭'
-                        });
-                    }
-                }).catch(function(err) {
-                    openModal({ 
-                        title: T['M_RST_NET_ERR'] || '网络错误', 
-                        msg: '请求 netwiz_dev 备份接口失败：' + err, 
-                        hideCancel: true,
-                        okText: '关闭'
+                    }).catch(function(err) {
+                        openModal({ title: '❌ 请求失败', msg: '请求 netwiz_dev 接口失败：' + err, okText: T['M_CLOSE'] || '关闭', hideCancel: true });
+                        console.error('UBUS 备份请求失败:', err);
                     });
-                    console.error('UBUS 备份请求失败:', err);
-                });
+                } else {
+                    openModal({ title: '❌ 系统错误', msg: '接口 callBackupPlugin 未定义！', okText: '关闭', hideCancel: true });
+                }
             }
 
-            // 2. 拦截恢复配置点击 (修正 ID 为 nw-btn-restore-plugin)
+            // 2. 拦截恢复配置点击 (单一插件局部恢复)
             var btnRestore = e.target.closest('#nw-btn-restore-plugin');
             if (btnRestore) {
                 e.preventDefault();
-                console.log('✅ 成功拦截到恢复按钮点击！');
                 
-                var fileRestoreConfig = document.getElementById('file-restore-config');
-                if (!fileRestoreConfig) {
-                    fileRestoreConfig = document.createElement('input');
-                    fileRestoreConfig.type = 'file';
-                    fileRestoreConfig.id = 'file-restore-config';
-                    fileRestoreConfig.style.display = 'none';
-                    document.body.appendChild(fileRestoreConfig);
-                    
-                    fileRestoreConfig.addEventListener('change', handleRestoreUpload);
+                // 获取当前下拉框选中的插件名称
+                var selPlugin = document.getElementById('nw-repair-select');
+                if (!selPlugin || !selPlugin.value) {
+                    alert(T['M_SELECT_PLUGIN'] || "请先选择要恢复的插件！");
+                    return;
                 }
+                var pName = selPlugin.value;
+                console.log('✅ 成功拦截到恢复按钮点击！准备恢复插件:', pName);
                 
-                fileRestoreConfig.value = ''; 
-                fileRestoreConfig.click();
+                openModal({
+                    title: '⚡ 恢复中',
+                    msg: '<div style="text-align:center; padding:15px 0; color:#10b981;">⏳ 正在解压 <b>' + pName + '</b> 的配置并重启服务...</div>',
+                    spin: true,
+                    hideCancel: true,
+                    hideOk: true
+                });
+                
+                // 调用顶层声明好的 UBUS 接口
+                if (typeof callRestorePlugin === 'function') {
+                    callRestorePlugin(pName).then(function(r) {
+                        if (r && String(r.result) === '0') {
+                            openModal({ 
+                                title: '✅ 恢复成功', 
+                                msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' + pName + ' 配置文件已还原并重新加载！</div>', 
+                                okText: T['M_RELOAD'] || '刷新页面', 
+                                hideCancel: true,
+                                onOk: function() { window.location.reload(); } // 恢复成功后刷新页面
+                            });
+                        } else {
+                            openModal({ title: '❌ 恢复失败', msg: '未能找到该软件的备份档案。', okText: T['M_CLOSE'] || '关闭', hideCancel: true });
+                        }
+                    }).catch(function(err) {
+                        openModal({ title: '❌ 请求失败', msg: '请求 netwiz_dev 接口失败：' + err, okText: T['M_CLOSE'] || '关闭', hideCancel: true });
+                        console.error('UBUS 恢复请求失败:', err);
+                    });
+                } else {
+                    openModal({ title: '❌ 系统错误', msg: '接口 callRestorePlugin 未定义！', okText: '关闭', hideCancel: true });
+                }
             }
         });
         // ==========================================
