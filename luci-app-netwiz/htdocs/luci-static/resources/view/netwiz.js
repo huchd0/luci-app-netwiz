@@ -3968,7 +3968,7 @@ return view.extend({
                         
                         var a = document.createElement('a');
                         a.href = r.url;
-                        a.download = pName + '_config_backup.tar.gz';
+                        a.download = pName + '_config_backup.tar';
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
@@ -4009,10 +4009,11 @@ return view.extend({
                         if (!file) return;
 
                         // 防呆 1：检查文件格式
-                        if (!file.name.toLowerCase().endsWith('.tar.gz')) {
+                        var fileName = file.name.toLowerCase();
+                        if (!fileName.endsWith('.tar.gz') && !fileName.endsWith('.tar')) {
                             openModal({ 
                                 title: '❌ ' + (T['M_FMT_ERR_TIT'] || 'Format Error'), 
-                                msg: T['M_FMT_ERR_MSG'] || 'Please upload a valid .tar.gz backup file!', 
+                                msg: T['M_FMT_ERR_MSG'] || 'Please upload a valid .tar or .tar.gz backup file!', 
                                 okText: T['M_CLOSE'] || 'Close', 
                                 hideCancel: true 
                             });
