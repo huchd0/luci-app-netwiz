@@ -552,7 +552,6 @@ return view.extend({ // 继承view
       // ==========================================
       'M_BAK_ING_TIT': _('Backing up'),
       'M_BAK_ING_MSG': _('Precisely packing %s config and generating download, please wait...'),
-      'M_BAK_SUCC_TIT': _('Backup Successful'),
       'M_BAK_SUCC_MSG': _('The file contains core assets and is downloading in the background. Please check your browser!'),
       'M_BAK_FAIL_TIT': _('Backup Failed'),
       'M_BAK_FAIL_MSG': _('Config not found or packaging error. Please check if the plugin is installed.'),
