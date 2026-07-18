@@ -4071,20 +4071,36 @@ return view.extend({
                                     if (r && String(r.result) === '0') {
                                         openModal({
                                             title: '✅ ' + (T['M_RST_SUCC_TIT'] || 'Restore Successful'),
+                                            // 倒计时自动刷新
                                             msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' +
-                                                (T['M_RST_SUCC_MSG'] || '%s config file has been restored and reloaded!').replace('%s', '<b>' + pName + '</b>') +
-                                                '</div>',
+                                                (T['M_RST_SUCC_MSG'] || '%s config restored! Service is restarting in the background...').replace('%s', '<b>' + pName + '</b>') +
+                                                '</div><div id="nw-reload-countdown" style="text-align:center; color:#64748b; margin-top:10px; font-size:13px;"></div>',
                                             okText: T['M_RELOAD'] || 'Reload Page',
                                             hideCancel: true,
                                             onOk: function() { window.location.reload(); }
                                         });
+
+                                        // 倒计时 5 秒后自动刷新
+                                        var sec = 5;
+                                        var cdEl = document.getElementById('nw-reload-countdown');
+                                        var timer = setInterval(function() {
+                                            sec--;
+                                            if (cdEl) cdEl.innerText = (T['M_AUTO_RELOAD'] || 'Auto reloading in %s seconds...').replace('%s', sec);
+                                            if (sec <= 0) {
+                                                clearInterval(timer);
+                                                window.location.reload();
+                                            }
+                                        }, 1000);
+
                                     } else {
-                                        // 动态判断错误码
                                         var errMsg = T['M_RST_FAIL_MSG'] || 'Failed to extract or restart service.';
                                         if (r && String(r.result) === '3') {
                                             errMsg = T['M_ERR_FILE_CORRUPT'] || 'The uploaded file is corrupted or not a valid archive!';
                                         } else if (r && String(r.result) === '4') {
                                             errMsg = (T['M_ERR_FILE_MISMATCH'] || 'The archive content does not match %s!').replace('%s', '<b>' + pName + '</b>');
+                                        } else if (r && String(r.result) === '5') {
+                                            // 捕获解压失败错误
+                                            errMsg = T['M_ERR_EXTRACT'] || 'Failed to extract files to the system! (Storage full or permission denied)';
                                         }
                                         
                                         openModal({ 
