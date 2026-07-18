@@ -3938,40 +3938,83 @@ return view.extend({
             });
         };
 
-        // 将点击事件挂载到全局 container，利用事件冒泡无视 DOM 加载顺序
-        container.addEventListener('click', function(e) {
+        // 将点击事件挂载到最高层级 document，防止被拦截或 container 未就绪
+        document.addEventListener('click', function(e) {
             
-            // 1. 拦截备份配置点击
-            var btnBackup = e.target.closest('#btn-backup-config');
+            // 1. 拦截备份配置点击 (使用标准 UBUS 协议与 cgi-download)
+            var btnBackup = e.target.closest('#nw-btn-backup-plugin');
             if (btnBackup) {
                 e.preventDefault();
+                console.log('✅ 成功拦截到备份按钮点击！准备调用 UBUS...');
+                
                 openModal({
                     title: T['M_BAK_CONF_TIT'] || '备份配置',
-                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_CONF_MSG'] || '正在生成并下载配置备份，请稍候...') + '</div>',
+                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_CONF_MSG'] || '正在打包系统配置并生成下载凭证，请稍候...') + '</div>',
                     spin: true,
                     hideCancel: true,
                     hideOk: true
                 });
 
-                var backupUrl = window.location.origin + '/cgi-bin/cgi-backup';
-                var a = document.createElement('a');
-                a.href = backupUrl;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                // 获取当前的 Session ID (身份凭证)
+                var sid = (typeof L !== 'undefined' && L.env && L.env.sessionid) ? L.env.sessionid : "";
+                if (!sid) {
+                    var match = document.cookie.match(/sysauth_http=([^;]+)/) || document.cookie.match(/sysauth=([^;]+)/);
+                    if (match) sid = match[1];
+                }
 
-                setTimeout(function() {
-                    var gm = document.getElementById('nw-global-modal');
-                    if (gm) gm.style.display = 'none';
-                }, 2500);
+                // 核心修复：构造标准 UBUS 请求，调用 rpc-sys 的 archive 方法打包配置
+                var ubusPayload = JSON.stringify({
+                    jsonrpc: "2.0",
+                    id: 1,
+                    method: "call",
+                    params: [sid, "rpc-sys", "archive", {}]
+                });
+                
+                fetch(window.location.origin + '/ubus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: ubusPayload
+                }).then(function(res) { 
+                    return res.json(); 
+                }).then(function(data) {
+                    // 检查底层是否成功返回了一次性下载 Token
+                    if (data && data.result && data.result[1] && data.result[1].token) {
+                        var token = data.result[1].token;
+                        
+                        // 使用官方标准的 cgi-download 配合 Token 进行安全下载
+                        var downloadUrl = window.location.origin + '/cgi-bin/cgi-download?sessionid=' + sid + '&token=' + token;
+                        window.location = downloadUrl; // 触发浏览器下载
+                        
+                        // 下载触发后关闭提示框
+                        setTimeout(function() {
+                            var gm = document.getElementById('nw-global-modal');
+                            if (gm) gm.style.display = 'none';
+                        }, 2500);
+                    } else {
+                        openModal({ 
+                            title: T['M_SYS_ERR'] || '错误', 
+                            msg: '无法生成备份凭证 (Token)，请检查系统权限或 UBUS 服务', 
+                            hideCancel: true,
+                            okText: '关闭'
+                        });
+                    }
+                }).catch(function(err) {
+                    openModal({ 
+                        title: T['M_RST_NET_ERR'] || '网络错误', 
+                        msg: '请求 UBUS 备份接口失败：' + err, 
+                        hideCancel: true,
+                        okText: '关闭'
+                    });
+                    console.error('UBUS 备份请求失败:', err);
+                });
             }
 
-            // 2. 拦截恢复配置点击
-            var btnRestore = e.target.closest('#btn-restore-config');
+            // 2. 拦截恢复配置点击 (修正 ID 为 nw-btn-restore-plugin)
+            var btnRestore = e.target.closest('#nw-btn-restore-plugin');
             if (btnRestore) {
                 e.preventDefault();
+                console.log('✅ 成功拦截到恢复按钮点击！');
                 
-                // 动态防御：如果 HTML 骨架里没写 input type="file"，用 JS 动态捏一个出来
                 var fileRestoreConfig = document.getElementById('file-restore-config');
                 if (!fileRestoreConfig) {
                     fileRestoreConfig = document.createElement('input');
@@ -3980,7 +4023,6 @@ return view.extend({
                     fileRestoreConfig.style.display = 'none';
                     document.body.appendChild(fileRestoreConfig);
                     
-                    // 只需挂载一次 change 监听
                     fileRestoreConfig.addEventListener('change', handleRestoreUpload);
                 }
                 
