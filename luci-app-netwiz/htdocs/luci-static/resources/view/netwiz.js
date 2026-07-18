@@ -24,8 +24,8 @@ var callSetPassword = rpc.declare({ object: 'netwiz', method: 'set_password', pa
 var callSystemBoard = rpc.declare({ object: 'system', method: 'board', expect: { '': {} } });
 
 // 单一插件的局部备份与恢复接口
-var callBackupPlugin = rpc.declare({ object: 'netwiz', method: 'backup_plugin_config', params: ['plugin'], expect: { result: 0 } });
-var callRestorePlugin = rpc.declare({ object: 'netwiz', method: 'restore_plugin_config', params: ['plugin'], expect: { result: 0 } });
+var callBackupPlugin = rpc.declare({ object: 'netwiz', method: 'backup_plugin_config', params: ['plugin'], expect: { '': {} } });
+var callRestorePlugin = rpc.declare({ object: 'netwiz', method: 'restore_plugin_config', params: ['plugin'], expect: { '': {} } });
 
 // 增加智能备份和恢复的接口声明
 var callSmartBackup = rpc.declare({ object: 'netwiz', method: 'smart_backup', params: ['type'], expect: { '': {} } });
@@ -3862,7 +3862,7 @@ return view.extend({
             }
         }
 
-        // ==========================================
+       // ==========================================
         // 原生备份与恢复配置逻辑绑定
         // ==========================================
         
@@ -3872,18 +3872,18 @@ return view.extend({
             if (!file) return;
 
             openModal({
-                title: '⚠️ ' + (T['M_RST_CONF_TIT'] || '恢复配置确认'),
+                title: '⚠️ ' + (T['M_RST_CONF_TIT'] || 'Restore Configuration Confirm'),
                 msg: '<div style="color:#ef4444; font-size:15px; font-weight:bold; margin-bottom:10px;">' +
-                     (T['M_RST_CONF_WARN'] || '警告：恢复配置将覆盖当前所有设置，并在完成后自动重启路由器！') + '</div>' +
-                     '<div style="color:#475569; font-size:14px;">选中文件：' + escapeHTML(file.name) + '</div>',
-                okText: '🚀 ' + (T['BTN_RST_START'] || '确认恢复'),
-                cancelText: T['BTN_CANCEL'] || '取消',
+                     (T['M_RST_CONF_WARN'] || 'Warning: Restoring the configuration will overwrite all current settings and automatically restart the router upon completion!') + '</div>' +
+                     '<div style="color:#475569; font-size:14px;">' + (T['M_SEL_FILE'] || 'Selected file: ') + escapeHTML(file.name) + '</div>',
+                okText: '🚀 ' + (T['BTN_RST_START'] || 'Confirm Restore'),
+                cancelText: T['BTN_CANCEL'] || 'Cancel',
                 isDanger: true,
                 onOk: function() {
                     openModal({
-                        title: T['M_RST_CONF_TIT'] || '正在恢复配置',
+                        title: T['M_RST_CONF_TIT_ING'] || 'Restoring Configuration',
                         msg: '<div style="text-align:center; padding:10px 0; color:#64748b;">' +
-                             (T['MSG_RESTORE_UPLOADING'] || '正在上传备份文件，请勿断开电源...') +
+                             (T['MSG_RESTORE_UPLOADING'] || 'Uploading backup file, please do not disconnect power...') +
                              '<br><div id="nw-upload-progress" style="font-size:24px; color:#3b82f6; font-weight:bold; margin-top:10px; font-family:monospace;">0%</div></div>',
                         spin: true
                     });
@@ -3912,30 +3912,30 @@ return view.extend({
                     xhr.onload = function() {
                         if (xhr.status === 200) {
                             var pEl = document.getElementById('nw-upload-progress');
-                            if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:16px;">' + (T['M_RST_DELIVERED'] || '文件已送达，开始执行恢复...') + '</span>';
+                            if (pEl) pEl.innerHTML = '<span style="color:#10b981; font-size:16px;">' + (T['M_RST_DELIVERED'] || 'File delivered, starting restore...') + '</span>';
 
-                            // 修正：使用文件顶部预先声明好的 callSysRestore 方法正确传参
+                            // 使用文件顶部预先声明好的 callSysRestore 方法正确传参
                             callSysRestore(true, '/tmp/backup_restore.tar.gz').then(function() {
                                 var rebootSec = 0;
                                 setInterval(function() {
                                     rebootSec++;
-                                    if (pEl) pEl.innerHTML = '<span style="color:#3b82f6; font-size:16px;">🔄 ' + (T['MSG_REBOOTING'] || '系统正在重启...') + ' (' + rebootSec + 's)</span>';
+                                    if (pEl) pEl.innerHTML = '<span style="color:#3b82f6; font-size:16px;">🔄 ' + (T['MSG_REBOOTING'] || 'System is restarting...') + ' (' + rebootSec + 's)</span>';
                                     if (rebootSec > 60) window.location.reload();
                                 }, 1000);
                             }).catch(function(err) {
-                                if (pEl) pEl.innerHTML = '<span style="color:#f59e0b; font-size:16px;">⏳ 恢复指令已下发，设备可能正在重启中...</span>';
+                                if (pEl) pEl.innerHTML = '<span style="color:#f59e0b; font-size:16px;">⏳ ' + (T['M_RST_CMD_SENT'] || 'Restore command issued, device may be restarting...') + '</span>';
                                 setTimeout(function(){ window.location.reload(); }, 60000);
                             });
 
                         } else {
                             document.getElementById('file-restore-config').value = '';
-                            openModal({ title: T['M_SYS_ERR'] || '错误', msg: '上传失败: ' + xhr.status, hideCancel: true, okText: T['M_CLOSE'] || '关闭' });
+                            openModal({ title: T['M_SYS_ERR'] || 'Error', msg: (T['M_UPL_FAIL_STAT'] || 'Upload failed: ') + xhr.status, hideCancel: true, okText: T['M_CLOSE'] || 'Close' });
                         }
                     };
 
                     xhr.onerror = function() {
                         document.getElementById('file-restore-config').value = '';
-                        openModal({ title: T['M_RST_NET_ERR'] || '网络错误', msg: T['M_RST_NET_INTR'] || '网络连接意外中断！', hideCancel: true, okText: T['M_CLOSE'] || '关闭' });
+                        openModal({ title: T['M_RST_NET_ERR'] || 'Network Error', msg: T['M_RST_NET_INTR'] || 'Network connection unexpectedly interrupted!', hideCancel: true, okText: T['M_CLOSE'] || 'Close' });
                     };
 
                     xhr.send(fd);
@@ -3946,93 +3946,111 @@ return view.extend({
         // 将点击事件挂载到最高层级 document，防止被拦截或 container 未就绪
         document.addEventListener('click', function(e) {
             
-            // 1. 拦截备份配置点击 (单一插件局部备份)
+            // 1. 拦截备份：前端接收 Base64 并触发浏览器下载
             var btnBackup = e.target.closest('#nw-btn-backup-plugin');
             if (btnBackup) {
                 e.preventDefault();
                 
-                // 获取当前下拉框选中的插件名称
                 var selPlugin = document.getElementById('nw-repair-select');
-                if (!selPlugin || !selPlugin.value) {
-                    alert(T['M_SELECT_PLUGIN'] || "请先选择要备份的插件！");
-                    return;
-                }
+                if (!selPlugin || !selPlugin.value) return;
                 var pName = selPlugin.value;
-                console.log('✅ 成功拦截到备份按钮点击！准备备份插件:', pName);
                 
                 openModal({
-                    title: T['M_BAK_CONF_TIT'] || '📦 备份中',
-                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ 正在精准打包 <b>' + pName + '</b> 的配置文件，请稍候...</div>',
-                    spin: true,
-                    hideCancel: true,
-                    hideOk: true
+                    title: '📦 ' + (T['M_BAK_ING_TIT'] || 'Backing up'),
+                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_ING_MSG1'] || 'Precisely packing ') + '<b>' + pName + '</b> ' + (T['M_BAK_ING_MSG2'] || 'config and generating download, please wait...') + '</div>',
+                    spin: true, hideCancel: true, hideOk: true
                 });
                 
-                // 调用顶层声明好的 UBUS 接口
-                if (typeof callBackupPlugin === 'function') {
-                    callBackupPlugin(pName).then(function(r) {
-                        if (r && String(r.result) === '0') {
-                            openModal({ 
-                                title: '✅ 备份成功', 
-                                msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' + pName + ' 配置已安全保存到路由器。</div>', 
-                                okText: T['M_CLOSE'] || '关闭', 
-                                hideCancel: true 
-                            });
-                        } else {
-                            openModal({ title: '❌ 备份失败', msg: '找不到配置或打包出错，请检查后端脚本。', okText: T['M_CLOSE'] || '关闭', hideCancel: true });
-                        }
-                    }).catch(function(err) {
-                        openModal({ title: '❌ 请求失败', msg: '请求 netwiz_dev 接口失败：' + err, okText: T['M_CLOSE'] || '关闭', hideCancel: true });
-                        console.error('UBUS 备份请求失败:', err);
-                    });
-                } else {
-                    openModal({ title: '❌ 系统错误', msg: '接口 callBackupPlugin 未定义！', okText: '关闭', hideCancel: true });
-                }
+                callBackupPlugin(pName).then(function(r) {
+                    if (r && String(r.result) === '0' && r.url) {
+                        
+                        var a = document.createElement('a');
+                        a.href = r.url;
+                        a.download = pName + '_config_backup.tar.gz';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+
+                        openModal({ 
+                            title: '✅ ' + (T['M_BAK_SUCC_TIT'] || 'Backup Successful'), 
+                            msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' + (T['M_BAK_SUCC_MSG'] || 'The file contains core assets and is downloading in the background. Please check your browser!') + '</div>', 
+                            okText: T['M_CLOSE'] || 'Close', 
+                            hideCancel: true 
+                        });
+                    } else {
+                        openModal({ title: '❌ ' + (T['M_BAK_FAIL_TIT'] || 'Backup Failed'), msg: (T['M_BAK_FAIL_MSG'] || 'Config not found or packaging error. Please check if the plugin is installed.'), okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                    }
+                }).catch(function(err) {
+                    openModal({ title: '❌ ' + (T['M_REQ_FAIL_TIT'] || 'Request Failed'), msg: (T['M_REQ_FAIL_MSG'] || 'API request failed: ') + err, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                });
             }
 
-            // 2. 拦截恢复配置点击 (单一插件局部恢复)
+            // 2. 拦截恢复：呼出文件选择框上传，然后触发解压
             var btnRestore = e.target.closest('#nw-btn-restore-plugin');
             if (btnRestore) {
                 e.preventDefault();
                 
-                // 获取当前下拉框选中的插件名称
                 var selPlugin = document.getElementById('nw-repair-select');
-                if (!selPlugin || !selPlugin.value) {
-                    alert(T['M_SELECT_PLUGIN'] || "请先选择要恢复的插件！");
-                    return;
-                }
+                if (!selPlugin || !selPlugin.value) return;
                 var pName = selPlugin.value;
-                console.log('✅ 成功拦截到恢复按钮点击！准备恢复插件:', pName);
                 
-                openModal({
-                    title: '⚡ 恢复中',
-                    msg: '<div style="text-align:center; padding:15px 0; color:#10b981;">⏳ 正在解压 <b>' + pName + '</b> 的配置并重启服务...</div>',
-                    spin: true,
-                    hideCancel: true,
-                    hideOk: true
-                });
-                
-                // 调用顶层声明好的 UBUS 接口
-                if (typeof callRestorePlugin === 'function') {
-                    callRestorePlugin(pName).then(function(r) {
-                        if (r && String(r.result) === '0') {
-                            openModal({ 
-                                title: '✅ 恢复成功', 
-                                msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' + pName + ' 配置文件已还原并重新加载！</div>', 
-                                okText: T['M_RELOAD'] || '刷新页面', 
-                                hideCancel: true,
-                                onOk: function() { window.location.reload(); } // 恢复成功后刷新页面
-                            });
-                        } else {
-                            openModal({ title: '❌ 恢复失败', msg: '未能找到该软件的备份档案。', okText: T['M_CLOSE'] || '关闭', hideCancel: true });
+                var fileInput = document.getElementById('file-restore-plugin-local');
+                if (!fileInput) {
+                    fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.id = 'file-restore-plugin-local';
+                    fileInput.style.display = 'none';
+                    document.body.appendChild(fileInput);
+                    
+                    fileInput.addEventListener('change', function(evt) {
+                        var file = evt.target.files[0];
+                        if (!file) return;
+                        
+                        openModal({ 
+                            title: '⚡ ' + (T['M_RST_ING_TIT'] || 'Restoring'), 
+                            msg: '<div style="text-align:center; padding:15px 0; color:#10b981;">⏳ ' + (T['M_RST_ING_MSG1'] || 'Uploading and restoring ') + '<b>' + pName + '</b> ' + (T['M_RST_ING_MSG2'] || 'config...') + '</div>', 
+                            spin: true, hideCancel: true, hideOk: true 
+                        });
+                        
+                        var fd = new FormData();
+                        var sid = (typeof L !== 'undefined' && L.env && L.env.sessionid) ? L.env.sessionid : "";
+                        if (!sid) {
+                            var match = document.cookie.match(/sysauth_http=([^;]+)/) || document.cookie.match(/sysauth=([^;]+)/);
+                            if (match) sid = match[1];
                         }
-                    }).catch(function(err) {
-                        openModal({ title: '❌ 请求失败', msg: '请求 netwiz_dev 接口失败：' + err, okText: T['M_CLOSE'] || '关闭', hideCancel: true });
-                        console.error('UBUS 恢复请求失败:', err);
+                        fd.append("sessionid", sid);
+                        fd.append("filename", "/tmp/plugin_restore_tmp.tar.gz");
+                        fd.append("file", file);
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/cgi-bin/cgi-upload', true);
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                callRestorePlugin(pName).then(function(r) {
+                                    if (r && String(r.result) === '0') {
+                                        openModal({ 
+                                            title: '✅ ' + (T['M_RST_SUCC_TIT'] || 'Restore Successful'), 
+                                            msg: '<div style="color:#10b981; font-weight:bold; text-align:center;"><b>' + pName + '</b> ' + (T['M_RST_SUCC_MSG'] || 'config file has been restored and reloaded!') + '</div>', 
+                                            okText: T['M_RELOAD'] || 'Reload Page', 
+                                            hideCancel: true,
+                                            onOk: function() { window.location.reload(); }
+                                        });
+                                    } else {
+                                        openModal({ title: '❌ ' + (T['M_RST_FAIL_TIT'] || 'Restore Failed'), msg: T['M_RST_FAIL_MSG'] || 'Failed to extract or restart service.', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                    }
+                                }).catch(function(err) {
+                                    openModal({ title: '❌ ' + (T['M_REQ_FAIL_TIT'] || 'Request Failed'), msg: (T['M_REQ_FAIL_MSG'] || 'API request failed: ') + err, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                });
+                            } else {
+                                openModal({ title: '❌ ' + (T['M_UPL_FAIL_TIT'] || 'Upload Failed'), msg: (T['M_UPL_FAIL_MSG'] || 'File upload rejected, status code: ') + xhr.status, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                            }
+                        };
+                        xhr.send(fd);
                     });
-                } else {
-                    openModal({ title: '❌ 系统错误', msg: '接口 callRestorePlugin 未定义！', okText: '关闭', hideCancel: true });
                 }
+                
+                fileInput.value = '';
+                fileInput.click();
             }
         });
         // ==========================================
