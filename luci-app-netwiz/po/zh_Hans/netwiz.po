@@ -2318,3 +2318,6 @@ msgstr "网络错误"
 
 msgid "Network connection unexpectedly interrupted!"
 msgstr "网络连接意外中断！"
+
+msgid "Reload Page"
+msgstr "刷新页面"
