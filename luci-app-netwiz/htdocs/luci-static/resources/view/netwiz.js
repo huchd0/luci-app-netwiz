@@ -3991,11 +3991,11 @@ return view.extend({
             var btnRestore = e.target.closest('#nw-btn-restore-plugin');
             if (btnRestore) {
                 e.preventDefault();
-                
+
                 var selPlugin = document.getElementById('nw-repair-select');
                 if (!selPlugin || !selPlugin.value) return;
                 var pName = selPlugin.value;
-                
+
                 var fileInput = document.getElementById('file-restore-plugin-local');
                 if (!fileInput) {
                     fileInput = document.createElement('input');
@@ -4003,11 +4003,48 @@ return view.extend({
                     fileInput.id = 'file-restore-plugin-local';
                     fileInput.style.display = 'none';
                     document.body.appendChild(fileInput);
-                    
+
                     fileInput.addEventListener('change', function(evt) {
                         var file = evt.target.files[0];
                         if (!file) return;
-                        
+
+                        // 防呆 1：检查文件格式
+                        if (!file.name.toLowerCase().endsWith('.tar.gz')) {
+                            openModal({ 
+                                title: '❌ ' + (T['M_FMT_ERR_TIT'] || 'Format Error'), 
+                                msg: T['M_FMT_ERR_MSG'] || 'Please upload a valid .tar.gz backup file!', 
+                                okText: T['M_CLOSE'] || 'Close', 
+                                hideCancel: true 
+                            });
+                            fileInput.value = '';
+                            return;
+                        }
+
+                        // 防呆 2：检查文件名是否包含该插件的名称 (允许稍微模糊的匹配)
+                        if (file.name.toLowerCase().indexOf(pName.toLowerCase()) === -1) {
+                            openModal({ 
+                                title: '⚠️ ' + (T['M_WARN_TIT'] || 'Warning'), 
+                                msg: '<div style="color:#f59e0b;">' + 
+                                     (T['M_WARN_MSG'] || 'The selected file does not seem to belong to %s.<br>File name: %f<br>Are you sure you want to continue?')
+                                         .replace('%s', '<b>' + pName + '</b>')
+                                         .replace('%f', file.name) + 
+                                     '</div>', 
+                                okText: T['BTN_FORCE_RST'] || 'Force Restore', 
+                                cancelText: T['BTN_CANCEL'] || 'Cancel',
+                                isDanger: true,
+                                onOk: function() { startUploadRestore(file, pName); } // 强制，则放行
+                            });
+                            fileInput.value = '';
+                            return;
+                        }
+
+                        // 验证通过，开始上传
+                        startUploadRestore(file, pName);
+                    });
+
+                    // 上传逻辑抽离成一个独立函数，方便调用
+                    function startUploadRestore(file, pName) {
+
                         openModal({
                             title: '⚡ ' + (T['M_RST_ING_TIT'] || 'Restoring'),
                             msg: '<div style="text-align:center; padding:15px 0; color:#10b981;">⏳ ' +
@@ -4015,7 +4052,7 @@ return view.extend({
                                 '</div>',
                             spin: true, hideCancel: true, hideOk: true
                         });
-                        
+
                         var fd = new FormData();
                         var sid = (typeof L !== 'undefined' && L.env && L.env.sessionid) ? L.env.sessionid : "";
                         if (!sid) {
@@ -4052,9 +4089,9 @@ return view.extend({
                             }
                         };
                         xhr.send(fd);
-                    });
+                    }
                 }
-                
+                // 每次点击都清空旧文件并唤起系统选择框
                 fileInput.value = '';
                 fileInput.click();
             }
