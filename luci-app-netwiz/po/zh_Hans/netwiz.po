@@ -2225,3 +2225,9 @@ msgstr "建议提醒："
 
 msgid "No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in %s later."
 msgstr "检测到尚未配置探测源目标网址。为保障外网访问的长期稳定性，建议您稍后前往 %s 手动配置并开启此功能。"
+
+msgid "Backup Config"
+msgstr "备份配置"
+
+msgid "Restore Config"
+msgstr "恢复配置"
