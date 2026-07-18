@@ -3968,7 +3968,7 @@ return view.extend({
                         
                         var a = document.createElement('a');
                         a.href = r.url;
-                        a.download = pName + '_config_backup.tar';
+                        a.download = r.url.split('/').pop();
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
