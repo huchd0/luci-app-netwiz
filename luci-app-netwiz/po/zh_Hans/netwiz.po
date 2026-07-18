@@ -2342,3 +2342,12 @@ msgstr "上传的文件已损坏，或不是有效的压缩包！"
 
 msgid "The archive content does not match %s!"
 msgstr "压缩包内部内容与 %s 不匹配！"
+
+msgid "%s config restored! Service is restarting in the background..."
+msgstr "%s 配置还原成功！服务正在后台平滑重启..."
+
+msgid "Auto reloading in %s seconds..."
+msgstr "%s 秒后将自动刷新页面..."
+
+msgid "Failed to extract files to the system! (Storage full or permission denied)"
+msgstr "文件解压写入系统失败！（可能是存储空间已满或权限不足）"
