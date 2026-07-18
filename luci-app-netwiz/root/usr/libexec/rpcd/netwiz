@@ -230,23 +230,36 @@ case "$1" in
             restore_plugin_config)
                 read input
                 plugin_name=$(echo "$input" | jsonfilter -e '@.plugin')
-
+                
                 TMP_FILE="/tmp/plugin_restore_tmp.tar.gz"
-
+                
                 if [ ! -f "$TMP_FILE" ]; then
                     echo '{ "result": 1 }'
                     exit 0
                 fi
-
-                # 恢复逻辑：使用 -C / 参数，压缩包里绝对路径还原到系统对应的目录
+                
+                # 后端防呆 1：验证是否为损坏或伪造的 gzip 压缩包
+                # tar -tzf 只读取文件列表，不解压。如果返回值不是 0，文件已损坏或根本不是 tar.gz
+                if ! tar -tzf "$TMP_FILE" >/dev/null 2>&1; then
+                    rm -f "$TMP_FILE"
+                    echo '{ "result": 3 }' # 返回状态 3：文件格式错误
+                    exit 0
+                fi
+                
+                # 后端防呆 2：内容交叉验证
+                # 检查压缩包内部的文件列表，是否包含当前选定插件的名字
+                if ! tar -tzf "$TMP_FILE" | grep -qi "$plugin_name"; then
+                    rm -f "$TMP_FILE"
+                    echo '{ "result": 4 }' # 返回状态 4：内容不匹配
+                    exit 0
+                fi
+                
+                # 验证通过，覆盖解压
                 tar -xzf "$TMP_FILE" -C / >/dev/null 2>&1
-
-                # 尝试重启该插件的服务使所有配置文件生效
+                
                 /etc/init.d/$plugin_name restart >/dev/null 2>&1
-
-                # 阅后即焚
                 rm -f "$TMP_FILE"
-
+                
                 echo '{ "result": 0 }'
                 ;;
 
@@ -262,7 +275,7 @@ case "$1" in
                             continue
                         fi
 
-                        # 🎯 智能判定：用包管理器反查该配置文件是否有主
+                        # 包管理器反查该配置文件是否有主
                         is_ghost=1
                         if command -v apk >/dev/null 2>&1; then
                             if apk info -W "$f" 2>/dev/null | grep -q "owns"; then
@@ -440,7 +453,7 @@ case "$1" in
                             if [ -n "$local_pkgs" ]; then
                                 if apk add --simulate --allow-untrusted --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             else
-                                # 加上 --force-reinstall去软件源查询
+                                # --force-reinstall去软件源查询
                                 if apk add --simulate --force-reinstall "$pkg_name" >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             fi
                         elif command -v opkg >/dev/null 2>&1; then
@@ -450,7 +463,7 @@ case "$1" in
                             if [ -n "$local_pkgs" ]; then
                                 if opkg install --noaction --force-reinstall --force-overwrite $local_pkgs >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             else
-                                # 加上 --force-reinstall去软件源查询
+                                # --force-reinstall去软件源查询
                                 if opkg install --noaction --force-reinstall --force-maintainer "$pkg_name" >/dev/null 2>&1; then INSTALL_POSSIBLE=1; fi
                             fi
                         fi
@@ -471,7 +484,7 @@ case "$1" in
                             mv "/etc/${plugin}" "/etc/${plugin}_nw_bak_dir" 2>/dev/null
                         fi
 
-                        # 抹除衍生的缓存或分身配置
+                        # 删除缓存或分身配置
                         for f in /etc/config/${plugin}.*; do
                             if [ "$f" != "/etc/config/${plugin}.nw_bak_main" ]; then
                                 # 文件或文件夹，全部删除
