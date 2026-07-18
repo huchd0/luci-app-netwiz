@@ -2321,3 +2321,18 @@ msgstr "网络连接意外中断！"
 
 msgid "Reload Page"
 msgstr "刷新页面"
+
+msgid "Format Error"
+msgstr "格式错误"
+
+msgid "Please upload a valid .tar.gz backup file!"
+msgstr "请上传有效的 .tar.gz 备份文件！"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "The selected file does not seem to belong to %s.<br>File name: %f<br>Are you sure you want to continue?"
+msgstr "选中的文件似乎不属于 %s。<br>文件名：%f<br>您确定要继续强制恢复吗？"
+
+msgid "Force Restore"
+msgstr "强制恢复"
