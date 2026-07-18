@@ -3929,7 +3929,7 @@ return view.extend({
 
                         } else {
                             document.getElementById('file-restore-config').value = '';
-                            openModal({ title: T['M_SYS_ERR'] || 'Error', msg: (T['M_UPL_FAIL_STAT'] || 'Upload failed: ') + xhr.status, hideCancel: true, okText: T['M_CLOSE'] || 'Close' });
+                            openModal({ title: T['M_SYS_ERR'] || 'Error', msg: (T['M_UPL_FAIL_STAT'] || 'Upload failed: %s').replace('%s', xhr.status), hideCancel: true, okText: T['M_CLOSE'] || 'Close' });
                         }
                     };
 
@@ -3957,7 +3957,9 @@ return view.extend({
                 
                 openModal({
                     title: '📦 ' + (T['M_BAK_ING_TIT'] || 'Backing up'),
-                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' + (T['M_BAK_ING_MSG1'] || 'Precisely packing ') + '<b>' + pName + '</b> ' + (T['M_BAK_ING_MSG2'] || 'config and generating download, please wait...') + '</div>',
+                    msg: '<div style="text-align:center; padding:15px 0; color:#3b82f6;">⏳ ' +
+                        (T['M_BAK_ING_MSG'] || 'Precisely packing %s config and generating download, please wait...').replace('%s', '<b>' + pName + '</b>') +
+                        '</div>',
                     spin: true, hideCancel: true, hideOk: true
                 });
                 
@@ -3971,17 +3973,17 @@ return view.extend({
                         a.click();
                         document.body.removeChild(a);
 
-                        openModal({ 
-                            title: '✅ ' + (T['M_BAK_SUCC_TIT'] || 'Backup Successful'), 
+                        openModal({
+                            title: '✅ ' + (T['M_BAK_SUCC_TIT'] || 'Backup Successful'),
                             msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' + (T['M_BAK_SUCC_MSG'] || 'The file contains core assets and is downloading in the background. Please check your browser!') + '</div>', 
-                            okText: T['M_CLOSE'] || 'Close', 
-                            hideCancel: true 
+                            okText: T['M_CLOSE'] || 'Close',
+                            hideCancel: true
                         });
                     } else {
                         openModal({ title: '❌ ' + (T['M_BAK_FAIL_TIT'] || 'Backup Failed'), msg: (T['M_BAK_FAIL_MSG'] || 'Config not found or packaging error. Please check if the plugin is installed.'), okText: T['M_CLOSE'] || 'Close', hideCancel: true });
                     }
                 }).catch(function(err) {
-                    openModal({ title: '❌ ' + (T['M_REQ_FAIL_TIT'] || 'Request Failed'), msg: (T['M_REQ_FAIL_MSG'] || 'API request failed: ') + err, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                    openModal({ title: '❌ ' + (T['M_REQ_FAIL_TIT'] || 'Request Failed'), msg: (T['M_REQ_FAIL_MSG'] || 'API request failed: %s').replace('%s', err), okText: T['M_CLOSE'] || 'Close', hideCancel: true });
                 });
             }
 
@@ -4006,10 +4008,12 @@ return view.extend({
                         var file = evt.target.files[0];
                         if (!file) return;
                         
-                        openModal({ 
-                            title: '⚡ ' + (T['M_RST_ING_TIT'] || 'Restoring'), 
-                            msg: '<div style="text-align:center; padding:15px 0; color:#10b981;">⏳ ' + (T['M_RST_ING_MSG1'] || 'Uploading and restoring ') + '<b>' + pName + '</b> ' + (T['M_RST_ING_MSG2'] || 'config...') + '</div>', 
-                            spin: true, hideCancel: true, hideOk: true 
+                        openModal({
+                            title: '⚡ ' + (T['M_RST_ING_TIT'] || 'Restoring'),
+                            msg: '<div style="text-align:center; padding:15px 0; color:#10b981;">⏳ ' +
+                                (T['M_RST_ING_MSG'] || 'Uploading and restoring %s config...').replace('%s', '<b>' + pName + '</b>') +
+                                '</div>',
+                            spin: true, hideCancel: true, hideOk: true
                         });
                         
                         var fd = new FormData();
@@ -4028,10 +4032,12 @@ return view.extend({
                             if (xhr.status === 200) {
                                 callRestorePlugin(pName).then(function(r) {
                                     if (r && String(r.result) === '0') {
-                                        openModal({ 
-                                            title: '✅ ' + (T['M_RST_SUCC_TIT'] || 'Restore Successful'), 
-                                            msg: '<div style="color:#10b981; font-weight:bold; text-align:center;"><b>' + pName + '</b> ' + (T['M_RST_SUCC_MSG'] || 'config file has been restored and reloaded!') + '</div>', 
-                                            okText: T['M_RELOAD'] || 'Reload Page', 
+                                        openModal({
+                                            title: '✅ ' + (T['M_RST_SUCC_TIT'] || 'Restore Successful'),
+                                            msg: '<div style="color:#10b981; font-weight:bold; text-align:center;">' +
+                                                (T['M_RST_SUCC_MSG'] || '%s config file has been restored and reloaded!').replace('%s', '<b>' + pName + '</b>') +
+                                                '</div>',
+                                            okText: T['M_RELOAD'] || 'Reload Page',
                                             hideCancel: true,
                                             onOk: function() { window.location.reload(); }
                                         });
@@ -4039,10 +4045,10 @@ return view.extend({
                                         openModal({ title: '❌ ' + (T['M_RST_FAIL_TIT'] || 'Restore Failed'), msg: T['M_RST_FAIL_MSG'] || 'Failed to extract or restart service.', okText: T['M_CLOSE'] || 'Close', hideCancel: true });
                                     }
                                 }).catch(function(err) {
-                                    openModal({ title: '❌ ' + (T['M_REQ_FAIL_TIT'] || 'Request Failed'), msg: (T['M_REQ_FAIL_MSG'] || 'API request failed: ') + err, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                    openModal({ title: '❌ ' + (T['M_REQ_FAIL_TIT'] || 'Request Failed'), msg: (T['M_REQ_FAIL_MSG'] || 'API request failed: %s').replace('%s', err), okText: T['M_CLOSE'] || 'Close', hideCancel: true });
                                 });
                             } else {
-                                openModal({ title: '❌ ' + (T['M_UPL_FAIL_TIT'] || 'Upload Failed'), msg: (T['M_UPL_FAIL_MSG'] || 'File upload rejected, status code: ') + xhr.status, okText: T['M_CLOSE'] || 'Close', hideCancel: true });
+                                openModal({ title: '❌ ' + (T['M_UPL_FAIL_TIT'] || 'Upload Failed'), msg: (T['M_UPL_FAIL_MSG'] || 'File upload rejected, status code: %s').replace('%s', xhr.status), okText: T['M_CLOSE'] || 'Close', hideCancel: true });
                             }
                         };
                         xhr.send(fd);
