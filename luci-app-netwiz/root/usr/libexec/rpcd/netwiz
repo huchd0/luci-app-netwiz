@@ -155,11 +155,72 @@ evaluate_keepalive() {
 
 case "$1" in
     list)
-        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" }, "check_internet": {}, "get_client_mac": {}, "get_adv_settings": {}, "set_adv_settings": { "mac": "string", "web": "string", "cron": "string", "hosts": "string" }, "get_repairable_configs": {}, "repair_config": { "plugin": "string" }, "eradicate_config": { "plugin": "string" }, "get_adv_layout": {}, "set_adv_layout": { "layout": "string" }, "store_offline_pkg": { "filename": "string", "backup": "string" }, "batch_install_pkgs": {} }'
+        echo '{ "set_network": { "mode": "string", "arg1": "string", "arg2": "string", "arg3": "string", "arg4": "string", "arg5": "string", "arg6": "string" }, "set_password": { "password": "string" }, "check_wifi": {}, "confirm": {}, "smart_backup": { "type": "string" }, "smart_restore_exec": { "filepath": "string" }, "check_backup": {}, "check_storage": {}, "check_restore_status": {}, "check_ip_conflict": { "ip": "192.168.1.254" }, "check_missing_pkgs": {}, "get_wizard_status": {}, "set_wizard_status": { "mode": "string" }, "check_internet": {}, "get_client_mac": {}, "get_adv_settings": {}, "set_adv_settings": { "mac": "string", "web": "string", "cron": "string", "hosts": "string" }, "get_repairable_configs": {}, "repair_config": { "plugin": "string" }, "eradicate_config": { "plugin": "string" }, "get_adv_layout": {}, "set_adv_layout": { "layout": "string" }, "store_offline_pkg": { "filename": "string", "backup": "string" }, "batch_install_pkgs": {}, "backup_plugin_config": { "plugin": "string" }, "restore_plugin_config": { "plugin": "string" } }'
         exit 0
         ;;
     call)
         case "$2" in
+
+            backup_plugin_config)
+                input=$(cat)
+                # 剥离前端传来的标签后缀，获取纯净的插件名
+                plugin=$(echo "$input" | jsonfilter -e '@.plugin' | awk '{print $1}')
+                
+                if [ -n "$plugin" ] && [ -f "/etc/config/$plugin" ]; then
+                    log "[PLUGIN_BAK]" ">>> 正在备份 $plugin 的配置文件..."
+                    # 创建存放独立插件备份的目录
+                    mkdir -p /etc/netwiz/plugin_bak
+                    cd /
+                    
+                    # 默认备份 /etc/config 下的文件
+                    tar_targets="etc/config/$plugin"
+                    # 如果该插件在 /etc/ 下有附属的配置文件夹，一并打包
+                    [ -d "etc/$plugin" ] && tar_targets="$tar_targets etc/$plugin"
+                    
+                    tar -czf "/etc/netwiz/plugin_bak/${plugin}_bak.tar.gz" $tar_targets >/dev/null 2>&1
+                    
+                    if [ $? -eq 0 ]; then
+                        log "[PLUGIN_BAK]" "✅ $plugin 配置备份成功"
+                        echo '{"result": 0}'
+                    else
+                        log "[PLUGIN_BAK]" "❌ $plugin 配置备份失败"
+                        echo '{"result": 1, "error": "Backup failed"}'
+                    fi
+                else
+                    echo '{"result": 1, "error": "Config not found"}'
+                fi
+                exit 0
+                ;;
+
+            restore_plugin_config)
+                input=$(cat)
+                plugin=$(echo "$input" | jsonfilter -e '@.plugin' | awk '{print $1}')
+                
+                if [ -n "$plugin" ] && [ -f "/etc/netwiz/plugin_bak/${plugin}_bak.tar.gz" ]; then
+                    log "[PLUGIN_RST]" ">>> 正在恢复 $plugin 的配置文件..."
+                    cd /
+                    tar -xzf "/etc/netwiz/plugin_bak/${plugin}_bak.tar.gz" >/dev/null 2>&1
+                    
+                    if [ $? -eq 0 ]; then
+                        # 兼容特殊网络组件重启机制
+                        if [ "$plugin" = "network" ] || [ "$plugin" = "dhcp" ] || [ "$plugin" = "wireless" ]; then
+                            /etc/init.d/network restart >/dev/null 2>&1 &
+                        elif [ "$plugin" = "firewall" ]; then
+                            /etc/init.d/firewall restart >/dev/null 2>&1 &
+                        else
+                            [ -f "/etc/init.d/$plugin" ] && /etc/init.d/$plugin restart >/dev/null 2>&1 &
+                        fi
+                        log "[PLUGIN_RST]" "✅ $plugin 配置恢复完毕并已重启服务"
+                        echo '{"result": 0}'
+                    else
+                        log "[PLUGIN_RST]" "❌ $plugin 配置解压失败"
+                        echo '{"result": 1, "error": "Restore failed"}'
+                    fi
+                else
+                    echo '{"result": 1, "error": "No backup archive found"}'
+                fi
+                exit 0
+                ;;
 
             get_repairable_configs)
                 arr=""
@@ -173,7 +234,7 @@ case "$1" in
                             continue
                         fi
 
-                        # 🎯 智能判定：用包管理器反查该配置文件是否有“主人”
+                        # 🎯 智能判定：用包管理器反查该配置文件是否有主
                         is_ghost=1
                         if command -v apk >/dev/null 2>&1; then
                             if apk info -W "$f" 2>/dev/null | grep -q "owns"; then
