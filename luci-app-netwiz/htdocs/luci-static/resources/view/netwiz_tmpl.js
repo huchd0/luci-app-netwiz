@@ -1010,6 +1010,14 @@ return view.extend({ // 继承view
          <select id="nw-repair-select" style="width:100%; height:40px; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px; font-size:14px; outline:none; margin-bottom:15px; background-color: #fff !important; color: #000;">
                {{OPTIONS_HTML}}
          </select>
+
+         <!-- 备份与恢复配置按钮组 -->
+         <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <button id="nw-btn-backup-plugin" class="cbi-button" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📦 备份配置</button>
+            <button id="nw-btn-restore-plugin" class="cbi-button" style="flex:1; background:#10b981; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">⚡ 恢复配置</button>
+         </div>
+         <!-- 【结束】 -->
+         
          <div style="margin-bottom:5px; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; text-align:left; font-size:14px; line-height:1.6;">
                <b style="color:#0f172a;">{{M_GUIDE_TITLE}}</b><br>
                <span style="color:#475569;">{{M_GUIDE_DESC}}</span><br>
