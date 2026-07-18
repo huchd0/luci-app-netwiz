@@ -586,7 +586,13 @@ return view.extend({ // 继承view
       'M_UPL_FAIL_STAT': _('Upload failed: %s'),
       'M_SYS_ERR': _('Error'),
       'M_RST_NET_ERR': _('Network Error'),
-      'M_RST_NET_INTR': _('Network connection unexpectedly interrupted!')
+      'M_RST_NET_INTR': _('Network connection unexpectedly interrupted!'),
+
+      'M_FMT_ERR_TIT': _('Format Error'),
+      'M_FMT_ERR_MSG': _('Please upload a valid .tar.gz backup file!'),
+      'M_WARN_TIT': _('Warning'),
+      'M_WARN_MSG': _('The selected file does not seem to belong to %s.<br>File name: %f<br>Are you sure you want to continue?'),
+      'BTN_FORCE_RST': _('Force Restore'),
    },
 
     // 2. HTML 结构
