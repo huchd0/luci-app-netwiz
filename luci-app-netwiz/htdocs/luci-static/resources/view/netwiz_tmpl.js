@@ -544,8 +544,8 @@ return view.extend({ // 继承view
         'MSG_ABOUT_TO_DISABLE': _('You are about to disable the <b>[%s]</b>.'),
         'MSG_SUGGESTION': _('Suggestion:'),
         'MSG_WOG_SUGGEST_MSG': _('No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in %s later.'),
-        'BTN_SMART_BACKUP': '📦 ' + _('Backup Config'),
-        'BTN_SMART_RESTORE': '⚡ ' + _('Restore Config'),
+        'BTN_GENERATE_BACKUP': '📦 ' + _('Backup Config'),
+        'BTN_RESTORE_SYSTEM': '⚡ ' + _('Restore Config'),
     },
 
     // 2. HTML 结构
@@ -1015,8 +1015,8 @@ return view.extend({ // 继承view
 
          <!-- 备份与恢复配置按钮组 -->
          <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <button id="nw-btn-backup-plugin" class="cbi-button" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">{{BTN_SMART_BACKUP}}</button>
-            <button id="nw-btn-restore-plugin" class="cbi-button" style="flex:1; background:#10b981; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">{{BTN_SMART_RESTORE}}</button>
+            <button id="nw-btn-backup-plugin" class="cbi-button" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">{{BTN_GENERATE_BACKUP}}</button>
+            <button id="nw-btn-restore-plugin" class="cbi-button" style="flex:1; background:#10b981; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">{{BTN_RESTORE_SYSTEM}}</button>
          </div>
          <!-- 【结束】 -->
          
