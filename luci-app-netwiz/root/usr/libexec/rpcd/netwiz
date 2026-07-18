@@ -255,9 +255,20 @@ case "$1" in
                 fi
                 
                 # 验证通过，覆盖解压
+                # 先停止服务，释放文件锁，并防止进程在退出时反写旧配置
+                if [ -f "/etc/init.d/$plugin_name" ]; then
+                    /etc/init.d/$plugin_name stop >/dev/null 2>&1
+                    sleep 1 # 稍微等 1 秒钟，让底层网络规则和进程彻底释放
+                fi
                 tar -xzf "$TMP_FILE" -C / >/dev/null 2>&1
                 
-                /etc/init.d/$plugin_name restart >/dev/null 2>&1
+                # 解压完成后重启服务，加载全新配置
+                if [ -f "/etc/init.d/$plugin_name" ]; then
+                    /etc/init.d/$plugin_name start >/dev/null 2>&1
+                    # 有些插件用 start 起不来网络规则，保险起见补一个 reload 或 restart
+                    /etc/init.d/$plugin_name reload >/dev/null 2>&1
+                fi
+                
                 rm -f "$TMP_FILE"
                 
                 echo '{ "result": 0 }'
