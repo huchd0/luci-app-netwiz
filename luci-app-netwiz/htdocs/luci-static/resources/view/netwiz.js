@@ -5669,6 +5669,17 @@ return view.extend({
 
                         // === Diff 高亮渲染带新旧对比助手函数 ===
                         var mkDiff = function(label, newVal, oldVal) {
+                            // 1. HTML 转义函数
+                            var escapeHtml = function(str) {
+                                if (str == null) return "";
+                                return String(str)
+                                    .replace(/&/g, "&amp;")
+                                    .replace(/</g, "&lt;")
+                                    .replace(/>/g, "&gt;")
+                                    .replace(/"/g, "&quot;")
+                                    .replace(/'/g, "&#39;");
+                            };
+                        
                             var sNew = String(newVal).trim();
                             var sOld = (oldVal !== undefined && oldVal !== null) ? String(oldVal).trim() : '';
                             
@@ -5677,32 +5688,37 @@ return view.extend({
                             var isActuallyNew = (rawOld === '' || rawOld === 'undefined' || rawOld === 'null');
                             var isChanged = (sNew !== sOld) && !isActuallyNew;
                             
+                            // 2. 将新旧值转义，DOM 渲染
+                            var safeNew = escapeHtml(sNew);
+                            var safeOld = escapeHtml(sOld);
+                            
                             // div 独立成行
                             var highlightBadge = function(txt) {
                                 return "<div style='margin-top: 4px;'><span style='font-size: 14px; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 6px; font-weight: bold; box-shadow: 0 2px 4px rgba(16,185,129,0.3); animation: pulse 2s infinite; white-space: nowrap;'>" + txt + "</span></div>";
                             };
-
+                        
                             if (isActuallyNew) {
                                 // 文字在上，徽章在下
                                 var newHtml = "<div style='display:flex; flex-direction:column; align-items:flex-end; justify-content:center;'>" +
-                                                "<div>" + sNew + "</div>" +
+                                                "<div>" + safeNew + "</div>" +
                                                 highlightBadge(T['TXT_NEW_MOD'] || 'NEW') +
                                               "</div>";
                                 return [label, newHtml];
                             } else if (isChanged) {
-                                // 旧值 -> 新值 -> 徽章独立在一行
+                                // 旧值 -> 新值 -> 徽章独立在一行 (使用 safeOld 和 safeNew)
                                 var diffHtml = "<div style='display:flex; flex-direction:column; align-items:flex-end; gap:2px; margin-top:2px;'>" +
-                                                 "<div style='font-size:14px; text-decoration:line-through; opacity: 0.5;'>" + sOld + "</div>" +
+                                                 "<div style='font-size:14px; text-decoration:line-through; opacity: 0.5;'>" + safeOld + "</div>" +
                                                  "<div style='display:flex; align-items:flex-start; justify-content:flex-end; text-align:right;'>" +
                                                    "<span style='color:#10b981; font-weight:bold; margin-right:6px; font-size:16px; line-height:1.2;'>↳</span>" +
-                                                   "<div>" + sNew + "</div>" +
+                                                   "<div>" + safeNew + "</div>" +
                                                  "</div>" +
                                                  highlightBadge(T['TXT_MODIFIED'] || 'OK') +
                                                "</div>";
                                 return [label, diffHtml];
                             } else {
+                                // 样式未变更时的渲染 (使用 safeNew)
                                 var dimStyle = "opacity: 0.7; color: rgba(255, 255, 255, 0.85);";
-                                return ["<span style='" + dimStyle + "'>" + label + "</span>", "<span style='" + dimStyle + "'>" + sNew + "</span>"];
+                                return ["<span style='" + dimStyle + "'>" + label + "</span>", "<span style='" + dimStyle + "'>" + safeNew + "</span>"];
                             }
                         };
                         // =============================
