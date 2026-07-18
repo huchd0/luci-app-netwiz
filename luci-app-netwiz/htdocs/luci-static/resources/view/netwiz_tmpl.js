@@ -544,8 +544,49 @@ return view.extend({ // 继承view
         'MSG_ABOUT_TO_DISABLE': _('You are about to disable the <b>[%s]</b>.'),
         'MSG_SUGGESTION': _('Suggestion:'),
         'MSG_WOG_SUGGEST_MSG': _('No target URL is configured for the Watchdog. For long-term stability, it is recommended to manually configure and enable it in %s later.'),
-        'BTN_GENERATE_BACKUP': _('Backup Config'),
-        'BTN_RESTORE_SYSTEM': _('Restore Config'),
+
+      'BTN_GENERATE_BACKUP': _('Backup Config'),
+      'BTN_RESTORE_SYSTEM': _('Restore Config'),
+      // ==========================================
+      // 备份相关
+      // ==========================================
+      'M_BAK_ING_TIT': _('Backing up'),
+      'M_BAK_ING_MSG': _('Precisely packing %s config and generating download, please wait...'),
+      'M_BAK_SUCC_TIT': _('Backup Successful'),
+      'M_BAK_SUCC_MSG': _('The file contains core assets and is downloading in the background. Please check your browser!'),
+      'M_BAK_FAIL_TIT': _('Backup Failed'),
+      'M_BAK_FAIL_MSG': _('Config not found or packaging error. Please check if the plugin is installed.'),
+      
+      // ==========================================
+      // 恢复相关
+      // ==========================================
+      'M_RST_CONF_TIT': _('Restore Configuration Confirm'),
+      'M_RST_CONF_WARN': _('Warning: Restoring the configuration will overwrite all current settings and automatically restart the router upon completion!'),
+      'M_SEL_FILE': _('Selected file: %s'),
+      'BTN_RST_START': _('Confirm Restore'),
+      'M_RST_CONF_TIT_ING': _('Restoring Configuration'),
+      'MSG_RESTORE_UPLOADING': _('Uploading backup file, please do not disconnect power...'),
+      'M_RST_DELIVERED': _('File delivered, starting restore...'),
+      'MSG_REBOOTING': _('System is restarting...'),
+      'M_RST_CMD_SENT': _('Restore command issued, device may be restarting...'),
+      'M_RST_ING_TIT': _('Restoring'),
+      'M_RST_ING_MSG': _('Uploading and restoring %s config...'),
+      'M_RST_SUCC_TIT': _('Restore Successful'),
+      'M_RST_SUCC_MSG': _('%s config file has been restored and reloaded!'),
+      'M_RST_FAIL_TIT': _('Restore Failed'),
+      'M_RST_FAIL_MSG': _('Failed to extract or restart service.'),
+      
+      // ==========================================
+      // 网络与报错相关
+      // ==========================================
+      'M_REQ_FAIL_TIT': _('Request Failed'),
+      'M_REQ_FAIL_MSG': _('API request failed: %s'),
+      'M_UPL_FAIL_TIT': _('Upload Failed'),
+      'M_UPL_FAIL_MSG': _('File upload rejected, status code: %s'),
+      'M_UPL_FAIL_STAT': _('Upload failed: %s'),
+      'M_SYS_ERR': _('Error'),
+      'M_RST_NET_ERR': _('Network Error'),
+      'M_RST_NET_INTR': _('Network connection unexpectedly interrupted!')
     },
 
     // 2. HTML 结构
