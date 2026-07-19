@@ -190,12 +190,14 @@ fi
 # 5. 重建缓存与唤醒服务
 # ==========================================
 echo "🔄 正在重建 LuCI 缓存并唤醒服务..."
-# 删除缓存
+# 1. 清空所有 LuCI 缓存
 rm -rf /tmp/luci-indexcache* /tmp/luci-modulecache* /var/run/luci-indexcache* /var/run/luci-modulecache* 2>/dev/null
 rm -rf /tmp/luci-sessions/* /var/run/luci-sessions/* 2>/dev/null
 
-/etc/init.d/rpcd reload 2>/dev/null
+# 2. 重启 rpcd，确保后端的 netwiz 脚本被正确加载入内核
+/etc/init.d/rpcd restart 2>/dev/null
 
+# 3. 智能重启 Web 服务
 if [ -f "/etc/init.d/uhttpd" ]; then
     /etc/init.d/uhttpd restart 2>/dev/null
 elif [ -f "/etc/init.d/nginx" ]; then
