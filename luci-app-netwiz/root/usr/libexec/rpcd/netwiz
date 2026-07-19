@@ -265,8 +265,8 @@ case "$1" in
                 if [ -s "$TMP_FILE" ]; then
                     chmod 644 "$TMP_FILE" >/dev/null 2>&1
 
-                    # 1小时后，精准抹除这最后产生的一个文件，片甲不留！
-                    ( sleep 3600 && rm -f "$TMP_FILE" ) >/dev/null 2>&1 &
+                    # 15分钟后，删除最后产生的一个文件
+                    ( sleep 900 && rm -f "$TMP_FILE" ) >/dev/null 2>&1 &
 
                     # 返回下载链接
                     if echo "$DL_DIR" | grep -q "luci-static"; then
@@ -301,7 +301,7 @@ case "$1" in
                     TAR_TEST="tar -tzf"
                     TAR_EXEC="tar -xzf"
                 else
-                    # 两种都不是，说明真传错文件或者损坏了
+                    # 两种都不是，说明传错文件或者损坏了
                     rm -f "$TMP_FILE"
                     echo '{ "result": 3 }'
                     exit 0
