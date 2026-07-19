@@ -231,35 +231,44 @@ case "$1" in
                     exit 0
                 fi
 
-                # 动态获取当前路由器真实的 Web 根目录
+                # 获取 Web 根目录
                 WEB_ROOT=$(uci get uhttpd.main.home 2>/dev/null || echo "/www")
                 DL_DIR="$WEB_ROOT/netwiz_dl"
-                
-                # 先清除可能存在的死链或错误文件，再创建
-                rm -rf "$DL_DIR" >/dev/null 2>&1
+
+                # 确保目录存在
                 mkdir -p "$DL_DIR" >/dev/null 2>&1
                 chmod 777 "$DL_DIR" >/dev/null 2>&1
-                
-                # 如果当前 Web 根目录因为特殊挂载原因无法写入，则回退到绝对存在的 luci-static
-                if [ ! -d "$DL_DIR" ]; then
+
+                # 发生过断电重启等意外导致自毁进程丢失，先用 find 扫一遍过期文件
+                find "$DL_DIR" -type f -name "*.tar*" -mmin +60 -exec rm -f {} \; >/dev/null 2>&1
+                # 每次生成新备份前，清空当前目录下的所有老备份
+                rm -f "$DL_DIR"/*.tar* >/dev/null 2>&1
+
+                # 如果当前 Web 根目录因为挂载问题不可写，则切换备用目录
+                if [ ! -w "$DL_DIR" ]; then
                     DL_DIR="$WEB_ROOT/luci-static/netwiz_dl"
-                    rm -rf "$DL_DIR" >/dev/null 2>&1
                     mkdir -p "$DL_DIR" >/dev/null 2>&1
                     chmod 777 "$DL_DIR" >/dev/null 2>&1
+
+                    find "$DL_DIR" -type f -name "*.tar*" -mmin +60 -exec rm -f {} \; >/dev/null 2>&1
+                    rm -f "$DL_DIR"/*.tar* >/dev/null 2>&1
                 fi
-                
+
+                # 生成带时间戳的文件名
                 TIME_STAMP=$(date +%Y%m%d_%H%M%S)
-                # 将文件名加上时间戳小尾巴
                 FILE_NAME="${plugin_name}_backup_${TIME_STAMP}.tar"
                 TMP_FILE="$DL_DIR/$FILE_NAME"
-                
-                # 执行相对路径打包 (纯 tar 提速版)
+
+                # 执行纯 tar 极速打包
                 tar -cf "$TMP_FILE" -C / $TARGET_FILES >/dev/null 2>&1
-                
+
                 if [ -s "$TMP_FILE" ]; then
                     chmod 644 "$TMP_FILE" >/dev/null 2>&1
-                    
-                    # 动态计算下载链接给前端，带上新的文件名
+
+                    # 1小时后，精准抹除这最后产生的一个文件，片甲不留！
+                    ( sleep 3600 && rm -f "$TMP_FILE" ) >/dev/null 2>&1 &
+
+                    # 返回下载链接
                     if echo "$DL_DIR" | grep -q "luci-static"; then
                         echo "{ \"result\": 0, \"url\": \"/luci-static/netwiz_dl/$FILE_NAME\" }"
                     else
