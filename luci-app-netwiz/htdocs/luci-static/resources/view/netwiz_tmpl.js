@@ -482,7 +482,7 @@ return view.extend({ // 继承view
       'M_PORT_CONFLICT_P1': _('Port'),
       'M_PORT_CONFLICT_P2': _('is already in use by another application!'),
       // ---------------------------
-      'LBL_MOD_LAYOUT': _('Advanced Panel Management'),
+      'LBL_MOD_LAYOUT':  '⚙️ ' + _('Advanced Panel Management'),
       'ADV_LAYOUT_TIP': _('Drag ☰ to reorder, check to show/hide:'),
       'ADV_LAYOUT_SAVE': _('Save and Apply'),
       'ADV_SAFE_BTN': '📦 ' + _('Plugin Installation'),
@@ -774,7 +774,7 @@ return view.extend({ // 继承view
    <div style="margin-top: 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 15px; text-align: left; position: relative;">
       <div style="font-size:14px; font-weight:bold; color:#475569; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
          <span>{{LBL_ADV_UTILS_TITLE}}</span>
-         <div id="btn-layout-mgr" style="font-size:18px; cursor:pointer; opacity:0.6; transition:all 0.2s;" onmouseover="this.style.opacity='1'; this.style.transform='rotate(45deg)';" onmouseout="this.style.opacity='0.6'; this.style.transform='rotate(0deg)';" title="⚙️ Panel Manager">⚙️</div>
+         <div id="btn-layout-mgr" style="font-size:18px; cursor:pointer; opacity:0.6; transition:all 0.2s;" onmouseover="this.style.opacity='1'; this.style.transform='rotate(45deg)';" onmouseout="this.style.opacity='0.6'; this.style.transform='rotate(0deg)';" title="{{LBL_MOD_LAYOUT}}">⚙️</div>
       </div>
       <div id="nw-adv-modules-container" style="display:flex; flex-wrap:wrap; gap:20px; align-items:center; margin-bottom:12px; padding-bottom:12px; border-bottom: 1px dashed #cbd5e1; min-height:24px;">
          <a href="javascript:void(0)" id="link-cron-reboot" style="color:#0284c7; text-decoration:none; font-size:14.5px; font-weight:500; display:inline-block;">{{LBL_CRON_REBOOT_LINK}}</a>
