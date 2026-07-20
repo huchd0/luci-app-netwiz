@@ -1379,7 +1379,7 @@ msgid "Full Software Backup & Restore"
 msgstr "全量软件的备份与恢复"
 
 msgid "Resolves traditional backup soft-brick risks. Smart backup is cross-version compatible. After flashing new firmware, upload backup to <span style=\"color:#ef4444; font-weight:bold;\">rapidly reinstall all software and losslessly restore configs (Requires Internet)</span>. Does not delete current software during restore. For absolute purity, factory reset the router first.<br><span style=\"color:#ef4444; font-weight:bold;\">Tip: If the backup shows Missing packages, manually place the installation packages in the /etc/netwiz/custom_pkgs/ directory.</span><br>If Netwiz is missing after a reset or needs an upgrade, connect to the internet and run this in SSH:"
-msgstr "智能备份（需联网）兼容<span style=\"color:#ef4444; font-weight:bold;\">跨openwrt版本恢复</span>（不能跨架构和安装包格式）。刷入新固件后，上传备份即可极速还原（全量备份后可<span style=\"color:#ef4444; font-weight:bold;\">离线恢复</span>）。恢复时不会删除当前软件。若需达到绝对纯净，请先恢复出厂设置。<br>「提示：若备份中显示“缺失安装包（未备妥）”，请手动将安装包放置于<span style=\"color:#ef4444; font-weight:bold;\"> /etc/netwiz/custom_pkgs/ </span>目录下。」<br>恢复出厂后若未安装 Netwiz 或需要升级，可联网后在 SSH 终端执行以下命令："
+msgstr "智能备份（需联网）<span style=\"color:#ef4444; font-weight:bold;\">兼容跨openwrt版本恢复</span>（不能跨架构和安装包格式）。刷入新固件后，上传备份即可极速还原（全量备份后可<span style=\"color:#ef4444; font-weight:bold;\">离线恢复</span>）。恢复时不会删除当前软件。若需达到绝对纯净，请先恢复出厂设置。<br>「提示：若备份中显示“缺失安装包（未备妥）”，请手动将安装包放置于<span style=\"color:#ef4444; font-weight:bold;\"> /etc/netwiz/custom_pkgs/ </span>目录下。」<br>恢复出厂后若未安装 Netwiz 或需要升级，可联网后在 SSH 终端执行以下命令："
 
 msgid "Generate Backup"
 msgstr "生成备份文件"
